@@ -35,7 +35,7 @@
     #loginScreen { text-align: center; padding: 60px 20px; }
     #loginScreen button { background: #4285F4; font-size: 18px; padding: 15px; }
     #adminHeader { text-align: right; margin-bottom: 20px; font-size: 14px; }
-    #propostasLista { margin: 20px 0; }
+    #propostasLista, #desativadosLista { margin: 30px 0; }
     .proposta-item {
       padding: 15px;
       background: #fff3cd;
@@ -46,6 +46,16 @@
     }
     .proposta-item:hover { background: #ffeaa7; }
     .proposta-item strong { color: #d35400; }
+    .desativado-item {
+      padding: 15px;
+      background: #ffe5e5;
+      border: 1px solid #ffcccc;
+      margin-bottom: 10px;
+      cursor: pointer;
+      border-radius: 8px;
+    }
+    .desativado-item:hover { background: #ffcccc; }
+    .desativado-item strong { color: #c0392b; }
     #resultado { margin-top: 20px; }
     .loja-item {
       padding: 15px;
@@ -123,6 +133,11 @@
     <!-- Lista de propostas -->
     <div id="propostasLista">
       <p style="text-align:center;">Carregando propostas...</p>
+    </div>
+
+    <!-- Lista de lojas desativadas (anuncio.postagem === false) -->
+    <div id="desativadosLista">
+      <p style="text-align:center;">Carregando lojas desativadas...</p>
     </div>
 
     <hr style="margin: 30px 0;">
@@ -253,26 +268,22 @@
     const COLECAO_PROPOSTAS = 'propostas';
 
     // === LISTA DE E-MAILS AUTORIZADOS ===
-    // ← ADICIONE AQUI OS E-MAILS DOS ADMINISTRADORES
     const ADMINS_PERMITIDOS = [
-      "hupcontato@gmail.com",  // ← TROQUE POR SEU E-MAIL PRINCIPAL
+      "hupcontato@gmail.com",  // ← Seu e-mail principal
+      // Adicione outros admins aqui
     ];
 
-    // Estado do usuário
     let usuarioAtual = null;
 
-    // Login com Google
     function loginComGoogle() {
       const provider = new firebase.auth.GoogleAuthProvider();
       auth.signInWithPopup(provider);
     }
 
-    // Logout
     function logout() {
       auth.signOut();
     }
 
-    // Monitora login
     auth.onAuthStateChanged((user) => {
       if (user) {
         if (ADMINS_PERMITIDOS.map(e => e.toLowerCase()).includes(user.email.toLowerCase())) {
@@ -281,6 +292,7 @@
           document.getElementById('loginScreen').style.display = 'none';
           document.getElementById('adminContent').style.display = 'block';
           carregarPropostas();
+          carregarDesativados(); // Nova função
         } else {
           alert("Acesso negado: seu e-mail não tem permissão de administrador.");
           auth.signOut();
@@ -292,7 +304,7 @@
       }
     });
 
-    // === RESTO DO CÓDIGO (igual ao anterior) ===
+    // Carrega propostas
     async function carregarPropostas() {
       const listaDiv = document.getElementById('propostasLista');
       listaDiv.innerHTML = '<p style="text-align:center;">Carregando propostas...</p>';
@@ -324,6 +336,41 @@
       }
     }
 
+    // Nova função: carrega lojas com anuncio.postagem === false
+    async function carregarDesativados() {
+      const listaDiv = document.getElementById('desativadosLista');
+      listaDiv.innerHTML = '<p style="text-align:center;">Carregando lojas desativadas...</p>';
+
+      try {
+        const snapshot = await db.collection(COLECAO_LOJAS)
+          .where('anuncio.postagem', '==', false)
+          .get();
+
+        if (snapshot.empty) {
+          listaDiv.innerHTML = '<p style="color:#666; text-align:center;">Nenhuma loja desativada no momento.</p>';
+          return;
+        }
+
+        listaDiv.innerHTML = '<h3 style="text-align:center; color:#c0392b;">Lojas Desativadas</h3>';
+
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const item = document.createElement('div');
+          item.className = 'desativado-item';
+          item.innerHTML = `
+            <strong>${data.nome || 'Sem nome'}</strong><br>
+            <small>${data.descricao || 'Sem descrição'} | Bairro: ${data.bairro || 'Não informado'}</small>
+          `;
+          item.onclick = () => carregarParaEdicao({ id: doc.id, ...data, _colecao: 'users' });
+          listaDiv.appendChild(item);
+        });
+      } catch (error) {
+        console.error("Erro ao carregar desativados:", error);
+        listaDiv.innerHTML = '<p style="color:red;">Erro ao carregar lojas desativadas.</p>';
+      }
+    }
+
+    // Busca normal em lojas
     async function buscarLojas() {
       const termo = document.getElementById('buscaNome').value.trim();
       if (!termo) return alert('Digite parte do nome');
@@ -469,6 +516,7 @@
         alert('Dados salvos com sucesso!');
         cancelarEdicao();
         carregarPropostas();
+        carregarDesativados(); // Atualiza também a lista de desativados
       } catch (error) {
         console.error(error);
         alert('Erro ao salvar: ' + error.message);
