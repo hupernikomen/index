@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin BuscaZap - Atualizar Loja</title>
+  <title>Admin BuscaZap</title>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <style>
     body {
@@ -15,7 +16,7 @@
       background: #f9f9f9;
     }
     h1, h2 { text-align: center; }
-    input, button, textarea, select {
+    input, button, textarea {
       width: 100%;
       padding: 10px;
       margin: 10px 0;
@@ -31,6 +32,20 @@
       border: none;
     }
     button:hover { background: #128C7E; }
+    #loginScreen { text-align: center; padding: 60px 20px; }
+    #loginScreen button { background: #4285F4; font-size: 18px; padding: 15px; }
+    #adminHeader { text-align: right; margin-bottom: 20px; font-size: 14px; }
+    #propostasLista { margin: 20px 0; }
+    .proposta-item {
+      padding: 15px;
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      margin-bottom: 10px;
+      cursor: pointer;
+      border-radius: 8px;
+    }
+    .proposta-item:hover { background: #ffeaa7; }
+    .proposta-item strong { color: #d35400; }
     #resultado { margin-top: 20px; }
     .loja-item {
       padding: 15px;
@@ -39,7 +54,6 @@
       margin-bottom: 10px;
       cursor: pointer;
       border-radius: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
     .loja-item:hover { background: #e6f7ff; }
     #formAtualizacao {
@@ -50,98 +64,178 @@
       box-shadow: 0 4px 20px rgba(0,0,0,0.1);
       margin-top: 30px;
     }
-    label {
-      font-weight: bold;
-      margin-top: 15px;
-      display: block;
-    }
-    .horario-group {
+    label { font-weight: bold; margin-top: 15px; display: block; }
+    .group {
       border: 1px solid #eee;
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 15px;
+      padding: 18px;
+      border-radius: 12px;
+      margin-bottom: 20px;
       background: #f8f8f8;
     }
-    .horario-group h3 {
-      margin-top: 0;
-      margin-bottom: 10px;
-      color: #333;
+    .group h3 { margin: 0 0 15px 0; color: #333; font-size: 16px; }
+    .switch-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 15px 0;
+      padding: 10px 0;
     }
+    .switch-label { font-weight: normal; font-size: 15.5px; }
+    .switch { position: relative; display: inline-block; width: 60px; height: 34px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #ccc; transition: .4s; border-radius: 34px;
+    }
+    .slider:before {
+      position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px;
+      background-color: white; transition: .4s; border-radius: 50%;
+    }
+    input:checked + .slider { background-color: #25D366; }
+    input:checked + .slider:before { transform: translateX(26px); }
+    .subfields { margin-top: 15px; padding-left: 20px; display: none; }
+    .subfields.show { display: block; }
+    #campoStatus { display: none; background: #fff3cd; padding: 15px; border-radius: 8px; border: 1px solid #ffeaa7; margin-bottom: 20px; }
   </style>
 </head>
 <body>
-  <h1>Admin BuscaZap</h1>
-  <p style="text-align:center;">Busque uma loja pelo nome e atualize seus dados no Firebase.</p>
 
-  <input type="text" id="buscaNome" placeholder="Digite parte do nome da loja (ex: padaria, mercado)" />
-  <button onclick="buscarLojas()">Buscar Lojas</button>
+  <!-- Tela de login -->
+  <div id="loginScreen">
+    <h1>Admin BuscaZap</h1>
+    <p>Faça login com uma conta Google autorizada para acessar o painel administrativo.</p>
+    <button onclick="loginComGoogle()">Entrar com Google</button>
+    <p style="margin-top:30px; color:#666; font-size:14px;">
+      Apenas administradores autorizados podem acessar este painel.
+    </p>
+  </div>
 
-  <div id="resultado"></div>
+  <!-- Conteúdo do admin (oculto até login) -->
+  <div id="adminContent" style="display:none;">
+    <div id="adminHeader">
+      Logado como: <strong id="userEmail"></strong> | 
+      <a href="#" onclick="logout()" style="color:red;">Sair</a>
+    </div>
 
-  <div id="formAtualizacao">
-    <h2>Atualizar Loja: <span id="nomeLojaAtual"></span></h2>
-    <form id="formLoja">
-      <input type="hidden" id="lojaId" />
+    <h1>Admin BuscaZap</h1>
+    <p style="text-align:center;">Gerencie lojas e propostas pendentes.</p>
 
-      <label>Nome da loja</label>
-      <input type="text" id="nome" required />
+    <!-- Lista de propostas -->
+    <div id="propostasLista">
+      <p style="text-align:center;">Carregando propostas...</p>
+    </div>
 
-      <label>Descrição</label>
-      <textarea id="descricao" rows="3"></textarea>
+    <hr style="margin: 30px 0;">
 
-      <label>WhatsApp Principal (com DDD e país, ex: 5599999999999)</label>
-      <input type="text" id="whatsapp" placeholder="5599999999999" />
+    <input type="text" id="buscaNome" placeholder="Digite parte do nome da loja" />
+    <button onclick="buscarLojas()">Buscar Lojas</button>
 
-      <label>Faz entrega?</label>
-      <select id="fazEntrega">
-        <option value="false">Não</option>
-        <option value="true">Sim</option>
-      </select>
+    <div id="resultado"></div>
 
-      <div class="horario-group">
-        <h3>Horários - Segunda a Sexta</h3>
-        <label>Abre</label>
-        <input type="text" id="semanaAbre" placeholder="08:00" />
-        <label>Fecha</label>
-        <input type="text" id="semanaFecha" placeholder="18:00" />
-      </div>
+    <div id="formAtualizacao">
+      <h2>Atualizar Item: <span id="nomeLojaAtual"></span> <small id="fonteItem"></small></h2>
+      <form id="formLoja">
+        <input type="hidden" id="lojaId" />
+        <input type="hidden" id="colecaoOrigem" value="users" />
 
-      <div class="horario-group">
-        <h3>Sábado (deixe vazio se fechado)</h3>
-        <label>Abre</label>
-        <input type="text" id="sabadoAbre" placeholder="08:00" />
-        <label>Fecha</label>
-        <input type="text" id="sabadoFecha" placeholder="12:00" />
-      </div>
+        <!-- Status apenas para propostas -->
+        <div id="campoStatus">
+          <div class="switch-container">
+            <span class="switch-label">Proposta Aprovada?</span>
+            <label class="switch">
+              <input type="checkbox" id="statusAprovado">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
 
-      <div class="horario-group">
-        <h3>Domingo (deixe vazio se fechado)</h3>
-        <label>Abre</label>
-        <input type="text" id="domingoAbre" placeholder="09:00" />
-        <label>Fecha</label>
-        <input type="text" id="domingoFecha" placeholder="13:00" />
-      </div>
+        <label>Nome da loja</label>
+        <input type="text" id="nome" required />
 
-      <div class="horario-group">
-        <h3>Intervalo (almoço) - Global</h3>
-        <label>Ativar intervalo?</label>
-        <select id="intervaloGlobal">
-          <option value="false">Não</option>
-          <option value="true">Sim</option>
-        </select>
-        <label>Início</label>
-        <input type="text" id="intervaloInicio" placeholder="12:00" />
-        <label>Retorno</label>
-        <input type="text" id="intervaloRetorno" placeholder="14:00" />
-      </div>
+        <label>Descrição</label>
+        <textarea id="descricao" rows="3"></textarea>
 
-      <button type="button" onclick="atualizarLoja()">Salvar Alterações</button>
-      <button type="button" onclick="cancelarEdicao()" style="background:#ccc;">Cancelar</button>
-    </form>
+        <label>Bairro</label>
+        <input type="text" id="bairro" />
+
+        <label>Tags (separadas por vírgula)</label>
+        <input type="text" id="tags" placeholder="ex: padaria, delivery, 24h" />
+
+        <!-- Destaques -->
+        <div class="group">
+          <h3>Destaques e Premium</h3>
+          <div class="switch-container">
+            <span class="switch-label">Destaque na busca</span>
+            <label class="switch"><input type="checkbox" id="anuncioBusca"><span class="slider"></span></label>
+          </div>
+          <div class="switch-container">
+            <span class="switch-label">Destaque na postagem</span>
+            <label class="switch"><input type="checkbox" id="anuncioPostagem"><span class="slider"></span></label>
+          </div>
+          <div class="switch-container">
+            <span class="switch-label">Loja Premium</span>
+            <label class="switch"><input type="checkbox" id="anuncioPremium"><span class="slider"></span></label>
+          </div>
+        </div>
+
+        <label>WhatsApp Principal</label>
+        <input type="text" id="whatsapp" placeholder="5599999999999" />
+
+        <div class="switch-container">
+          <span class="switch-label">Faz entrega?</span>
+          <label class="switch"><input type="checkbox" id="fazEntrega"><span class="slider"></span></label>
+        </div>
+
+        <!-- Horários -->
+        <div class="group">
+          <h3>Horários de Funcionamento</h3>
+          <label>Segunda a Sexta</label>
+          <div style="display:flex; gap:10px;">
+            <input type="text" id="semanaAbre" placeholder="Abre" style="width:48%;" />
+            <input type="text" id="semanaFecha" placeholder="Fecha" style="width:48%;" />
+          </div>
+
+          <div class="switch-container">
+            <span class="switch-label">Aberto aos sábados?</span>
+            <label class="switch"><input type="checkbox" id="sabadoAtivo" onchange="toggleSubfields('sabado')"><span class="slider"></span></label>
+          </div>
+          <div id="sabadoFields" class="subfields">
+            <div style="display:flex; gap:10px;">
+              <input type="text" id="sabadoAbre" placeholder="Abre" style="width:48%;" />
+              <input type="text" id="sabadoFecha" placeholder="Fecha" style="width:48%;" />
+            </div>
+          </div>
+
+          <div class="switch-container">
+            <span class="switch-label">Aberto aos domingos?</span>
+            <label class="switch"><input type="checkbox" id="domingoAtivo" onchange="toggleSubfields('domingo')"><span class="slider"></span></label>
+          </div>
+          <div id="domingoFields" class="subfields">
+            <div style="display:flex; gap:10px;">
+              <input type="text" id="domingoAbre" placeholder="Abre" style="width:48%;" />
+              <input type="text" id="domingoFecha" placeholder="Fecha" style="width:48%;" />
+            </div>
+          </div>
+
+          <div class="switch-container">
+            <span class="switch-label">Possui intervalo de almoço?</span>
+            <label class="switch"><input type="checkbox" id="intervaloAtivo" onchange="toggleSubfields('intervalo')"><span class="slider"></span></label>
+          </div>
+          <div id="intervaloFields" class="subfields">
+            <div style="display:flex; gap:10px;">
+              <input type="text" id="intervaloInicio" placeholder="Início" style="width:48%;" />
+              <input type="text" id="intervaloRetorno" placeholder="Retorno" style="width:48%;" />
+            </div>
+          </div>
+        </div>
+
+        <button type="button" onclick="atualizarLoja()">Salvar Alterações</button>
+        <button type="button" onclick="cancelarEdicao()" style="background:#ccc;">Cancelar</button>
+      </form>
+    </div>
   </div>
 
   <script>
-    // Configuração do Firebase (já correta do seu projeto)
     const firebaseConfig = {
       apiKey: "AIzaSyDo0QQjxmXZLw8qiWC3Kc52ZYk9UtWCYmc",
       authDomain: "appguiacomercial-e6109.firebaseapp.com",
@@ -152,149 +246,232 @@
     };
 
     firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
     const db = firebase.firestore();
 
-    const COLECAO_LOJAS = 'users'; // Confirmado: lojas estão na coleção 'users'
+    const COLECAO_LOJAS = 'users';
+    const COLECAO_PROPOSTAS = 'propostas';
 
-    let lojasEncontradas = [];
+    // === LISTA DE E-MAILS AUTORIZADOS ===
+    // ← ADICIONE AQUI OS E-MAILS DOS ADMINISTRADORES
+    const ADMINS_PERMITIDOS = [
+      "seuemail@gmail.com",  // ← TROQUE POR SEU E-MAIL PRINCIPAL
+      "admin2@exemplo.com"   // ← Adicione mais se necessário
+    ];
 
-    async function buscarLojas() {
-      const termo = document.getElementById('buscaNome').value.trim();
-      if (!termo) {
-        alert('Digite pelo menos parte do nome da loja');
-        return;
+    // Estado do usuário
+    let usuarioAtual = null;
+
+    // Login com Google
+    function loginComGoogle() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider);
+    }
+
+    // Logout
+    function logout() {
+      auth.signOut();
+    }
+
+    // Monitora login
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        if (ADMINS_PERMITIDOS.map(e => e.toLowerCase()).includes(user.email.toLowerCase())) {
+          usuarioAtual = user;
+          document.getElementById('userEmail').textContent = user.email;
+          document.getElementById('loginScreen').style.display = 'none';
+          document.getElementById('adminContent').style.display = 'block';
+          carregarPropostas();
+        } else {
+          alert("Acesso negado: seu e-mail não tem permissão de administrador.");
+          auth.signOut();
+        }
+      } else {
+        usuarioAtual = null;
+        document.getElementById('loginScreen').style.display = 'block';
+        document.getElementById('adminContent').style.display = 'none';
       }
+    });
 
-      const termoLower = termo.toLowerCase();
-      const resultadoDiv = document.getElementById('resultado');
-      resultadoDiv.innerHTML = '<p style="text-align:center;">Buscando lojas...</p>';
+    // === RESTO DO CÓDIGO (igual ao anterior) ===
+    async function carregarPropostas() {
+      const listaDiv = document.getElementById('propostasLista');
+      listaDiv.innerHTML = '<p style="text-align:center;">Carregando propostas...</p>';
 
       try {
-        const snapshot = await db.collection(COLECAO_LOJAS).get();
-
-        lojasEncontradas = [];
-        resultadoDiv.innerHTML = '';
+        const snapshot = await db.collection(COLECAO_PROPOSTAS).get();
 
         if (snapshot.empty) {
-          resultadoDiv.innerHTML = '<p>Nenhuma loja encontrada na base.</p>';
+          listaDiv.innerHTML = '<p style="color:#666; text-align:center;">Nenhuma proposta pendente no momento.</p>';
           return;
         }
 
-        let encontrou = false;
+        listaDiv.innerHTML = '<h3 style="text-align:center; color:#d35400;">Propostas Pendentes</h3>';
 
         snapshot.forEach(doc => {
           const data = doc.data();
+          const item = document.createElement('div');
+          item.className = 'proposta-item';
+          item.innerHTML = `
+            <strong>${data.nome || 'Sem nome'}</strong><br>
+            <small>${data.descricao || 'Sem descrição'} | WhatsApp: ${data.whatsapp?.principal || 'Não informado'}</small>
+          `;
+          item.onclick = () => carregarParaEdicao({ id: doc.id, ...data, _colecao: 'propostas' });
+          listaDiv.appendChild(item);
+        });
+      } catch (error) {
+        console.error("Erro ao carregar propostas:", error);
+        listaDiv.innerHTML = '<p style="color:red;">Erro ao carregar propostas.</p>';
+      }
+    }
 
+    async function buscarLojas() {
+      const termo = document.getElementById('buscaNome').value.trim();
+      if (!termo) return alert('Digite parte do nome');
+
+      const termoLower = termo.toLowerCase();
+      const resultadoDiv = document.getElementById('resultado');
+      resultadoDiv.innerHTML = '<p style="text-align:center;">Buscando...</p>';
+
+      try {
+        const snapshot = await db.collection(COLECAO_LOJAS).get();
+        resultadoDiv.innerHTML = '';
+
+        let encontrou = false;
+        snapshot.forEach(doc => {
+          const data = doc.data();
           if (data.nome && data.nome.toLowerCase().includes(termoLower)) {
-            lojasEncontradas.push({ id: doc.id, ...data });
             encontrou = true;
-
             const item = document.createElement('div');
             item.className = 'loja-item';
-            item.innerHTML = `
-              <strong>${data.nome}</strong><br>
-              <small>${data.descricao || 'Sem descrição'}</small>
-            `;
-            item.onclick = () => carregarParaEdicao({ id: doc.id, ...data });
+            item.innerHTML = `<strong>${data.nome}</strong><br><small>Bairro: ${data.bairro || 'Não informado'}</small>`;
+            item.onclick = () => carregarParaEdicao({ id: doc.id, ...data, _colecao: 'users' });
             resultadoDiv.appendChild(item);
           }
         });
 
-        if (!encontrou) {
-          resultadoDiv.innerHTML = '<p>Nenhuma loja encontrada com esse nome.</p>';
-        }
+        if (!encontrou) resultadoDiv.innerHTML = '<p>Nenhuma loja encontrada.</p>';
       } catch (error) {
-          console.error("Erro ao buscar:", error);
-          resultadoDiv.innerHTML = '<p style="color:red;">Erro ao conectar com o banco de dados.</p>';
+        resultadoDiv.innerHTML = '<p style="color:red;">Erro na busca.</p>';
       }
     }
 
-    function carregarParaEdicao(loja) {
+    function carregarParaEdicao(item) {
       document.getElementById('formAtualizacao').style.display = 'block';
-      document.getElementById('nomeLojaAtual').textContent = loja.nome || 'Loja sem nome';
-      document.getElementById('lojaId').value = loja.id;
+      document.getElementById('nomeLojaAtual').textContent = item.nome || 'Sem nome';
+      document.getElementById('fonteItem').textContent = item._colecao === 'propostas' ? '(Proposta)' : '(Loja)';
+      document.getElementById('lojaId').value = item.id;
+      document.getElementById('colecaoOrigem').value = item._colecao || 'users';
 
-      document.getElementById('nome').value = loja.nome || '';
-      document.getElementById('descricao').value = loja.descricao || '';
-      document.getElementById('whatsapp').value = loja.whatsapp?.principal || '';
-      document.getElementById('fazEntrega').value = loja.fazEntrega ? 'true' : 'false';
+      const isProposta = item._colecao === 'propostas';
+      document.getElementById('campoStatus').style.display = isProposta ? 'block' : 'none';
+      if (isProposta) document.getElementById('statusAprovado').checked = item.status === true;
 
-      // Horários
-      document.getElementById('semanaAbre').value = loja.horarios?.semana?.abre || '';
-      document.getElementById('semanaFecha').value = loja.horarios?.semana?.fecha || '';
+      document.getElementById('nome').value = item.nome || '';
+      document.getElementById('descricao').value = item.descricao || '';
+      document.getElementById('bairro').value = item.bairro || '';
+      document.getElementById('tags').value = Array.isArray(item.tags) ? item.tags.join(', ') : '';
+      document.getElementById('whatsapp').value = item.whatsapp?.principal || '';
 
-      document.getElementById('sabadoAbre').value = loja.horarios?.sabado?.abre || '';
-      document.getElementById('sabadoFecha').value = loja.horarios?.sabado?.fecha || '';
+      document.getElementById('anuncioBusca').checked = item.anuncio?.busca === true;
+      document.getElementById('anuncioPostagem').checked = item.anuncio?.postagem === true;
+      document.getElementById('anuncioPremium').checked = item.anuncio?.premium === true;
 
-      document.getElementById('domingoAbre').value = loja.horarios?.domingo?.abre || '';
-      document.getElementById('domingoFecha').value = loja.horarios?.domingo?.fecha || '';
+      document.getElementById('fazEntrega').checked = item.fazEntrega === true;
 
-      // Intervalo
-      const temIntervalo = loja.horarios?.intervalo?.global === true;
-      document.getElementById('intervaloGlobal').value = temIntervalo ? 'true' : 'false';
-      document.getElementById('intervaloInicio').value = loja.horarios?.intervalo?.inicio || '';
-      document.getElementById('intervaloRetorno').value = loja.horarios?.intervalo?.retorno || '';
+      document.getElementById('semanaAbre').value = item.horarios?.semana?.abre || '';
+      document.getElementById('semanaFecha').value = item.horarios?.semana?.fecha || '';
 
-      // Scroll suave para o formulário
+      const sabadoAtivo = !!item.horarios?.sabado;
+      document.getElementById('sabadoAtivo').checked = sabadoAtivo;
+      document.getElementById('sabadoAbre').value = item.horarios?.sabado?.abre || '';
+      document.getElementById('sabadoFecha').value = item.horarios?.sabado?.fecha || '';
+      toggleSubfields('sabado');
+
+      const domingoAtivo = !!item.horarios?.domingo;
+      document.getElementById('domingoAtivo').checked = domingoAtivo;
+      document.getElementById('domingoAbre').value = item.horarios?.domingo?.abre || '';
+      document.getElementById('domingoFecha').value = item.horarios?.domingo?.fecha || '';
+      toggleSubfields('domingo');
+
+      const intervaloAtivo = item.horarios?.intervalo?.global === true;
+      document.getElementById('intervaloAtivo').checked = intervaloAtivo;
+      document.getElementById('intervaloInicio').value = item.horarios?.intervalo?.inicio || '';
+      document.getElementById('intervaloRetorno').value = item.horarios?.intervalo?.retorno || '';
+      toggleSubfields('intervalo');
+
       document.getElementById('formAtualizacao').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function toggleSubfields(tipo) {
+      const ativo = document.getElementById(tipo + 'Ativo').checked;
+      document.getElementById(tipo + 'Fields').classList.toggle('show', ativo);
     }
 
     async function atualizarLoja() {
       const id = document.getElementById('lojaId').value;
-      if (!id) {
-        alert('Nenhum ID de loja encontrado.');
-        return;
-      }
+      const colecao = document.getElementById('colecaoOrigem').value;
+      if (!id) return alert('Erro: ID não encontrado');
+
+      const tagsArray = document.getElementById('tags').value.trim()
+        ? document.getElementById('tags').value.trim().split(',').map(t => t.trim()).filter(t => t)
+        : [];
+
+      const anuncioObj = {
+        busca: document.getElementById('anuncioBusca').checked,
+        postagem: document.getElementById('anuncioPostagem').checked,
+        premium: document.getElementById('anuncioPremium').checked
+      };
 
       const dados = {
         nome: document.getElementById('nome').value.trim(),
         descricao: document.getElementById('descricao').value.trim(),
-        whatsapp: {
-          principal: document.getElementById('whatsapp').value.trim()
-        },
-        fazEntrega: document.getElementById('fazEntrega').value === 'true',
+        bairro: document.getElementById('bairro').value.trim(),
+        tags: tagsArray,
+        anuncio: anuncioObj,
+        whatsapp: { principal: document.getElementById('whatsapp').value.trim() },
+        fazEntrega: document.getElementById('fazEntrega').checked,
         horarios: {
           semana: {
             abre: document.getElementById('semanaAbre').value.trim(),
             fecha: document.getElementById('semanaFecha').value.trim()
-          },
-          intervalo: {
-            global: document.getElementById('intervaloGlobal').value === 'true',
-            inicio: document.getElementById('intervaloInicio').value.trim(),
-            retorno: document.getElementById('intervaloRetorno').value.trim()
           }
         }
       };
 
-      // Sábado (opcional)
-      const sabAbre = document.getElementById('sabadoAbre').value.trim();
-      if (sabAbre) {
-        dados.horarios.sabado = {
-          abre: sabAbre,
-          fecha: document.getElementById('sabadoFecha').value.trim()
+      if (document.getElementById('intervaloAtivo').checked) {
+        dados.horarios.intervalo = {
+          global: true,
+          inicio: document.getElementById('intervaloInicio').value.trim(),
+          retorno: document.getElementById('intervaloRetorno').value.trim()
         };
-      } else if (dados.horarios.sabado) {
-        delete dados.horarios.sabado;
       }
 
-      // Domingo (opcional)
-      const domAbre = document.getElementById('domingoAbre').value.trim();
-      if (domAbre) {
+      if (document.getElementById('sabadoAtivo').checked) {
+        dados.horarios.sabado = {
+          abre: document.getElementById('sabadoAbre').value.trim(),
+          fecha: document.getElementById('sabadoFecha').value.trim()
+        };
+      }
+
+      if (document.getElementById('domingoAtivo').checked) {
         dados.horarios.domingo = {
-          abre: domAbre,
+          abre: document.getElementById('domingoAbre').value.trim(),
           fecha: document.getElementById('domingoFecha').value.trim()
         };
-      } else if (dados.horarios.domingo) {
-        delete dados.horarios.domingo;
+      }
+
+      if (colecao === 'propostas') {
+        dados.status = document.getElementById('statusAprovado').checked;
       }
 
       try {
-        await db.collection(COLECAO_LOJAS).doc(id).update(dados);
-        alert('Loja atualizada com sucesso!');
+        await db.collection(colecao).doc(id).update(dados);
+        alert('Dados salvos com sucesso!');
         cancelarEdicao();
-        document.getElementById('buscaNome').value = '';
+        carregarPropostas();
       } catch (error) {
-        console.error("Erro ao atualizar:", error);
+        console.error(error);
         alert('Erro ao salvar: ' + error.message);
       }
     }
