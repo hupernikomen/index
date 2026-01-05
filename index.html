@@ -185,7 +185,7 @@
       }
 
       const snapshot = await db.collection(COLECAO_LOJAS)
-        .orderBy('nomeLower') // Assumindo que há um campo nomeLower para busca case-insensitive
+        .orderBy('nome') // Assumindo que há um campo nomeLower para busca case-insensitive
         .startAt(termo)
         .endAt(termo + '\uf8ff')
         .limit(20)
