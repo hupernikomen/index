@@ -43,6 +43,9 @@
       margin-bottom: 10px;
       cursor: pointer;
       border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
     .proposta-item:hover { background: #ffeaa7; }
     .proposta-item strong { color: #d35400; }
@@ -51,11 +54,24 @@
       background: #ffe5e5;
       border: 1px solid #ffcccc;
       margin-bottom: 10px;
-      cursor: pointer;
       border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
     .desativado-item:hover { background: #ffcccc; }
     .desativado-item strong { color: #c0392b; }
+    .desativado-item .info { flex: 1; cursor: pointer; }
+    .btn-excluir {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .btn-excluir:hover { background: #c0392b; }
     #resultado { margin-top: 20px; }
     .loja-item {
       padding: 15px;
@@ -135,7 +151,7 @@
       <p style="text-align:center;">Carregando propostas...</p>
     </div>
 
-    <!-- Lista de lojas desativadas (anuncio.postagem === false) -->
+    <!-- Lista de lojas desativadas -->
     <div id="desativadosLista">
       <p style="text-align:center;">Carregando lojas desativadas...</p>
     </div>
@@ -269,8 +285,8 @@
 
     // === LISTA DE E-MAILS AUTORIZADOS ===
     const ADMINS_PERMITIDOS = [
-      "hupcontato@gmail.com",  // ← Seu e-mail principal
-      // Adicione outros admins aqui
+      "hupcontato@gmail.com",
+      // Adicione outros se necessário
     ];
 
     let usuarioAtual = null;
@@ -292,7 +308,7 @@
           document.getElementById('loginScreen').style.display = 'none';
           document.getElementById('adminContent').style.display = 'block';
           carregarPropostas();
-          carregarDesativados(); // Nova função
+          carregarDesativados();
         } else {
           alert("Acesso negado: seu e-mail não tem permissão de administrador.");
           auth.signOut();
@@ -304,7 +320,6 @@
       }
     });
 
-    // Carrega propostas
     async function carregarPropostas() {
       const listaDiv = document.getElementById('propostasLista');
       listaDiv.innerHTML = '<p style="text-align:center;">Carregando propostas...</p>';
@@ -324,10 +339,16 @@
           const item = document.createElement('div');
           item.className = 'proposta-item';
           item.innerHTML = `
-            <strong>${data.nome || 'Sem nome'}</strong><br>
-            <small>${data.descricao || 'Sem descrição'} | WhatsApp: ${data.whatsapp?.principal || 'Não informado'}</small>
+            <div>
+              <strong>${data.nome || 'Sem nome'}</strong><br>
+              <small>${data.descricao || 'Sem descrição'} | WhatsApp: ${data.whatsapp?.principal || 'Não informado'}</small>
+            </div>
           `;
-          item.onclick = () => carregarParaEdicao({ id: doc.id, ...data, _colecao: 'propostas' });
+          item.onclick = (e) => {
+            if (!e.target.classList.contains('btn-excluir')) {
+              carregarParaEdicao({ id: doc.id, ...data, _colecao: 'propostas' });
+            }
+          };
           listaDiv.appendChild(item);
         });
       } catch (error) {
@@ -336,7 +357,6 @@
       }
     }
 
-    // Nova função: carrega lojas com anuncio.postagem === false
     async function carregarDesativados() {
       const listaDiv = document.getElementById('desativadosLista');
       listaDiv.innerHTML = '<p style="text-align:center;">Carregando lojas desativadas...</p>';
@@ -358,10 +378,13 @@
           const item = document.createElement('div');
           item.className = 'desativado-item';
           item.innerHTML = `
-            <strong>${data.nome || 'Sem nome'}</strong><br>
-            <small>${data.descricao || 'Sem descrição'} | Bairro: ${data.bairro || 'Não informado'}</small>
+            <div class="info">
+              <strong>${data.nome || 'Sem nome'}</strong><br>
+              <small>${data.descricao || 'Sem descrição'} | Bairro: ${data.bairro || 'Não informado'}</small>
+            </div>
+            <button class="btn-excluir" onclick="excluirLoja('${doc.id}', event)">Excluir</button>
           `;
-          item.onclick = () => carregarParaEdicao({ id: doc.id, ...data, _colecao: 'users' });
+          item.querySelector('.info').onclick = () => carregarParaEdicao({ id: doc.id, ...data, _colecao: 'users' });
           listaDiv.appendChild(item);
         });
       } catch (error) {
@@ -370,7 +393,25 @@
       }
     }
 
-    // Busca normal em lojas
+    // Função para excluir loja desativada
+    async function excluirLoja(id, event) {
+      event.stopPropagation(); // Evita abrir o formulário
+
+      if (!confirm("Tem certeza que deseja EXCLUIR permanentemente esta loja?\nEssa ação não pode ser desfeita.")) {
+        return;
+      }
+
+      try {
+        await db.collection(COLECAO_LOJAS).doc(id).delete();
+        alert("Loja excluída com sucesso!");
+        carregarDesativados(); // Atualiza a lista
+      } catch (error) {
+        console.error("Erro ao excluir:", error);
+        alert("Erro ao excluir a loja: " + error.message);
+      }
+    }
+
+    // ... (o resto das funções permanece igual: buscarLojas, carregarParaEdicao, toggleSubfields, atualizarLoja, cancelarEdicao)
     async function buscarLojas() {
       const termo = document.getElementById('buscaNome').value.trim();
       if (!termo) return alert('Digite parte do nome');
@@ -516,7 +557,7 @@
         alert('Dados salvos com sucesso!');
         cancelarEdicao();
         carregarPropostas();
-        carregarDesativados(); // Atualiza também a lista de desativados
+        carregarDesativados();
       } catch (error) {
         console.error(error);
         alert('Erro ao salvar: ' + error.message);
