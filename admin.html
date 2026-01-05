@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin BuscaZap - Atualizar Loja</title>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f9f9f9;
+    }
+
+    h1,
+    h2 {
+      text-align: center;
+    }
+
+    input,
+    button,
+    textarea,
+    select {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+
+    button {
+      background: #25D366;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #128C7E;
+    }
+
+    #resultado {
+      margin-top: 20px;
+    }
+
+    .loja-item {
+      padding: 10px;
+      background: white;
+      border: 1px solid #ddd;
+      margin-bottom: 10px;
+      cursor: pointer;
+      border-radius: 8px;
+    }
+
+    .loja-item:hover {
+      background: #e6f7ff;
+    }
+
+    #formAtualizacao {
+      display: none;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      margin-top: 30px;
+    }
+
+    label {
+      font-weight: bold;
+      margin-top: 15px;
+      display: block;
+    }
+
+    .horario-group {
+      border: 1px solid #eee;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      background: #f0f0f0;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Admin BuscaZap</h1>
+  <p>Busque uma loja pelo nome e atualize seus dados no Firebase.</p>
+
+  <input type="text" id="buscaNome" placeholder="Digite o nome da loja" />
+  <button onclick="buscarLojas()">Buscar Lojas</button>
+
+  <div id="resultado"></div>
+
+  <div id="formAtualizacao">
+    <h2>Atualizar Loja: <span id="nomeLojaAtual"></span></h2>
+    <form id="formLoja">
+      <input type="hidden" id="lojaId" />
+
+      <label>Nome da loja</label>
+      <input type="text" id="nome" required />
+
+      <label>Descrição</label>
+      <textarea id="descricao"></textarea>
+
+      <label>WhatsApp Principal</label>
+      <input type="text" id="whatsapp" placeholder="5599999999999" />
+
+      <label>Faz entrega?</label>
+      <select id="fazEntrega">
+        <option value="false">Não</option>
+        <option value="true">Sim</option>
+      </select>
+
+      <div class="horario-group">
+        <h3>Horários - Segunda a Sexta</h3>
+        <label>Abre</label>
+        <input type="text" id="semanaAbre" placeholder="08:00" />
+        <label>Fecha</label>
+        <input type="text" id="semanaFecha" placeholder="18:00" />
+      </div>
+
+      <div class="horario-group">
+        <h3>Sábado (deixe vazio se fechado)</h3>
+        <label>Abre</label>
+        <input type="text" id="sabadoAbre" placeholder="08:00" />
+        <label>Fecha</label>
+        <input type="text" id="sabadoFecha" placeholder="12:00" />
+      </div>
+
+      <div class="horario-group">
+        <h3>Domingo (deixe vazio se fechado)</h3>
+        <label>Abre</label>
+        <input type="text" id="domingoAbre" placeholder="09:00" />
+        <label>Fecha</label>
+        <input type="text" id="domingoFecha" placeholder="13:00" />
+      </div>
+
+      <div class="horario-group">
+        <h3>Intervalo (almoço) - Global</h3>
+        <label>Ativar intervalo?</label>
+        <select id="intervaloGlobal">
+          <option value="false">Não</option>
+          <option value="true">Sim</option>
+        </select>
+        <label>Início</label>
+        <input type="text" id="intervaloInicio" placeholder="12:00" />
+        <label>Retorno</label>
+        <input type="text" id="intervaloRetorno" placeholder="14:00" />
+      </div>
+
+      <button type="button" onclick="atualizarLoja()">Salvar Alterações</button>
+      <button type="button" onclick="cancelarEdicao()">Cancelar</button>
+    </form>
+  </div>
+
+  <script>
+    // === CONFIGURAÇÃO DO FIREBASE ===
+    // Cole aqui sua configuração Firebase do projeto BuscaZap
+    const firebaseConfig = {
+      apiKey: "AIzaSyDo0QQjxmXZLw8qiWC3Kc52ZYk9UtWCYmc",
+      authDomain: "appguiacomercial-e6109.firebaseapp.com",
+      projectId: "appguiacomercial-e6109",
+      storageBucket: "appguiacomercial-e6109.appspot.com",
+      messagingSenderId: "292734642765",
+      appId: "1:292734642765:web:fc9d62106f1f72d4340a04"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Coleção das lojas (provavelmente 'lojas' ou 'estabelecimentos' - ajuste se necessário)
+    const COLECAO_LOJAS = 'users';
+
+    let lojasEncontradas = [];
+
+    async function buscarLojas() {
+      const termo = document.getElementById('buscaNome').value.trim().toLowerCase();
+      if (!termo) {
+        alert('Digite o nome da loja');
+        return;
+      }
+
+      const snapshot = await db.collection(COLECAO_LOJAS)
+        .orderBy('nomeLower') // Assumindo que há um campo nomeLower para busca case-insensitive
+        .startAt(termo)
+        .endAt(termo + '\uf8ff')
+        .limit(20)
+        .get();
+
+      lojasEncontradas = [];
+      const resultadoDiv = document.getElementById('resultado');
+      resultadoDiv.innerHTML = '';
+
+      if (snapshot.empty) {
+        resultadoDiv.innerHTML = '<p>Nenhuma loja encontrada.</p>';
+        return;
+      }
+
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        lojasEncontradas.push({ id: doc.id, ...data });
+
+        const item = document.createElement('div');
+        item.className = 'loja-item';
+        item.innerHTML = `<strong>${data.nome}</strong><br>${data.descricao || ''}`;
+        item.onclick = () => carregarParaEdicao({ id: doc.id, ...data });
+        resultadoDiv.appendChild(item);
+      });
+    }
+
+    function carregarParaEdicao(loja) {
+      document.getElementById('formAtualizacao').style.display = 'block';
+      document.getElementById('nomeLojaAtual').textContent = loja.nome;
+      document.getElementById('lojaId').value = loja.id;
+      document.getElementById('nome').value = loja.nome || '';
+      document.getElementById('descricao').value = loja.descricao || '';
+      document.getElementById('whatsapp').value = loja.whatsapp?.principal || '';
+      document.getElementById('fazEntrega').value = loja.fazEntrega ? 'true' : 'false';
+
+      // Horários semana
+      document.getElementById('semanaAbre').value = loja.horarios?.semana?.abre || '';
+      document.getElementById('semanaFecha').value = loja.horarios?.semana?.fecha || '';
+
+      // Sábado
+      document.getElementById('sabadoAbre').value = loja.horarios?.sabado?.abre || '';
+      document.getElementById('sabadoFecha').value = loja.horarios?.sabado?.fecha || '';
+
+      // Domingo
+      document.getElementById('domingoAbre').value = loja.horarios?.domingo?.abre || '';
+      document.getElementById('domingoFecha').value = loja.horarios?.domingo?.fecha || '';
+
+      // Intervalo
+      const temIntervalo = loja.horarios?.intervalo?.global === true;
+      document.getElementById('intervaloGlobal').value = temIntervalo ? 'true' : 'false';
+      document.getElementById('intervaloInicio').value = loja.horarios?.intervalo?.inicio || '';
+      document.getElementById('intervaloRetorno').value = loja.horarios?.intervalo?.retorno || '';
+
+      // Scroll para o form
+      document.getElementById('formAtualizacao').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    async function atualizarLoja() {
+      const id = document.getElementById('lojaId').value;
+      if (!id) return;
+
+      const dados = {
+        nome: document.getElementById('nome').value.trim(),
+        descricao: document.getElementById('descricao').value.trim(),
+        whatsapp: { principal: document.getElementById('whatsapp').value.trim() },
+        fazEntrega: document.getElementById('fazEntrega').value === 'true',
+        horarios: {
+          semana: {
+            abre: document.getElementById('semanaAbre').value.trim(),
+            fecha: document.getElementById('semanaFecha').value.trim()
+          },
+          intervalo: {
+            global: document.getElementById('intervaloGlobal').value === 'true',
+            inicio: document.getElementById('intervaloInicio').value.trim(),
+            retorno: document.getElementById('intervaloRetorno').value.trim()
+          }
+        }
+      };
+
+      // Sábado opcional
+      const sabAbre = document.getElementById('sabadoAbre').value.trim();
+      if (sabAbre) {
+        dados.horarios.sabado = {
+          abre: sabAbre,
+          fecha: document.getElementById('sabadoFecha').value.trim()
+        };
+      }
+
+      // Domingo opcional
+      const domAbre = document.getElementById('domingoAbre').value.trim();
+      if (domAbre) {
+        dados.horarios.domingo = {
+          abre: domAbre,
+          fecha: document.getElementById('domingoFecha').value.trim()
+        };
+      }
+
+      // Campo para busca case-insensitive (recomendado)
+      dados.nomeLower = dados.nome.toLowerCase();
+
+      try {
+        await db.collection(COLECAO_LOJAS).doc(id).update(dados);
+        alert('Loja atualizada com sucesso!');
+        cancelarEdicao();
+      } catch (error) {
+        console.error(error);
+        alert('Erro ao atualizar: ' + error.message);
+      }
+    }
+
+    function cancelarEdicao() {
+      document.getElementById('formAtualizacao').style.display = 'none';
+      document.getElementById('resultado').innerHTML = '';
+    }
+  </script>
+</body>
+
+</html>
