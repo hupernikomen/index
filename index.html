@@ -1,13 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin BuscaZap - Atualizar Loja</title>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -16,81 +14,66 @@
       padding: 20px;
       background: #f9f9f9;
     }
-
-    h1,
-    h2 {
-      text-align: center;
-    }
-
-    input,
-    button,
-    textarea,
-    select {
+    h1, h2 { text-align: center; }
+    input, button, textarea, select {
       width: 100%;
       padding: 10px;
       margin: 10px 0;
       border: 1px solid #ccc;
       border-radius: 8px;
+      box-sizing: border-box;
     }
-
     button {
       background: #25D366;
       color: white;
       font-weight: bold;
       cursor: pointer;
+      border: none;
     }
-
-    button:hover {
-      background: #128C7E;
-    }
-
-    #resultado {
-      margin-top: 20px;
-    }
-
+    button:hover { background: #128C7E; }
+    #resultado { margin-top: 20px; }
     .loja-item {
-      padding: 10px;
+      padding: 15px;
       background: white;
       border: 1px solid #ddd;
       margin-bottom: 10px;
       cursor: pointer;
       border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
-
-    .loja-item:hover {
-      background: #e6f7ff;
-    }
-
+    .loja-item:hover { background: #e6f7ff; }
     #formAtualizacao {
       display: none;
       background: white;
-      padding: 20px;
+      padding: 25px;
       border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
       margin-top: 30px;
     }
-
     label {
       font-weight: bold;
       margin-top: 15px;
       display: block;
     }
-
     .horario-group {
       border: 1px solid #eee;
       padding: 15px;
       border-radius: 8px;
       margin-bottom: 15px;
-      background: #f0f0f0;
+      background: #f8f8f8;
+    }
+    .horario-group h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      color: #333;
     }
   </style>
 </head>
-
 <body>
   <h1>Admin BuscaZap</h1>
-  <p>Busque uma loja pelo nome e atualize seus dados no Firebase.</p>
+  <p style="text-align:center;">Busque uma loja pelo nome e atualize seus dados no Firebase.</p>
 
-  <input type="text" id="buscaNome" placeholder="Digite o nome da loja" />
+  <input type="text" id="buscaNome" placeholder="Digite parte do nome da loja (ex: padaria, mercado)" />
   <button onclick="buscarLojas()">Buscar Lojas</button>
 
   <div id="resultado"></div>
@@ -104,9 +87,9 @@
       <input type="text" id="nome" required />
 
       <label>Descrição</label>
-      <textarea id="descricao"></textarea>
+      <textarea id="descricao" rows="3"></textarea>
 
-      <label>WhatsApp Principal</label>
+      <label>WhatsApp Principal (com DDD e país, ex: 5599999999999)</label>
       <input type="text" id="whatsapp" placeholder="5599999999999" />
 
       <label>Faz entrega?</label>
@@ -153,13 +136,12 @@
       </div>
 
       <button type="button" onclick="atualizarLoja()">Salvar Alterações</button>
-      <button type="button" onclick="cancelarEdicao()">Cancelar</button>
+      <button type="button" onclick="cancelarEdicao()" style="background:#ccc;">Cancelar</button>
     </form>
   </div>
 
   <script>
-    // === CONFIGURAÇÃO DO FIREBASE ===
-    // Cole aqui sua configuração Firebase do projeto BuscaZap
+    // Configuração do Firebase (já correta do seu projeto)
     const firebaseConfig = {
       apiKey: "AIzaSyDo0QQjxmXZLw8qiWC3Kc52ZYk9UtWCYmc",
       authDomain: "appguiacomercial-e6109.firebaseapp.com",
@@ -172,67 +154,78 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Coleção das lojas (provavelmente 'lojas' ou 'estabelecimentos' - ajuste se necessário)
-    const COLECAO_LOJAS = 'users';
+    const COLECAO_LOJAS = 'users'; // Confirmado: lojas estão na coleção 'users'
 
     let lojasEncontradas = [];
 
     async function buscarLojas() {
-      const termo = document.getElementById('buscaNome').value.trim().toLowerCase();
+      const termo = document.getElementById('buscaNome').value.trim();
       if (!termo) {
-        alert('Digite o nome da loja');
+        alert('Digite pelo menos parte do nome da loja');
         return;
       }
 
-      const snapshot = await db.collection(COLECAO_LOJAS)
-        .orderBy('nome') // Assumindo que há um campo nomeLower para busca case-insensitive
-        .startAt(termo)
-        .endAt(termo + '\uf8ff')
-        .limit(20)
-        .get();
-
-        console.log(snapshot, 'lojas');
-        
-
-      lojasEncontradas = [];
+      const termoLower = termo.toLowerCase();
       const resultadoDiv = document.getElementById('resultado');
-      resultadoDiv.innerHTML = '';
+      resultadoDiv.innerHTML = '<p style="text-align:center;">Buscando lojas...</p>';
 
-      if (snapshot.empty) {
-        resultadoDiv.innerHTML = '<p>Nenhuma loja encontrada.</p>';
-        return;
+      try {
+        const snapshot = await db.collection(COLECAO_LOJAS).get();
+
+        lojasEncontradas = [];
+        resultadoDiv.innerHTML = '';
+
+        if (snapshot.empty) {
+          resultadoDiv.innerHTML = '<p>Nenhuma loja encontrada na base.</p>';
+          return;
+        }
+
+        let encontrou = false;
+
+        snapshot.forEach(doc => {
+          const data = doc.data();
+
+          if (data.nome && data.nome.toLowerCase().includes(termoLower)) {
+            lojasEncontradas.push({ id: doc.id, ...data });
+            encontrou = true;
+
+            const item = document.createElement('div');
+            item.className = 'loja-item';
+            item.innerHTML = `
+              <strong>${data.nome}</strong><br>
+              <small>${data.descricao || 'Sem descrição'}</small>
+            `;
+            item.onclick = () => carregarParaEdicao({ id: doc.id, ...data });
+            resultadoDiv.appendChild(item);
+          }
+        });
+
+        if (!encontrou) {
+          resultadoDiv.innerHTML = '<p>Nenhuma loja encontrada com esse nome.</p>';
+        }
+      } catch (error) {
+          console.error("Erro ao buscar:", error);
+          resultadoDiv.innerHTML = '<p style="color:red;">Erro ao conectar com o banco de dados.</p>';
       }
-
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        lojasEncontradas.push({ id: doc.id, ...data });
-
-        const item = document.createElement('div');
-        item.className = 'loja-item';
-        item.innerHTML = `<strong>${data.nome}</strong><br>${data.descricao || ''}`;
-        item.onclick = () => carregarParaEdicao({ id: doc.id, ...data });
-        resultadoDiv.appendChild(item);
-      });
     }
 
     function carregarParaEdicao(loja) {
       document.getElementById('formAtualizacao').style.display = 'block';
-      document.getElementById('nomeLojaAtual').textContent = loja.nome;
+      document.getElementById('nomeLojaAtual').textContent = loja.nome || 'Loja sem nome';
       document.getElementById('lojaId').value = loja.id;
+
       document.getElementById('nome').value = loja.nome || '';
       document.getElementById('descricao').value = loja.descricao || '';
       document.getElementById('whatsapp').value = loja.whatsapp?.principal || '';
       document.getElementById('fazEntrega').value = loja.fazEntrega ? 'true' : 'false';
 
-      // Horários semana
+      // Horários
       document.getElementById('semanaAbre').value = loja.horarios?.semana?.abre || '';
       document.getElementById('semanaFecha').value = loja.horarios?.semana?.fecha || '';
 
-      // Sábado
       document.getElementById('sabadoAbre').value = loja.horarios?.sabado?.abre || '';
       document.getElementById('sabadoFecha').value = loja.horarios?.sabado?.fecha || '';
 
-      // Domingo
       document.getElementById('domingoAbre').value = loja.horarios?.domingo?.abre || '';
       document.getElementById('domingoFecha').value = loja.horarios?.domingo?.fecha || '';
 
@@ -242,18 +235,23 @@
       document.getElementById('intervaloInicio').value = loja.horarios?.intervalo?.inicio || '';
       document.getElementById('intervaloRetorno').value = loja.horarios?.intervalo?.retorno || '';
 
-      // Scroll para o form
+      // Scroll suave para o formulário
       document.getElementById('formAtualizacao').scrollIntoView({ behavior: 'smooth' });
     }
 
     async function atualizarLoja() {
       const id = document.getElementById('lojaId').value;
-      if (!id) return;
+      if (!id) {
+        alert('Nenhum ID de loja encontrado.');
+        return;
+      }
 
       const dados = {
         nome: document.getElementById('nome').value.trim(),
         descricao: document.getElementById('descricao').value.trim(),
-        whatsapp: { principal: document.getElementById('whatsapp').value.trim() },
+        whatsapp: {
+          principal: document.getElementById('whatsapp').value.trim()
+        },
         fazEntrega: document.getElementById('fazEntrega').value === 'true',
         horarios: {
           semana: {
@@ -268,34 +266,36 @@
         }
       };
 
-      // Sábado opcional
+      // Sábado (opcional)
       const sabAbre = document.getElementById('sabadoAbre').value.trim();
       if (sabAbre) {
         dados.horarios.sabado = {
           abre: sabAbre,
           fecha: document.getElementById('sabadoFecha').value.trim()
         };
+      } else if (dados.horarios.sabado) {
+        delete dados.horarios.sabado;
       }
 
-      // Domingo opcional
+      // Domingo (opcional)
       const domAbre = document.getElementById('domingoAbre').value.trim();
       if (domAbre) {
         dados.horarios.domingo = {
           abre: domAbre,
           fecha: document.getElementById('domingoFecha').value.trim()
         };
+      } else if (dados.horarios.domingo) {
+        delete dados.horarios.domingo;
       }
-
-      // Campo para busca case-insensitive (recomendado)
-      dados.nomeLower = dados.nome.toLowerCase();
 
       try {
         await db.collection(COLECAO_LOJAS).doc(id).update(dados);
         alert('Loja atualizada com sucesso!');
         cancelarEdicao();
+        document.getElementById('buscaNome').value = '';
       } catch (error) {
-        console.error(error);
-        alert('Erro ao atualizar: ' + error.message);
+        console.error("Erro ao atualizar:", error);
+        alert('Erro ao salvar: ' + error.message);
       }
     }
 
@@ -305,5 +305,4 @@
     }
   </script>
 </body>
-
 </html>
