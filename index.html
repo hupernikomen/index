@@ -393,10 +393,8 @@
       }
     }
 
-    // Função para excluir loja desativada
     async function excluirLoja(id, event) {
-      event.stopPropagation(); // Evita abrir o formulário
-
+      event.stopPropagation();
       if (!confirm("Tem certeza que deseja EXCLUIR permanentemente esta loja?\nEssa ação não pode ser desfeita.")) {
         return;
       }
@@ -404,14 +402,13 @@
       try {
         await db.collection(COLECAO_LOJAS).doc(id).delete();
         alert("Loja excluída com sucesso!");
-        carregarDesativados(); // Atualiza a lista
+        carregarDesativados();
       } catch (error) {
         console.error("Erro ao excluir:", error);
         alert("Erro ao excluir a loja: " + error.message);
       }
     }
 
-    // ... (o resto das funções permanece igual: buscarLojas, carregarParaEdicao, toggleSubfields, atualizarLoja, cancelarEdicao)
     async function buscarLojas() {
       const termo = document.getElementById('buscaNome').value.trim();
       if (!termo) return alert('Digite parte do nome');
@@ -495,71 +492,132 @@
       document.getElementById(tipo + 'Fields').classList.toggle('show', ativo);
     }
 
+    // === FUNÇÃO PRINCIPAL ATUALIZADA ===
     async function atualizarLoja() {
       const id = document.getElementById('lojaId').value;
       const colecao = document.getElementById('colecaoOrigem').value;
       if (!id) return alert('Erro: ID não encontrado');
 
+      const isProposta = colecao === 'propostas';
+      const statusAprovado = isProposta ? document.getElementById('statusAprovado').checked : false;
+
       const tagsArray = document.getElementById('tags').value.trim()
         ? document.getElementById('tags').value.trim().split(',').map(t => t.trim()).filter(t => t)
         : [];
 
-      const anuncioObj = {
-        busca: document.getElementById('anuncioBusca').checked,
-        postagem: document.getElementById('anuncioPostagem').checked,
-        premium: document.getElementById('anuncioPremium').checked
+      // Monta o objeto de horários com valores padrão se vazio
+      const horarios = {
+        semana: {
+          abre: document.getElementById('semanaAbre').value.trim() || '08:00',
+          fecha: document.getElementById('semanaFecha').value.trim() || '18:00',
+        },
+        intervalo: {
+          global: document.getElementById('intervaloAtivo').checked,
+          inicio: document.getElementById('intervaloInicio').value.trim() || '12:00',
+          retorno: document.getElementById('intervaloRetorno').value.trim() || '13:30',
+        },
       };
-
-      const dados = {
-        nome: document.getElementById('nome').value.trim(),
-        descricao: document.getElementById('descricao').value.trim(),
-        bairro: document.getElementById('bairro').value.trim(),
-        tags: tagsArray,
-        anuncio: anuncioObj,
-        whatsapp: { principal: document.getElementById('whatsapp').value.trim() },
-        fazEntrega: document.getElementById('fazEntrega').checked,
-        horarios: {
-          semana: {
-            abre: document.getElementById('semanaAbre').value.trim(),
-            fecha: document.getElementById('semanaFecha').value.trim()
-          }
-        }
-      };
-
-      if (document.getElementById('intervaloAtivo').checked) {
-        dados.horarios.intervalo = {
-          global: true,
-          inicio: document.getElementById('intervaloInicio').value.trim(),
-          retorno: document.getElementById('intervaloRetorno').value.trim()
-        };
-      }
 
       if (document.getElementById('sabadoAtivo').checked) {
-        dados.horarios.sabado = {
-          abre: document.getElementById('sabadoAbre').value.trim(),
-          fecha: document.getElementById('sabadoFecha').value.trim()
+        horarios.sabado = {
+          abre: document.getElementById('sabadoAbre').value.trim() || '08:00',
+          fecha: document.getElementById('sabadoFecha').value.trim() || '13:00',
         };
       }
 
       if (document.getElementById('domingoAtivo').checked) {
-        dados.horarios.domingo = {
-          abre: document.getElementById('domingoAbre').value.trim(),
-          fecha: document.getElementById('domingoFecha').value.trim()
+        horarios.domingo = {
+          abre: document.getElementById('domingoAbre').value.trim() || '09:00',
+          fecha: document.getElementById('domingoFecha').value.trim() || '13:00',
         };
       }
 
-      if (colecao === 'propostas') {
-        dados.status = document.getElementById('statusAprovado').checked;
-      }
-
       try {
-        await db.collection(colecao).doc(id).update(dados);
-        alert('Dados salvos com sucesso!');
+        // Caso 1: Loja normal (users) → apenas update
+        if (!isProposta) {
+          const dadosLoja = {
+            nome: document.getElementById('nome').value.trim() || 'Sem nome',
+            descricao: document.getElementById('descricao').value.trim(),
+            bairro: document.getElementById('bairro').value.trim(),
+            tags: tagsArray,
+            whatsapp: { principal: document.getElementById('whatsapp').value.trim() },
+            fazEntrega: document.getElementById('fazEntrega').checked,
+            horarios: horarios,
+            anuncio: {
+              busca: document.getElementById('anuncioBusca').checked,
+              postagem: document.getElementById('anuncioPostagem').checked,
+              premium: document.getElementById('anuncioPremium').checked,
+            },
+          };
+
+          await db.collection(COLECAO_LOJAS).doc(id).update(dadosLoja);
+          alert('Loja atualizada com sucesso!');
+          cancelarEdicao();
+          carregarDesativados();
+          return;
+        }
+
+        // Caso 2: Proposta, mas ainda não aprovada → apenas update na propostas
+        if (!statusAprovado) {
+          const dadosProposta = {
+            nome: document.getElementById('nome').value.trim(),
+            descricao: document.getElementById('descricao').value.trim(),
+            bairro: document.getElementById('bairro').value.trim(),
+            tags: tagsArray,
+            whatsapp: { principal: document.getElementById('whatsapp').value.trim() },
+            fazEntrega: document.getElementById('fazEntrega').checked,
+            horarios: horarios,
+            anuncio: {
+              busca: document.getElementById('anuncioBusca').checked,
+              postagem: document.getElementById('anuncioPostagem').checked,
+              premium: document.getElementById('anuncioPremium').checked,
+            },
+            status: false,
+          };
+
+          await db.collection(COLECAO_PROPOSTAS).doc(id).update(dadosProposta);
+          alert('Proposta atualizada (ainda pendente).');
+          cancelarEdicao();
+          carregarPropostas();
+          return;
+        }
+
+        // Caso 3: Proposta APROVADA → transfere para users e deleta da propostas
+        const batch = db.batch();
+
+        const novoUsuarioRef = db.collection(COLECAO_LOJAS).doc(id);
+        const propostaRef = db.collection(COLECAO_PROPOSTAS).doc(id);
+
+        const dadosParaUsers = {
+          nome: document.getElementById('nome').value.trim() || 'Sem nome',
+          descricao: document.getElementById('descricao').value.trim() || '',
+          whatsapp: {
+            principal: document.getElementById('whatsapp').value.trim() || '',
+          },
+          tags: tagsArray,
+          fazEntrega: document.getElementById('fazEntrega').checked,
+          bairro: document.getElementById('bairro').value.trim() || '',
+          horarios: horarios,
+          anuncio: {
+            premium: document.getElementById('anuncioPremium').checked,
+            busca: document.getElementById('anuncioBusca').checked,
+            postagem: true,
+          },
+          clicks: 0,
+          criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+        };
+
+        batch.set(novoUsuarioRef, dadosParaUsers);
+        batch.delete(propostaRef);
+
+        await batch.commit();
+
+        alert('SUCESSO! Proposta aprovada e transferida para lojas ativas!');
         cancelarEdicao();
         carregarPropostas();
         carregarDesativados();
       } catch (error) {
-        console.error(error);
+        console.error('Erro ao processar:', error);
         alert('Erro ao salvar: ' + error.message);
       }
     }
