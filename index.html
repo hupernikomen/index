@@ -180,6 +180,21 @@
           </div>
         </div>
 
+        <!-- Opção de aprovação como filial -->
+        <div id="campoFilial" style="display:none; margin:20px 0; padding:15px; background:#e8f5e9; border-radius:8px; border:1px solid #b2dfdb;">
+          <strong>Ou aprovar como FILIAL de loja existente?</strong>
+          <p style="margin:8px 0; font-size:14px;">Isso adicionará o WhatsApp + bairro desta proposta à loja principal e guardará os dados completos em uma coleção de filiais.</p>
+          
+          <button type="button" onclick="abrirModalFilial()" style="background:#128C7E; padding:10px 15px; font-size:14px;">
+            Selecionar Loja Principal
+          </button>
+          
+          <div id="lojaPrincipalInfo" style="margin-top:10px; padding:10px; background:white; border-radius:6px; display:none;">
+            <strong>Loja principal selecionada:</strong> <span id="nomeLojaPrincipal"></span> (<span id="bairroLojaPrincipal"></span>)
+            <button type="button" onclick="limparSelecaoFilial()" style="background:#e74c3c; margin-left:10px; padding:5px 10px; font-size:12px;">Limpar</button>
+          </div>
+        </div>
+
         <label>Nome da loja</label>
         <input type="text" id="nome" required />
 
@@ -266,6 +281,19 @@
     </div>
   </div>
 
+  <!-- Modal para buscar loja principal (filial) -->
+  <div id="modalFilial" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:100; justify-content:center; align-items:center;">
+    <div style="background:white; padding:25px; border-radius:12px; width:90%; max-width:500px; max-height:80%; overflow-y:auto;">
+      <h3>Buscar Loja Principal (Matriz)</h3>
+      <input type="text" id="buscaFilialInput" placeholder="Digite parte do nome da loja" style="width:100%; padding:10px; margin:10px 0;" />
+      <button onclick="buscarLojaParaFilial()" style="background:#25D366; padding:10px;">Buscar</button>
+      
+      <div id="resultadoFilial" style="margin-top:20px; max-height:300px; overflow-y:auto;"></div>
+      
+      <button type="button" onclick="fecharModalFilial()" style="background:#ccc; margin-top:20px; padding:10px; width:100%;">Cancelar</button>
+    </div>
+  </div>
+
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyDo0QQjxmXZLw8qiWC3Kc52ZYk9UtWCYmc",
@@ -282,6 +310,7 @@
 
     const COLECAO_LOJAS = 'users';
     const COLECAO_PROPOSTAS = 'propostas';
+    const COLECAO_FILIAIS = 'filiais';
 
     // === LISTA DE E-MAILS AUTORIZADOS ===
     const ADMINS_PERMITIDOS = [
@@ -290,6 +319,7 @@
     ];
 
     let usuarioAtual = null;
+    let lojaPrincipalSelecionada = null; // Armazena a loja matriz escolhida para filial
 
     function loginComGoogle() {
       const provider = new firebase.auth.GoogleAuthProvider();
@@ -440,6 +470,61 @@
       }
     }
 
+    // Funções do modal de filial
+    function abrirModalFilial() {
+      document.getElementById('modalFilial').style.display = 'flex';
+      document.getElementById('buscaFilialInput').value = '';
+      document.getElementById('resultadoFilial').innerHTML = '<p>Digite e busque...</p>';
+    }
+
+    function fecharModalFilial() {
+      document.getElementById('modalFilial').style.display = 'none';
+    }
+
+    function limparSelecaoFilial() {
+      lojaPrincipalSelecionada = null;
+      document.getElementById('lojaPrincipalInfo').style.display = 'none';
+    }
+
+    async function buscarLojaParaFilial() {
+      const termo = document.getElementById('buscaFilialInput').value.trim();
+      if (!termo) return alert('Digite parte do nome');
+
+      const termoLower = termo.toLowerCase();
+      const divResultado = document.getElementById('resultadoFilial');
+      divResultado.innerHTML = '<p>Buscando...</p>';
+
+      try {
+        const snapshot = await db.collection(COLECAO_LOJAS).get();
+        divResultado.innerHTML = '';
+
+        let encontrou = false;
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          if (data.nome && data.nome.toLowerCase().includes(termoLower)) {
+            encontrou = true;
+            const item = document.createElement('div');
+            item.style.padding = '12px';
+            item.style.borderBottom = '1px solid #eee';
+            item.style.cursor = 'pointer';
+            item.innerHTML = `<strong>${data.nome}</strong> <small>(${data.bairro || 'Sem bairro'}) - Whats: ${data.whatsapp?.principal || data.whatsapp?.array?.[0]?.numero || 'N/A'}</small>`;
+            item.onclick = () => {
+              lojaPrincipalSelecionada = { id: doc.id, data: data };
+              document.getElementById('nomeLojaPrincipal').textContent = data.nome;
+              document.getElementById('bairroLojaPrincipal').textContent = data.bairro || 'Sem bairro';
+              document.getElementById('lojaPrincipalInfo').style.display = 'block';
+              fecharModalFilial();
+            };
+            divResultado.appendChild(item);
+          }
+        });
+
+        if (!encontrou) divResultado.innerHTML = '<p>Nenhuma loja encontrada.</p>';
+      } catch (error) {
+        divResultado.innerHTML = '<p style="color:red;">Erro na busca.</p>';
+      }
+    }
+
     function carregarParaEdicao(item) {
       document.getElementById('formAtualizacao').style.display = 'block';
       document.getElementById('nomeLojaAtual').textContent = item.nome || 'Sem nome';
@@ -449,7 +534,13 @@
 
       const isProposta = item._colecao === 'propostas';
       document.getElementById('campoStatus').style.display = isProposta ? 'block' : 'none';
+      document.getElementById('campoFilial').style.display = isProposta ? 'block' : 'none';
+
       if (isProposta) document.getElementById('statusAprovado').checked = item.status === true;
+
+      // Resetar seleção de filial
+      lojaPrincipalSelecionada = null;
+      document.getElementById('lojaPrincipalInfo').style.display = 'none';
 
       document.getElementById('nome').value = item.nome || '';
       document.getElementById('descricao').value = item.descricao || '';
@@ -492,7 +583,6 @@
       document.getElementById(tipo + 'Fields').classList.toggle('show', ativo);
     }
 
-    // === FUNÇÃO PRINCIPAL ATUALIZADA ===
     async function atualizarLoja() {
       const id = document.getElementById('lojaId').value;
       const colecao = document.getElementById('colecaoOrigem').value;
@@ -505,7 +595,6 @@
         ? document.getElementById('tags').value.trim().split(',').map(t => t.trim()).filter(t => t)
         : [];
 
-      // Monta o objeto de horários com valores padrão se vazio
       const horarios = {
         semana: {
           abre: document.getElementById('semanaAbre').value.trim() || '08:00',
@@ -532,92 +621,111 @@
         };
       }
 
-      try {
-        // Caso 1: Loja normal (users) → apenas update
-        if (!isProposta) {
-          const dadosLoja = {
-            nome: document.getElementById('nome').value.trim() || 'Sem nome',
-            descricao: document.getElementById('descricao').value.trim(),
-            bairro: document.getElementById('bairro').value.trim(),
-            tags: tagsArray,
-            whatsapp: { principal: document.getElementById('whatsapp').value.trim() },
-            fazEntrega: document.getElementById('fazEntrega').checked,
-            horarios: horarios,
-            anuncio: {
-              busca: document.getElementById('anuncioBusca').checked,
-              postagem: document.getElementById('anuncioPostagem').checked,
-              premium: document.getElementById('anuncioPremium').checked,
-            },
-          };
+      const dadosBase = {
+        nome: document.getElementById('nome').value.trim() || 'Sem nome',
+        descricao: document.getElementById('descricao').value.trim() || '',
+        bairro: document.getElementById('bairro').value.trim() || '',
+        tags: tagsArray,
+        whatsapp: { principal: document.getElementById('whatsapp').value.trim() || '' },
+        fazEntrega: document.getElementById('fazEntrega').checked,
+        horarios: horarios,
+        anuncio: {
+          premium: document.getElementById('anuncioPremium').checked,
+          busca: document.getElementById('anuncioBusca').checked,
+          postagem: document.getElementById('anuncioPostagem').checked || true,
+        },
+      };
 
-          await db.collection(COLECAO_LOJAS).doc(id).update(dadosLoja);
+      try {
+        // Caso 1: Loja normal (não proposta)
+        if (!isProposta) {
+          await db.collection(COLECAO_LOJAS).doc(id).update(dadosBase);
           alert('Loja atualizada com sucesso!');
           cancelarEdicao();
           carregarDesativados();
           return;
         }
 
-        // Caso 2: Proposta, mas ainda não aprovada → apenas update na propostas
-        if (!statusAprovado) {
-          const dadosProposta = {
-            nome: document.getElementById('nome').value.trim(),
-            descricao: document.getElementById('descricao').value.trim(),
-            bairro: document.getElementById('bairro').value.trim(),
-            tags: tagsArray,
-            whatsapp: { principal: document.getElementById('whatsapp').value.trim() },
-            fazEntrega: document.getElementById('fazEntrega').checked,
-            horarios: horarios,
-            anuncio: {
-              busca: document.getElementById('anuncioBusca').checked,
-              postagem: document.getElementById('anuncioPostagem').checked,
-              premium: document.getElementById('anuncioPremium').checked,
-            },
-            status: false,
-          };
-
-          await db.collection(COLECAO_PROPOSTAS).doc(id).update(dadosProposta);
+        // Caso 2: Proposta não aprovada e sem filial
+        if (!statusAprovado && !lojaPrincipalSelecionada) {
+          await db.collection(COLECAO_PROPOSTAS).doc(id).update({ ...dadosBase, status: false });
           alert('Proposta atualizada (ainda pendente).');
           cancelarEdicao();
           carregarPropostas();
           return;
         }
 
-        // Caso 3: Proposta APROVADA → transfere para users e deleta da propostas
-        const batch = db.batch();
+        // Caso 3: Aprovação NORMAL como loja nova
+        if (statusAprovado && !lojaPrincipalSelecionada) {
+          const batch = db.batch();
+          const novoRef = db.collection(COLECAO_LOJAS).doc(id);
+          batch.set(novoRef, { ...dadosBase, clicks: 0, criadoEm: firebase.firestore.FieldValue.serverTimestamp() });
+          batch.delete(db.collection(COLECAO_PROPOSTAS).doc(id));
+          await batch.commit();
+          alert('SUCESSO! Proposta aprovada como nova loja!');
+          cancelarEdicao();
+          carregarPropostas();
+          return;
+        }
 
-        const novoUsuarioRef = db.collection(COLECAO_LOJAS).doc(id);
-        const propostaRef = db.collection(COLECAO_PROPOSTAS).doc(id);
+        // Caso 4: Aprovação COMO FILIAL
+        if (lojaPrincipalSelecionada) {
+          if (!confirm(`Confirmar aprovação como FILIAL da loja:\n"${lojaPrincipalSelecionada.data.nome}" (${lojaPrincipalSelecionada.data.bairro || 'Sem bairro'})?`)) {
+            return;
+          }
 
-        const dadosParaUsers = {
-          nome: document.getElementById('nome').value.trim() || 'Sem nome',
-          descricao: document.getElementById('descricao').value.trim() || '',
-          whatsapp: {
-            principal: document.getElementById('whatsapp').value.trim() || '',
-          },
-          tags: tagsArray,
-          fazEntrega: document.getElementById('fazEntrega').checked,
-          bairro: document.getElementById('bairro').value.trim() || '',
-          horarios: horarios,
-          anuncio: {
-            premium: document.getElementById('anuncioPremium').checked,
-            busca: document.getElementById('anuncioBusca').checked,
-            postagem: true,
-          },
-          clicks: 0,
-          criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
-        };
+          const numeroFilial = document.getElementById('whatsapp').value.trim();
+          const bairroFilial = document.getElementById('bairro').value.trim() || 'Não informado';
 
-        batch.set(novoUsuarioRef, dadosParaUsers);
-        batch.delete(propostaRef);
+          if (!numeroFilial) return alert('WhatsApp da filial é obrigatório');
 
-        await batch.commit();
+          const batch = db.batch();
+          const principalRef = db.collection(COLECAO_LOJAS).doc(lojaPrincipalSelecionada.id);
 
-        alert('SUCESSO! Proposta aprovada e transferida para lojas ativas!');
-        cancelarEdicao();
-        carregarPropostas();
-        carregarDesativados();
+          const principalSnap = await principalRef.get();
+          if (!principalSnap.exists) throw "Loja principal não encontrada";
+
+          let principalData = principalSnap.data();
+          let whatsappArray = principalData.whatsapp?.array || [];
+
+          if (!Array.isArray(whatsappArray)) {
+            whatsappArray = [{ bairro: principalData.bairro || 'Principal', numero: principalData.whatsapp?.principal || '' }];
+          }
+
+          // Evita duplicidade
+          if (whatsappArray.some(w => w.numero === numeroFilial)) {
+            if (!confirm("Este número de WhatsApp já existe na loja principal. Deseja continuar mesmo assim?")) return;
+          }
+
+          whatsappArray.push({ bairro: bairroFilial, numero: numeroFilial });
+
+          batch.update(principalRef, {
+            whatsapp: { array: whatsappArray },
+            temFiliais: true
+          });
+
+          // Salva na coleção filiais
+          const filialRef = db.collection(COLECAO_FILIAIS).doc();
+          batch.set(filialRef, {
+            lojaPrincipalId: lojaPrincipalSelecionada.id,
+            lojaPrincipalNome: lojaPrincipalSelecionada.data.nome,
+            dadosFilial: dadosBase,
+            criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+          });
+
+          // Deleta proposta
+          batch.delete(db.collection(COLECAO_PROPOSTAS).doc(id));
+
+          await batch.commit();
+
+          alert('SUCESSO! Filial vinculada à loja principal e dados salvos em filiais.');
+          cancelarEdicao();
+          carregarPropostas();
+          return;
+        }
+
       } catch (error) {
-        console.error('Erro ao processar:', error);
+        console.error('Erro:', error);
         alert('Erro ao salvar: ' + error.message);
       }
     }
