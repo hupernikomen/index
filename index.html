@@ -583,152 +583,176 @@
       document.getElementById(tipo + 'Fields').classList.toggle('show', ativo);
     }
 
-    async function atualizarLoja() {
-      const id = document.getElementById('lojaId').value;
-      const colecao = document.getElementById('colecaoOrigem').value;
-      if (!id) return alert('Erro: ID não encontrado');
+   async function atualizarLoja() {
+  const id = document.getElementById('lojaId').value;
+  const colecao = document.getElementById('colecaoOrigem').value;
+  if (!id) return alert('Erro: ID não encontrado');
 
-      const isProposta = colecao === 'propostas';
-      const statusAprovado = isProposta ? document.getElementById('statusAprovado').checked : false;
+  const isProposta = colecao === 'propostas';
+  const statusAprovado = isProposta ? document.getElementById('statusAprovado').checked : false;
 
-      const tagsArray = document.getElementById('tags').value.trim()
-        ? document.getElementById('tags').value.trim().split(',').map(t => t.trim()).filter(t => t)
-        : [];
+  const tagsArray = document.getElementById('tags').value.trim()
+    ? document.getElementById('tags').value.trim().split(',').map(t => t.trim()).filter(t => t)
+    : [];
 
-      const horarios = {
-        semana: {
-          abre: document.getElementById('semanaAbre').value.trim() || '08:00',
-          fecha: document.getElementById('semanaFecha').value.trim() || '18:00',
-        },
-        intervalo: {
-          global: document.getElementById('intervaloAtivo').checked,
-          inicio: document.getElementById('intervaloInicio').value.trim() || '12:00',
-          retorno: document.getElementById('intervaloRetorno').value.trim() || '13:30',
-        },
-      };
+  const horarios = {
+    semana: {
+      abre: document.getElementById('semanaAbre').value.trim() || '08:00',
+      fecha: document.getElementById('semanaFecha').value.trim() || '18:00',
+    },
+    intervalo: {
+      global: document.getElementById('intervaloAtivo').checked,
+      inicio: document.getElementById('intervaloInicio').value.trim() || '12:00',
+      retorno: document.getElementById('intervaloRetorno').value.trim() || '13:30',
+    },
+  };
 
-      if (document.getElementById('sabadoAtivo').checked) {
-        horarios.sabado = {
-          abre: document.getElementById('sabadoAbre').value.trim() || '08:00',
-          fecha: document.getElementById('sabadoFecha').value.trim() || '13:00',
-        };
-      }
+  if (document.getElementById('sabadoAtivo').checked) {
+    horarios.sabado = {
+      abre: document.getElementById('sabadoAbre').value.trim() || '08:00',
+      fecha: document.getElementById('sabadoFecha').value.trim() || '13:00',
+    };
+  }
 
-      if (document.getElementById('domingoAtivo').checked) {
-        horarios.domingo = {
-          abre: document.getElementById('domingoAbre').value.trim() || '09:00',
-          fecha: document.getElementById('domingoFecha').value.trim() || '13:00',
-        };
-      }
+  if (document.getElementById('domingoAtivo').checked) {
+    horarios.domingo = {
+      abre: document.getElementById('domingoAbre').value.trim() || '09:00',
+      fecha: document.getElementById('domingoFecha').value.trim() || '13:00',
+    };
+  }
 
-      const dadosBase = {
-        nome: document.getElementById('nome').value.trim() || 'Sem nome',
-        descricao: document.getElementById('descricao').value.trim() || '',
-        bairro: document.getElementById('bairro').value.trim() || '',
-        tags: tagsArray,
-        whatsapp: { principal: document.getElementById('whatsapp').value.trim() || '' },
-        fazEntrega: document.getElementById('fazEntrega').checked,
-        horarios: horarios,
-        anuncio: {
-          premium: document.getElementById('anuncioPremium').checked,
-          busca: document.getElementById('anuncioBusca').checked,
-          postagem: document.getElementById('anuncioPostagem').checked || true,
-        },
-      };
+  const dadosBase = {
+    nome: document.getElementById('nome').value.trim() || 'Sem nome',
+    descricao: document.getElementById('descricao').value.trim() || '',
+    bairro: document.getElementById('bairro').value.trim() || '',
+    tags: tagsArray,
+    whatsapp: { principal: document.getElementById('whatsapp').value.trim() || '' }, // mantido só para edição
+    fazEntrega: document.getElementById('fazEntrega').checked,
+    horarios: horarios,
+    anuncio: {
+      premium: document.getElementById('anuncioPremium').checked,
+      busca: document.getElementById('anuncioBusca').checked,
+      postagem: document.getElementById('anuncioPostagem').checked || true,
+    },
+  };
 
-      try {
-        // Caso 1: Loja normal (não proposta)
-        if (!isProposta) {
-          await db.collection(COLECAO_LOJAS).doc(id).update(dadosBase);
-          alert('Loja atualizada com sucesso!');
-          cancelarEdicao();
-          carregarDesativados();
-          return;
-        }
-
-        // Caso 2: Proposta não aprovada e sem filial
-        if (!statusAprovado && !lojaPrincipalSelecionada) {
-          await db.collection(COLECAO_PROPOSTAS).doc(id).update({ ...dadosBase, status: false });
-          alert('Proposta atualizada (ainda pendente).');
-          cancelarEdicao();
-          carregarPropostas();
-          return;
-        }
-
-        // Caso 3: Aprovação NORMAL como loja nova
-        if (statusAprovado && !lojaPrincipalSelecionada) {
-          const batch = db.batch();
-          const novoRef = db.collection(COLECAO_LOJAS).doc(id);
-          batch.set(novoRef, { ...dadosBase, clicks: 0, criadoEm: firebase.firestore.FieldValue.serverTimestamp() });
-          batch.delete(db.collection(COLECAO_PROPOSTAS).doc(id));
-          await batch.commit();
-          alert('SUCESSO! Proposta aprovada como nova loja!');
-          cancelarEdicao();
-          carregarPropostas();
-          return;
-        }
-
-        // Caso 4: Aprovação COMO FILIAL
-        if (lojaPrincipalSelecionada) {
-          if (!confirm(`Confirmar aprovação como FILIAL da loja:\n"${lojaPrincipalSelecionada.data.nome}" (${lojaPrincipalSelecionada.data.bairro || 'Sem bairro'})?`)) {
-            return;
-          }
-
-          const numeroFilial = document.getElementById('whatsapp').value.trim();
-          const bairroFilial = document.getElementById('bairro').value.trim() || 'Não informado';
-
-          if (!numeroFilial) return alert('WhatsApp da filial é obrigatório');
-
-          const batch = db.batch();
-          const principalRef = db.collection(COLECAO_LOJAS).doc(lojaPrincipalSelecionada.id);
-
-          const principalSnap = await principalRef.get();
-          if (!principalSnap.exists) throw "Loja principal não encontrada";
-
-          let principalData = principalSnap.data();
-          let whatsappArray = principalData.whatsapp?.array || [];
-
-          if (!Array.isArray(whatsappArray)) {
-            whatsappArray = [{ bairro: principalData.bairro || 'Principal', numero: principalData.whatsapp?.principal || '' }];
-          }
-
-          // Evita duplicidade
-          if (whatsappArray.some(w => w.numero === numeroFilial)) {
-            if (!confirm("Este número de WhatsApp já existe na loja principal. Deseja continuar mesmo assim?")) return;
-          }
-
-          whatsappArray.push({ bairro: bairroFilial, numero: numeroFilial });
-
-          batch.update(principalRef, {
-            whatsapp: { array: whatsappArray },
-            temFiliais: true
-          });
-
-          // Salva na coleção filiais
-          const filialRef = db.collection(COLECAO_FILIAIS).doc();
-          batch.set(filialRef, {
-            lojaPrincipalId: lojaPrincipalSelecionada.id,
-            lojaPrincipalNome: lojaPrincipalSelecionada.data.nome,
-            dadosFilial: dadosBase,
-            criadoEm: firebase.firestore.FieldValue.serverTimestamp()
-          });
-
-          // Deleta proposta
-          batch.delete(db.collection(COLECAO_PROPOSTAS).doc(id));
-
-          await batch.commit();
-
-          alert('SUCESSO! Filial vinculada à loja principal e dados salvos em filiais.');
-          cancelarEdicao();
-          carregarPropostas();
-          return;
-        }
-
-      } catch (error) {
-        console.error('Erro:', error);
-        alert('Erro ao salvar: ' + error.message);
-      }
+  try {
+    // Caso 1: Loja normal (não proposta) → apenas update normal
+    if (!isProposta) {
+      await db.collection(COLECAO_LOJAS).doc(id).update(dadosBase);
+      alert('Loja atualizada com sucesso!');
+      cancelarEdicao();
+      carregarDesativados();
+      return;
     }
+
+    // Caso 2: Proposta não aprovada e sem filial
+    if (!statusAprovado && !lojaPrincipalSelecionada) {
+      await db.collection(COLECAO_PROPOSTAS).doc(id).update({ ...dadosBase, status: false });
+      alert('Proposta atualizada (ainda pendente).');
+      cancelarEdicao();
+      carregarPropostas();
+      return;
+    }
+
+    // Caso 3: Aprovação NORMAL como loja nova
+    if (statusAprovado && !lojaPrincipalSelecionada) {
+      const batch = db.batch();
+      const novoRef = db.collection(COLECAO_LOJAS).doc(id);
+
+      // Converte para array desde o início
+      const numeroPrincipal = document.getElementById('whatsapp').value.trim() || '';
+      const bairroPrincipal = document.getElementById('bairro').value.trim() || 'Principal';
+      const whatsappArray = numeroPrincipal ? [{ bairro: bairroPrincipal, numero: numeroPrincipal }] : [];
+
+      const dadosLojaNova = {
+        ...dadosBase,
+        whatsapp: whatsappArray, // já nasce como array
+        clicks: 0,
+        criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+        temFiliais: false
+      };
+
+      batch.set(novoRef, dadosLojaNova);
+      batch.delete(db.collection(COLECAO_PROPOSTAS).doc(id));
+      await batch.commit();
+
+      alert('SUCESSO! Proposta aprovada como nova loja!');
+      cancelarEdicao();
+      carregarPropostas();
+      return;
+    }
+
+    // Caso 4: Aprovação COMO FILIAL → Aqui está a correção principal
+    if (lojaPrincipalSelecionada) {
+      if (!confirm(`Confirmar aprovação como FILIAL da loja:\n"${lojaPrincipalSelecionada.data.nome}" (${lojaPrincipalSelecionada.data.bairro || 'Sem bairro'})?`)) {
+        return;
+      }
+
+      const numeroFilial = document.getElementById('whatsapp').value.trim();
+      const bairroFilial = document.getElementById('bairro').value.trim() || 'Não informado';
+
+      if (!numeroFilial) return alert('WhatsApp da filial é obrigatório');
+
+      const batch = db.batch();
+      const principalRef = db.collection(COLECAO_LOJAS).doc(lojaPrincipalSelecionada.id);
+
+      const principalSnap = await principalRef.get();
+      if (!principalSnap.exists) throw "Loja principal não encontrada";
+
+      let principalData = principalSnap.data();
+      let whatsappArray = principalData.whatsapp || [];
+
+      // Converte estruturas antigas automaticamente
+      if (!Array.isArray(whatsappArray)) {
+        if (principalData.whatsapp?.principal) {
+          whatsappArray = [{ bairro: principalData.bairro || 'Principal', numero: principalData.whatsapp.principal }];
+        } else {
+          whatsappArray = [];
+        }
+      }
+
+      // Evita duplicidade de número
+      if (whatsappArray.some(w => w.numero === numeroFilial)) {
+        if (!confirm("Este número de WhatsApp já existe na loja. Deseja adicionar mesmo assim?")) {
+          return;
+        }
+      }
+
+      // Adiciona a nova filial ao array
+      whatsappArray.push({ bairro: bairroFilial, numero: numeroFilial });
+
+      // Atualiza apenas o campo whatsapp como array puro e adiciona flag
+      batch.update(principalRef, {
+        whatsapp: whatsappArray,
+        temFiliais: true
+      });
+
+      // Salva histórico completo na coleção filiais
+      const filialRef = db.collection(COLECAO_FILIAIS).doc();
+      batch.set(filialRef, {
+        lojaPrincipalId: lojaPrincipalSelecionada.id,
+        lojaPrincipalNome: lojaPrincipalSelecionada.data.nome,
+        dadosFilial: dadosBase,
+        criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      // Remove a proposta
+      batch.delete(db.collection(COLECAO_PROPOSTAS).doc(id));
+
+      await batch.commit();
+
+      alert('SUCESSO! Filial adicionada corretamente ao array whatsapp da loja principal!');
+      cancelarEdicao();
+      carregarPropostas();
+      return;
+    }
+
+  } catch (error) {
+    console.error('Erro:', error);
+    alert('Erro ao salvar: ' + error.message);
+  }
+}
 
     function cancelarEdicao() {
       document.getElementById('formAtualizacao').style.display = 'none';
