@@ -636,6 +636,9 @@
     },
   };
 
+  console.log(dadosBase, 'dados');
+  
+
   try {
     // Caso 1: Loja normal (não proposta) → apenas update normal
     if (!isProposta) {
@@ -706,7 +709,7 @@
       // Converte estruturas antigas automaticamente
       if (!Array.isArray(whatsappArray)) {
         if (principalData.whatsapp?.principal) {
-          whatsappArray = [{ bairro: principalData.bairro || 'Principal', numero: principalData.whatsapp[0] }];
+          whatsappArray = [{ bairro: principalData.bairro || 'Principal', numero: principalData.whatsapp.principal }];
         } else {
           whatsappArray = [];
         }
