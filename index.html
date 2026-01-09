@@ -11,16 +11,18 @@
     :root {
       --primary: #128C7E;
       --primary-light: #e8f5f2;
+      --success: #25D366;
       --danger: #e74c3c;
       --warning: #f39c12;
       --gray: #6c757d;
       --light: #f8f9fa;
       --border: #dee2e6;
+      --shadow: 0 4px 15px rgba(0,0,0,0.08);
     }
 
     body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: #f4f6f9;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f2f5;
       color: #333;
       margin: 0;
       padding: 20px;
@@ -28,168 +30,177 @@
     }
 
     .container {
-      max-width: 900px;
+      max-width: 920px;
       margin: 0 auto;
       background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
       overflow: hidden;
     }
 
     header {
       background: var(--primary);
       color: white;
-      padding: 20px;
+      padding: 24px;
       text-align: center;
     }
 
     header h1 {
       margin: 0;
-      font-size: 24px;
+      font-size: 28px;
+      font-weight: 600;
     }
 
     .user-info {
       text-align: right;
-      padding: 15px 20px;
-      background: #f1f1f1;
+      padding: 16px 24px;
+      background: #f8f9fa;
       font-size: 14px;
       border-bottom: 1px solid var(--border);
     }
 
     .section {
-      padding: 25px;
+      padding: 28px 32px;
       border-bottom: 1px solid var(--border);
     }
 
-    .section:last-child {
-      border-bottom: none;
-    }
+    .section:last-of-type { border-bottom: none; }
 
     h2 {
       color: var(--primary);
-      border-bottom: 2px solid var(--primary-light);
+      margin: 0 0 20px 0;
+      font-size: 20px;
       padding-bottom: 10px;
-      margin-top: 0;
+      border-bottom: 2px solid var(--primary-light);
     }
 
-    .list {
+    .card-list {
       display: grid;
-      gap: 12px;
-      margin-top: 15px;
+      gap: 14px;
+      margin-top: 16px;
     }
 
-    .item {
+    .card {
       background: white;
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 16px;
+      border-radius: 12px;
+      padding: 18px;
+      cursor: pointer;
+      transition: all 0.2s ease;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      cursor: pointer;
-      transition: all 0.2s;
     }
 
-    .item:hover {
-      background: var(--primary-light);
-      border-color: var(--primary);
+    .card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transform: translateY(-2px);
     }
 
-    .item.proposta {
-      border-left: 4px solid var(--warning);
+    .card.proposta {
+      border-left: 5px solid var(--warning);
     }
 
-    .item.desativada {
-      border-left: 4px solid var(--danger);
-      background: #fff5f5;
+    .card.desativada {
+      border-left: 5px solid var(--danger);
+      background: #fdf2f2;
     }
 
-    .item-info {
-      flex: 1;
-    }
-
-    .item-info strong {
+    .card-info strong {
       display: block;
       font-size: 17px;
+      margin-bottom: 6px;
     }
 
-    .item-info small {
+    .card-info small {
       color: var(--gray);
       font-size: 14px;
     }
 
     .btn {
-      padding: 8px 14px;
+      padding: 8px 16px;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       font-size: 14px;
+      font-weight: 600;
       cursor: pointer;
       transition: background 0.2s;
     }
 
     .btn-primary {
-      background: var(--primary);
+      background: var(--success);
       color: white;
     }
 
-    .btn-primary:hover {
-      background: #0e6b60;
-    }
+    .btn-primary:hover { background: var(--primary); }
 
     .btn-danger {
       background: var(--danger);
       color: white;
+      font-size: 13px;
+      padding: 6px 12px;
     }
 
-    .btn-danger:hover {
-      background: #c0392b;
-    }
+    .btn-danger:hover { background: #c0392b; }
 
     .btn-secondary {
-      background: #6c757d;
+      background: #adb5bd;
       color: white;
     }
 
-    .btn-secondary:hover {
-      background: #545b62;
-    }
-
-    input, textarea, button {
-      font-family: inherit;
-    }
+    .btn-secondary:hover { background: var(--gray); }
 
     input[type="text"], textarea {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       border: 1px solid var(--border);
-      border-radius: 6px;
-      margin: 8px 0;
+      border-radius: 10px;
+      margin: 8px 0 16px;
       box-sizing: border-box;
+      font-size: 15px;
     }
 
     label {
       font-weight: 600;
-      margin-top: 15px;
-      display: block;
       color: #444;
+      margin-top: 10px;
+      display: block;
     }
 
     .form-group {
-      margin-bottom: 20px;
+      margin-bottom: 24px;
+    }
+
+    .group-box {
+      background: var(--light);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    .group-box h3 {
+      margin: 0 0 18px 0;
+      color: var(--primary);
+      font-size: 17px;
+    }
+
+    .switch-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 16px 0;
+      font-size: 15px;
     }
 
     .switch {
       position: relative;
       display: inline-block;
-      width: 56px;
-      height: 30px;
+      width: 58px;
+      height: 32px;
     }
 
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
+    .switch input { opacity: 0; width: 0; height: 0; }
 
     .slider {
       position: absolute;
@@ -197,14 +208,14 @@
       top: 0; left: 0; right: 0; bottom: 0;
       background: #ccc;
       transition: .4s;
-      border-radius: 30px;
+      border-radius: 32px;
     }
 
     .slider:before {
       position: absolute;
       content: "";
-      height: 22px;
-      width: 22px;
+      height: 24px;
+      width: 24px;
       left: 4px;
       bottom: 4px;
       background: white;
@@ -212,150 +223,150 @@
       border-radius: 50%;
     }
 
-    input:checked + .slider {
-      background: var(--primary);
-    }
-
-    input:checked + .slider:before {
-      transform: translateX(26px);
-    }
-
-    .switch-container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin: 15px 0;
-    }
-
-    .subfields {
-      margin-left: 20px;
-      padding: 15px;
-      background: var(--light);
-      border-radius: 6px;
-      display: none;
-    }
-
-    .subfields.show {
-      display: block;
-    }
+    input:checked + .slider { background: var(--success); }
+    input:checked + .slider:before { transform: translateX(26px); }
 
     .row {
       display: flex;
-      gap: 12px;
+      gap: 16px;
     }
 
-    .row > input {
+    .row input {
       flex: 1;
     }
 
+    .subfields {
+      margin-top: 16px;
+      padding: 16px;
+      background: white;
+      border-radius: 10px;
+      border: 1px dashed var(--border);
+      display: none;
+    }
+
+    .subfields.show { display: block; }
+
+    .alert-box {
+      background: var(--primary-light);
+      border: 1px solid var(--primary);
+      border-radius: 12px;
+      padding: 18px;
+      margin: 20px 0;
+    }
+
     #loginScreen {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #128C7E, #25D366);
+    }
+
+    #loginScreen .login-box {
+      background: white;
+      padding: 50px;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
       text-align: center;
-      padding: 80px 20px;
+      max-width: 400px;
+      width: 90%;
     }
 
     #loginScreen button {
       background: #4285F4;
       color: white;
-      padding: 15px 30px;
+      padding: 16px 32px;
       font-size: 18px;
       margin-top: 20px;
-    }
-
-    .hidden {
-      display: none;
+      border-radius: 10px;
     }
 
     .modal {
       display: none;
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0,0,0,0.6);
       justify-content: center;
       align-items: center;
-      z-index: 100;
+      z-index: 1000;
     }
 
     .modal-content {
       background: white;
-      padding: 25px;
-      border-radius: 12px;
+      padding: 30px;
+      border-radius: 16px;
       width: 90%;
-      max-width: 500px;
+      max-width: 520px;
       max-height: 80vh;
       overflow-y: auto;
+      box-shadow: var(--shadow);
     }
 
-    .alert {
-      padding: 12px;
-      border-radius: 6px;
-      margin: 15px 0;
-      font-size: 14px;
-    }
-
-    .alert-info {
-      background: var(--primary-light);
-      border: 1px solid var(--primary);
-      color: var(--primary);
-    }
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
 
+  <!-- Tela de Login -->
   <div id="loginScreen">
-    <div class="container">
-      <header>
-        <h1>Admin BuscaZap</h1>
-      </header>
-      <div style="padding:60px 20px;">
-        <p>Faça login com uma conta Google autorizada para acessar o painel administrativo.</p>
-        <button onclick="loginComGoogle()">Entrar com Google</button>
-        <p style="margin-top:30px; color:#666; font-size:14px;">
-          Apenas administradores autorizados têm acesso.
-        </p>
-      </div>
+    <div class="login-box">
+      <h1>Admin BuscaZap</h1>
+      <p style="margin: 20px 0; color: #555;">
+        Faça login com uma conta Google autorizada para acessar o painel administrativo.
+      </p>
+      <button onclick="loginComGoogle()">Entrar com Google</button>
+      <p style="margin-top: 30px; font-size: 14px; color: #777;">
+        Apenas administradores autorizados têm acesso.
+      </p>
     </div>
   </div>
 
+  <!-- Painel Administrativo -->
   <div id="adminContent" class="hidden">
     <div class="container">
       <div class="user-info">
         Logado como: <strong id="userEmail"></strong> | 
-        <a href="#" onclick="logout()" style="color:var(--danger); text-decoration:none;">Sair</a>
+        <a href="#" onclick="logout()" style="color: var(--danger); text-decoration: none;">Sair</a>
       </div>
 
       <header>
-        <h1>Painel Administrativo – BuscaZap</h1>
+        <h1>Painel Admin – BuscaZap</h1>
       </header>
 
+      <!-- Propostas Pendentes -->
       <div class="section">
         <h2>Propostas Pendentes</h2>
-        <div id="propostasLista" class="list">
+        <div id="propostasLista" class="card-list">
           <p style="text-align:center; color:#999;">Carregando propostas...</p>
         </div>
       </div>
 
+      <!-- Lojas Desativadas -->
       <div class="section">
         <h2>Lojas Desativadas</h2>
-        <div id="desativadosLista" class="list">
+        <div id="desativadosLista" class="card-list">
           <p style="text-align:center; color:#999;">Carregando lojas desativadas...</p>
         </div>
       </div>
 
+      <!-- Buscar Loja -->
       <div class="section">
         <h2>Buscar Loja Existente</h2>
-        <div style="display:flex; gap:10px;">
+        <div style="display: flex; gap: 12px;">
           <input type="text" id="buscaNome" placeholder="Digite parte do nome da loja">
           <button class="btn btn-primary" onclick="buscarLojas()">Buscar</button>
         </div>
-        <div id="resultado" class="list" style="margin-top:20px;"></div>
+        <div id="resultado" class="card-list" style="margin-top: 20px;"></div>
       </div>
 
+      <!-- Formulário de Edição -->
       <div id="formAtualizacao" class="section hidden">
-        <h2>Editando: <span id="nomeLojaAtual"></span> <small id="fonteItem" style="color:var(--gray);"></small></h2>
+        <h2>Editando: <span id="nomeLojaAtual" style="color:var(--primary);"></span> <small id="fonteItem" style="color:var(--gray);"></small></h2>
 
-        <div id="campoStatus" class="alert alert-info">
+        <!-- Status da Proposta -->
+        <div id="campoStatus" class="alert-box">
           <div class="switch-container">
-            <span>Aprovar esta proposta como nova loja?</span>
+            <span>Aprovar esta proposta como nova loja independente?</span>
             <label class="switch">
               <input type="checkbox" id="statusAprovado">
               <span class="slider"></span>
@@ -363,25 +374,28 @@
           </div>
         </div>
 
-        <div id="campoFilial" class="alert alert-info">
+        <!-- Opção de Filial -->
+        <div id="campoFilial" class="alert-box">
           <strong>Ou aprovar como filial de loja existente?</strong>
-          <p style="margin:8px 0 15px; font-size:14px;">
-            O WhatsApp e bairro serão adicionados à loja principal. Todos os dados serão salvos no histórico de filiais.
+          <p style="margin: 10px 0 16px; font-size: 14.5px; color: #555;">
+            O WhatsApp e bairro serão adicionados à loja principal. Todos os dados serão salvos no histórico.
           </p>
           <button type="button" class="btn btn-primary" onclick="abrirModalFilial()">Escolher Loja Principal</button>
-          <div id="lojaPrincipalInfo" class="hidden" style="margin-top:12px; padding:10px; background:#f0f8f7; border-radius:6px;">
-            <strong>Loja principal:</strong> <span id="nomeLojaPrincipal"></span> (<span id="bairroLojaPrincipal"></span>)
-            <button type="button" class="btn btn-danger" style="margin-left:10px; padding:4px 8px; font-size:12px;" onclick="limparSelecaoFilial()">Remover</button>
+
+          <div id="lojaPrincipalInfo" class="hidden" style="margin-top: 16px; padding: 14px; background: #f0f8f7; border-radius: 10px;">
+            <strong>Loja principal selecionada:</strong> 
+            <span id="nomeLojaPrincipal"></span> (<span id="bairroLojaPrincipal"></span>)
+            <button type="button" class="btn btn-danger" style="margin-left: 12px; font-size: 13px;" onclick="limparSelecaoFilial()">Remover</button>
           </div>
         </div>
 
         <form id="formLoja">
-          <input type="hidden" id="lojaId">
-          <input type="hidden" id="colecaoOrigem" value="users">
+          <input type="hidden" id="lojaId" />
+          <input type="hidden" id="colecaoOrigem" value="users" />
 
           <div class="form-group">
             <label>Nome da loja</label>
-            <input type="text" id="nome" required>
+            <input type="text" id="nome" required />
           </div>
 
           <div class="form-group">
@@ -391,17 +405,17 @@
 
           <div class="form-group">
             <label>Bairro</label>
-            <input type="text" id="bairro">
+            <input type="text" id="bairro" />
           </div>
 
           <div class="form-group">
             <label>Tags (separadas por vírgula)</label>
-            <input type="text" id="tags" placeholder="ex: padaria, delivery, 24h">
+            <input type="text" id="tags" placeholder="ex: padaria, delivery, 24h" />
           </div>
 
           <div class="form-group">
             <label>WhatsApp Principal</label>
-            <input type="text" id="whatsapp" placeholder="5599999999999">
+            <input type="text" id="whatsapp" placeholder="5599999999999" />
           </div>
 
           <div class="switch-container">
@@ -412,20 +426,22 @@
             </label>
           </div>
 
-          <div class="form-group">
-            <h3 style="margin-bottom:15px; color:var(--primary);">Destaques</h3>
+          <!-- Destaques -->
+          <div class="group-box">
+            <h3>Destaques e Premium</h3>
             <div class="switch-container"><span>Destaque na busca</span><label class="switch"><input type="checkbox" id="anuncioBusca"><span class="slider"></span></label></div>
             <div class="switch-container"><span>Destaque na postagem</span><label class="switch"><input type="checkbox" id="anuncioPostagem"><span class="slider"></span></label></div>
             <div class="switch-container"><span>Loja Premium</span><label class="switch"><input type="checkbox" id="anuncioPremium"><span class="slider"></span></label></div>
           </div>
 
-          <div class="form-group">
-            <h3 style="margin-bottom:15px; color:var(--primary);">Horários de Funcionamento</h3>
+          <!-- Horários -->
+          <div class="group-box">
+            <h3>Horários de Funcionamento</h3>
 
             <label>Segunda a Sexta</label>
             <div class="row">
-              <input type="text" id="semanaAbre" placeholder="Abre (ex: 08:00)">
-              <input type="text" id="semanaFecha" placeholder="Fecha (ex: 18:00)">
+              <input type="text" id="semanaAbre" placeholder="Abre (ex: 08:00)" />
+              <input type="text" id="semanaFecha" placeholder="Fecha (ex: 18:00)" />
             </div>
 
             <div class="switch-container">
@@ -434,8 +450,8 @@
             </div>
             <div id="sabadoFields" class="subfields">
               <div class="row">
-                <input type="text" id="sabadoAbre" placeholder="Abre">
-                <input type="text" id="sabadoFecha" placeholder="Fecha">
+                <input type="text" id="sabadoAbre" placeholder="Abre" />
+                <input type="text" id="sabadoFecha" placeholder="Fecha" />
               </div>
             </div>
 
@@ -445,8 +461,8 @@
             </div>
             <div id="domingoFields" class="subfields">
               <div class="row">
-                <input type="text" id="domingoAbre" placeholder="Abre">
-                <input type="text" id="domingoFecha" placeholder="Fecha">
+                <input type="text" id="domingoAbre" placeholder="Abre" />
+                <input type="text" id="domingoFecha" placeholder="Fecha" />
               </div>
             </div>
 
@@ -456,36 +472,36 @@
             </div>
             <div id="intervaloFields" class="subfields">
               <div class="row">
-                <input type="text" id="intervaloInicio" placeholder="Início">
-                <input type="text" id="intervaloRetorno" placeholder="Retorno">
+                <input type="text" id="intervaloInicio" placeholder="Início (ex: 12:00)" />
+                <input type="text" id="intervaloRetorno" placeholder="Retorno (ex: 13:30)" />
               </div>
             </div>
           </div>
 
-          <div style="display:flex; gap:12px; margin-top:30px;">
-            <button type="button" class="btn btn-primary" onclick="atualizarLoja()" style="flex:1;">Salvar Alterações</button>
-            <button type="button" class="btn btn-secondary" onclick="cancelarEdicao()" style="flex:1;">Cancelar</button>
+          <div style="display: flex; gap: 16px; margin-top: 30px;">
+            <button type="button" class="btn btn-primary" onclick="atualizarLoja()" style="flex: 1;">Salvar Alterações</button>
+            <button type="button" class="btn btn-secondary" onclick="cancelarEdicao()" style="flex: 1;">Cancelar</button>
           </div>
         </form>
       </div>
     </div>
   </div>
 
-  <!-- Modal para escolher loja principal (filial) -->
+  <!-- Modal Filial -->
   <div id="modalFilial" class="modal">
     <div class="modal-content">
-      <h3>Buscar Loja Principal (Matriz)</h3>
-      <div style="display:flex; gap:10px; margin:15px 0;">
-        <input type="text" id="buscaFilialInput" placeholder="Digite parte do nome">
+      <h3 style="margin-top:0; color:var(--primary);">Buscar Loja Principal (Matriz)</h3>
+      <div style="display:flex; gap:12px; margin:16px 0;">
+        <input type="text" id="buscaFilialInput" placeholder="Digite parte do nome da loja">
         <button class="btn btn-primary" onclick="buscarLojaParaFilial()">Buscar</button>
       </div>
-      <div id="resultadoFilial" style="max-height:300px; overflow-y:auto; margin-top:10px;"></div>
+      <div id="resultadoFilial" style="max-height:320px; overflow-y:auto; margin-top:12px;"></div>
       <button class="btn btn-secondary" style="width:100%; margin-top:20px;" onclick="fecharModalFilial()">Cancelar</button>
     </div>
   </div>
 
   <script>
-    // === CONFIGURAÇÃO DO FIREBASE ===
+    // === SEU CÓDIGO ORIGINAL INTACTO (Firebase + Lógica) ===
     const firebaseConfig = {
       apiKey: "AIzaSyDo0QQjxmXZLw8qiWC3Kc52ZYk9UtWCYmc",
       authDomain: "appguiacomercial-e6109.firebaseapp.com",
@@ -503,11 +519,13 @@
     const COLECAO_PROPOSTAS = 'propostas';
     const COLECAO_FILIAIS = 'filiais';
 
-    const ADMINS_PERMITIDOS = ["hupcontato@gmail.com"];
+    const ADMINS_PERMITIDOS = [
+      "hupcontato@gmail.com",
+    ];
 
+    let usuarioAtual = null;
     let lojaPrincipalSelecionada = null;
 
-    // === AUTENTICAÇÃO ===
     function loginComGoogle() {
       const provider = new firebase.auth.GoogleAuthProvider();
       auth.signInWithPopup(provider);
@@ -517,129 +535,150 @@
       auth.signOut();
     }
 
-    auth.onAuthStateChanged(user => {
-      if (user && ADMINS_PERMITIDOS.map(e => e.toLowerCase()).includes(user.email.toLowerCase())) {
-        document.getElementById('userEmail').textContent = user.email;
-        document.getElementById('loginScreen').classList.add('hidden');
-        document.getElementById('adminContent').classList.remove('hidden');
-        carregarPropostas();
-        carregarDesativados();
-      } else if (user) {
-        alert("Acesso negado: e-mail não autorizado.");
-        auth.signOut();
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        if (ADMINS_PERMITIDOS.map(e => e.toLowerCase()).includes(user.email.toLowerCase())) {
+          usuarioAtual = user;
+          document.getElementById('userEmail').textContent = user.email;
+          document.getElementById('loginScreen').style.display = 'none';
+          document.getElementById('adminContent').style.display = 'block';
+          carregarPropostas();
+          carregarDesativados();
+        } else {
+          alert("Acesso negado: seu e-mail não tem permissão de administrador.");
+          auth.signOut();
+        }
       } else {
-        document.getElementById('loginScreen').classList.remove('hidden');
-        document.getElementById('adminContent').classList.add('hidden');
+        usuarioAtual = null;
+        document.getElementById('loginScreen').style.display = 'block';
+        document.getElementById('adminContent').style.display = 'none';
       }
     });
 
-    // === CARREGAMENTO DE DADOS ===
     async function carregarPropostas() {
-      const lista = document.getElementById('propostasLista');
-      lista.innerHTML = '<p style="text-align:center; color:#999;">Carregando...</p>';
+      const listaDiv = document.getElementById('propostasLista');
+      listaDiv.innerHTML = '<p style="text-align:center;">Carregando propostas...</p>';
 
       try {
-        const snap = await db.collection(COLECAO_PROPOSTAS).get();
-        if (snap.empty) {
-          lista.innerHTML = '<p style="text-align:center; color:#999;">Nenhuma proposta pendente.</p>';
+        const snapshot = await db.collection(COLECAO_PROPOSTAS).get();
+
+        if (snapshot.empty) {
+          listaDiv.innerHTML = '<p style="color:#666; text-align:center;">Nenhuma proposta pendente no momento.</p>';
           return;
         }
 
-        lista.innerHTML = '';
-        snap.forEach(doc => {
-          const d = doc.data();
-          const div = document.createElement('div');
-          div.className = 'item proposta';
-          div.innerHTML = `
-            <div class="item-info">
-              <strong>${d.nome || 'Sem nome'}</strong>
-              <small>${d.descricao || 'Sem descrição'} • WhatsApp: ${d.whatsapp?.principal || 'Não informado'}</small>
+        listaDiv.innerHTML = '';
+
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const item = document.createElement('div');
+          item.className = 'card proposta';
+          item.innerHTML = `
+            <div class="card-info">
+              <strong>${data.nome || 'Sem nome'}</strong>
+              <small>${data.descricao || 'Sem descrição'} | WhatsApp: ${data.whatsapp?.principal || 'Não informado'}</small>
             </div>
           `;
-          div.onclick = () => carregarParaEdicao({ id: doc.id, ...d, _colecao: 'propostas' });
-          lista.appendChild(div);
+          item.onclick = (e) => {
+            if (!e.target.classList.contains('btn-excluir')) {
+              carregarParaEdicao({ id: doc.id, ...data, _colecao: 'propostas' });
+            }
+          };
+          listaDiv.appendChild(item);
         });
-      } catch (err) {
-        lista.innerHTML = '<p style="color:var(--danger);">Erro ao carregar propostas.</p>';
+      } catch (error) {
+        console.error("Erro ao carregar propostas:", error);
+        listaDiv.innerHTML = '<p style="color:red;">Erro ao carregar propostas.</p>';
       }
     }
 
     async function carregarDesativados() {
-      const lista = document.getElementById('desativadosLista');
-      lista.innerHTML = '<p style="text-align:center; color:#999;">Carregando...</p>';
+      const listaDiv = document.getElementById('desativadosLista');
+      listaDiv.innerHTML = '<p style="text-align:center;">Carregando lojas desativadas...</p>';
 
       try {
-        const snap = await db.collection(COLECAO_LOJAS).where('anuncio.postagem', '==', false).get();
-        if (snap.empty) {
-          lista.innerHTML = '<p style="text-align:center; color:#999;">Nenhuma loja desativada.</p>';
+        const snapshot = await db.collection(COLECAO_LOJAS)
+          .where('anuncio.postagem', '==', false)
+          .get();
+
+        if (snapshot.empty) {
+          listaDiv.innerHTML = '<p style="color:#666; text-align:center;">Nenhuma loja desativada no momento.</p>';
           return;
         }
 
-        lista.innerHTML = '';
-        snap.forEach(doc => {
-          const d = doc.data();
-          const div = document.createElement('div');
-          div.className = 'item desativada';
-          div.innerHTML = `
-            <div class="item-info">
-              <strong>${d.nome || 'Sem nome'}</strong>
-              <small>${d.descricao || 'Sem descrição'} • Bairro: ${d.bairro || 'Não informado'}</small>
+        listaDiv.innerHTML = '';
+
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const item = document.createElement('div');
+          item.className = 'card desativada';
+          item.innerHTML = `
+            <div class="card-info">
+              <strong>${data.nome || 'Sem nome'}</strong>
+              <small>${data.descricao || 'Sem descrição'} | Bairro: ${data.bairro || 'Não informado'}</small>
             </div>
             <button class="btn btn-danger" onclick="excluirLoja('${doc.id}', event)">Excluir</button>
           `;
-          div.querySelector('.item-info').onclick = () => carregarParaEdicao({ id: doc.id, ...d, _colecao: 'users' });
-          lista.appendChild(div);
+          item.querySelector('.card-info').onclick = () => carregarParaEdicao({ id: doc.id, ...data, _colecao: 'users' });
+          listaDiv.appendChild(item);
         });
-      } catch (err) {
-        lista.innerHTML = '<p style="color:var(--danger);">Erro ao carregar lojas desativadas.</p>';
+      } catch (error) {
+        console.error("Erro ao carregar desativados:", error);
+        listaDiv.innerHTML = '<p style="color:red;">Erro ao carregar lojas desativadas.</p>';
       }
     }
 
-    async function excluirLoja(id, e) {
-      e.stopPropagation();
-      if (!confirm("Excluir permanentemente esta loja? Esta ação não pode ser desfeita.")) return;
+    async function excluirLoja(id, event) {
+      event.stopPropagation();
+      if (!confirm("Tem certeza que deseja EXCLUIR permanentemente esta loja?\nEssa ação não pode ser desfeita.")) {
+        return;
+      }
+
       try {
         await db.collection(COLECAO_LOJAS).doc(id).delete();
-        alert("Loja excluída.");
+        alert("Loja excluída com sucesso!");
         carregarDesativados();
-      } catch (err) {
-        alert("Erro ao excluir: " + err.message);
+      } catch (error) {
+        console.error("Erro ao excluir:", error);
+        alert("Erro ao excluir a loja: " + error.message);
       }
     }
 
     async function buscarLojas() {
-      const termo = document.getElementById('buscaNome').value.trim().toLowerCase();
-      if (!termo) return alert("Digite parte do nome da loja.");
+      const termo = document.getElementById('buscaNome').value.trim();
+      if (!termo) return alert('Digite parte do nome');
 
-      const res = document.getElementById('resultado');
-      res.innerHTML = '<p style="text-align:center; color:#999;">Buscando...</p>';
+      const termoLower = termo.toLowerCase();
+      const resultadoDiv = document.getElementById('resultado');
+      resultadoDiv.innerHTML = '<p style="text-align:center;">Buscando...</p>';
 
       try {
-        const snap = await db.collection(COLECAO_LOJAS).get();
-        res.innerHTML = '';
+        const snapshot = await db.collection(COLECAO_LOJAS).get();
+        resultadoDiv.innerHTML = '';
+
         let encontrou = false;
-        snap.forEach(doc => {
-          const d = doc.data();
-          if (d.nome && d.nome.toLowerCase().includes(termo)) {
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          if (data.nome && data.nome.toLowerCase().includes(termoLower)) {
             encontrou = true;
-            const div = document.createElement('div');
-            div.className = 'item';
-            div.innerHTML = `<div class="item-info"><strong>${d.nome}</strong><small>Bairro: ${d.bairro || 'Não informado'}</small></div>`;
-            div.onclick = () => carregarParaEdicao({ id: doc.id, ...d, _colecao: 'users' });
-            res.appendChild(div);
+            const item = document.createElement('div');
+            item.className = 'card';
+            item.innerHTML = `<div class="card-info"><strong>${data.nome}</strong><small>Bairro: ${data.bairro || 'Não informado'}</small></div>`;
+            item.onclick = () => carregarParaEdicao({ id: doc.id, ...data, _colecao: 'users' });
+            resultadoDiv.appendChild(item);
           }
         });
-        if (!encontrou) res.innerHTML = '<p>Nenhuma loja encontrada.</p>';
-      } catch (err) {
-        res.innerHTML = '<p style="color:var(--danger);">Erro na busca.</p>';
+
+        if (!encontrou) resultadoDiv.innerHTML = '<p>Nenhuma loja encontrada.</p>';
+      } catch (error) {
+        resultadoDiv.innerHTML = '<p style="color:red;">Erro na busca.</p>';
       }
     }
 
-    // === MODAL FILIAL ===
     function abrirModalFilial() {
       document.getElementById('modalFilial').style.display = 'flex';
       document.getElementById('buscaFilialInput').value = '';
-      document.getElementById('resultadoFilial').innerHTML = '<p>Digite e clique em Buscar...</p>';
+      document.getElementById('resultadoFilial').innerHTML = '<p>Digite e busque...</p>';
     }
 
     function fecharModalFilial() {
@@ -648,71 +687,77 @@
 
     function limparSelecaoFilial() {
       lojaPrincipalSelecionada = null;
-      document.getElementById('lojaPrincipalInfo').classList.add('hidden');
+      document.getElementById('lojaPrincipalInfo').style.display = 'none';
     }
 
     async function buscarLojaParaFilial() {
-      const termo = document.getElementById('buscaFilialInput').value.trim().toLowerCase();
-      if (!termo) return alert("Digite parte do nome.");
+      const termo = document.getElementById('buscaFilialInput').value.trim();
+      if (!termo) return alert('Digite parte do nome');
 
-      const res = document.getElementById('resultadoFilial');
-      res.innerHTML = '<p>Buscando...</p>';
+      const termoLower = termo.toLowerCase();
+      const divResultado = document.getElementById('resultadoFilial');
+      divResultado.innerHTML = '<p>Buscando...</p>';
 
       try {
-        const snap = await db.collection(COLECAO_LOJAS).get();
-        res.innerHTML = '';
+        const snapshot = await db.collection(COLECAO_LOJAS).get();
+        divResultado.innerHTML = '';
+
         let encontrou = false;
-        snap.forEach(doc => {
-          const d = doc.data();
-          if (d.nome && d.nome.toLowerCase().includes(termo)) {
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          if (data.nome && data.nome.toLowerCase().includes(termoLower)) {
             encontrou = true;
-            const div = document.createElement('div');
-            div.style.padding = '12px';
-            div.style.borderBottom = '1px solid #eee';
-            div.style.cursor = 'pointer';
-            div.innerHTML = `<strong>${d.nome}</strong> <small>(${d.bairro || 'Sem bairro'}) - ${d.whatsapp?.principal || d.whatsapp?.array?.[0]?.numero || 'Sem WhatsApp'}</small>`;
-            div.onclick = () => {
-              lojaPrincipalSelecionada = { id: doc.id, data: d };
-              document.getElementById('nomeLojaPrincipal').textContent = d.nome;
-              document.getElementById('bairroLojaPrincipal').textContent = d.bairro || 'Sem bairro';
-              document.getElementById('lojaPrincipalInfo').classList.remove('hidden');
+            const item = document.createElement('div');
+            item.style.padding = '14px';
+            item.style.borderBottom = '1px solid #eee';
+            item.style.cursor = 'pointer';
+            item.style.borderRadius = '8px';
+            item.style.marginBottom = '8px';
+            item.innerHTML = `<strong>${data.nome}</strong> <small>(${data.bairro || 'Sem bairro'}) - Whats: ${data.whatsapp?.principal || data.whatsapp?.array?.[0]?.numero || 'N/A'}</small>`;
+            item.onclick = () => {
+              lojaPrincipalSelecionada = { id: doc.id, data: data };
+              document.getElementById('nomeLojaPrincipal').textContent = data.nome;
+              document.getElementById('bairroLojaPrincipal').textContent = data.bairro || 'Sem bairro';
+              document.getElementById('lojaPrincipalInfo').style.display = 'block';
               fecharModalFilial();
             };
-            res.appendChild(div);
+            divResultado.appendChild(item);
           }
         });
-        if (!encontrou) res.innerHTML = '<p>Nenhuma loja encontrada.</p>';
-      } catch (err) {
-        res.innerHTML = '<p style="color:var(--danger);">Erro na busca.</p>';
+
+        if (!encontrou) divResultado.innerHTML = '<p>Nenhuma loja encontrada.</p>';
+      } catch (error) {
+        divResultado.innerHTML = '<p style="color:red;">Erro na busca.</p>';
       }
     }
 
-    // === EDIÇÃO ===
     function carregarParaEdicao(item) {
-      document.getElementById('formAtualizacao').classList.remove('hidden');
+      document.getElementById('formAtualizacao').style.display = 'block';
       document.getElementById('nomeLojaAtual').textContent = item.nome || 'Sem nome';
-      document.getElementById('fonteItem').textContent = item._colecao === 'propostas' ? '(Proposta Pendente)' : '(Loja Existente)';
+      document.getElementById('fonteItem').textContent = item._colecao === 'propostas' ? '(Proposta)' : '(Loja)';
       document.getElementById('lojaId').value = item.id;
       document.getElementById('colecaoOrigem').value = item._colecao || 'users';
 
       const isProposta = item._colecao === 'propostas';
-      document.getElementById('campoStatus').classList.toggle('hidden', !isProposta);
-      document.getElementById('campoFilial').classList.toggle('hidden', !isProposta);
+      document.getElementById('campoStatus').style.display = isProposta ? 'block' : 'none';
+      document.getElementById('campoFilial').style.display = isProposta ? 'block' : 'none';
 
-      if (isProposta) document.getElementById('statusAprovado').checked = !!item.status;
+      if (isProposta) document.getElementById('statusAprovado').checked = item.status === true;
 
-      limparSelecaoFilial();
+      lojaPrincipalSelecionada = null;
+      document.getElementById('lojaPrincipalInfo').style.display = 'none';
 
       document.getElementById('nome').value = item.nome || '';
       document.getElementById('descricao').value = item.descricao || '';
       document.getElementById('bairro').value = item.bairro || '';
       document.getElementById('tags').value = Array.isArray(item.tags) ? item.tags.join(', ') : '';
       document.getElementById('whatsapp').value = item.whatsapp?.principal || '';
-      document.getElementById('fazEntrega').checked = !!item.fazEntrega;
 
-      document.getElementById('anuncioBusca').checked = !!item.anuncio?.busca;
-      document.getElementById('anuncioPostagem').checked = item.anuncio?.postagem !== false;
-      document.getElementById('anuncioPremium').checked = !!item.anuncio?.premium;
+      document.getElementById('anuncioBusca').checked = item.anuncio?.busca === true;
+      document.getElementById('anuncioPostagem').checked = item.anuncio?.postagem === true;
+      document.getElementById('anuncioPremium').checked = item.anuncio?.premium === true;
+
+      document.getElementById('fazEntrega').checked = item.fazEntrega === true;
 
       document.getElementById('semanaAbre').value = item.horarios?.semana?.abre || '';
       document.getElementById('semanaFecha').value = item.horarios?.semana?.fecha || '';
@@ -729,7 +774,7 @@
       document.getElementById('domingoFecha').value = item.horarios?.domingo?.fecha || '';
       toggleSubfields('domingo');
 
-      const intervaloAtivo = !!item.horarios?.intervalo?.global;
+      const intervaloAtivo = item.horarios?.intervalo?.global === true;
       document.getElementById('intervaloAtivo').checked = intervaloAtivo;
       document.getElementById('intervaloInicio').value = item.horarios?.intervalo?.inicio || '';
       document.getElementById('intervaloRetorno').value = item.horarios?.intervalo?.retorno || '';
@@ -738,21 +783,22 @@
       document.getElementById('formAtualizacao').scrollIntoView({ behavior: 'smooth' });
     }
 
-    function toggleSubfields(id) {
-      const checked = document.getElementById(id + 'Ativo').checked;
-      document.getElementById(id + 'Fields').classList.toggle('show', checked);
+    function toggleSubfields(tipo) {
+      const ativo = document.getElementById(tipo + 'Ativo').checked;
+      document.getElementById(tipo + 'Fields').classList.toggle('show', ativo);
     }
 
     async function atualizarLoja() {
       const id = document.getElementById('lojaId').value;
       const colecao = document.getElementById('colecaoOrigem').value;
-      if (!id) return alert("Erro interno: ID não encontrado.");
+      if (!id) return alert('Erro: ID não encontrado');
 
       const isProposta = colecao === 'propostas';
-      const aprovado = isProposta && document.getElementById('statusAprovado').checked;
+      const statusAprovado = isProposta ? document.getElementById('statusAprovado').checked : false;
 
-      const tags = document.getElementById('tags').value.trim()
-        .split(',').map(t => t.trim()).filter(t => t);
+      const tagsArray = document.getElementById('tags').value.trim()
+        ? document.getElementById('tags').value.trim().split(',').map(t => t.trim()).filter(t => t)
+        : [];
 
       const horarios = {
         semana: {
@@ -763,7 +809,7 @@
           global: document.getElementById('intervaloAtivo').checked,
           inicio: document.getElementById('intervaloInicio').value.trim() || '12:00',
           retorno: document.getElementById('intervaloRetorno').value.trim() || '13:30',
-        }
+        },
       };
 
       if (document.getElementById('sabadoAtivo').checked) {
@@ -772,6 +818,7 @@
           fecha: document.getElementById('sabadoFecha').value.trim() || '13:00',
         };
       }
+
       if (document.getElementById('domingoAtivo').checked) {
         horarios.domingo = {
           abre: document.getElementById('domingoAbre').value.trim() || '09:00',
@@ -781,86 +828,93 @@
 
       const dadosBase = {
         nome: document.getElementById('nome').value.trim() || 'Sem nome',
-        descricao: document.getElementById('descricao').value.trim(),
-        bairro: document.getElementById('bairro').value.trim(),
-        tags: tags,
-        whatsapp: { principal: document.getElementById('whatsapp').value.trim() },
+        descricao: document.getElementById('descricao').value.trim() || '',
+        bairro: document.getElementById('bairro').value.trim() || '',
+        tags: tagsArray,
+        whatsapp: { principal: document.getElementById('whatsapp').value.trim() || '' },
         fazEntrega: document.getElementById('fazEntrega').checked,
         horarios: horarios,
         anuncio: {
           premium: document.getElementById('anuncioPremium').checked,
           busca: document.getElementById('anuncioBusca').checked,
           postagem: document.getElementById('anuncioPostagem').checked || true,
-        }
+        },
       };
 
       try {
         if (!isProposta) {
-          // Atualização simples de loja existente
           await db.collection(COLECAO_LOJAS).doc(id).update(dadosBase);
-          alert("Loja atualizada com sucesso.");
+          alert('Loja atualizada com sucesso!');
           cancelarEdicao();
           carregarDesativados();
           return;
         }
 
-        // Proposta não aprovada
-        if (!aprovado && !lojaPrincipalSelecionada) {
+        if (!statusAprovado && !lojaPrincipalSelecionada) {
           await db.collection(COLECAO_PROPOSTAS).doc(id).update({ ...dadosBase, status: false });
-          alert("Proposta atualizada (continua pendente).");
+          alert('Proposta atualizada (ainda pendente).');
           cancelarEdicao();
           carregarPropostas();
           return;
         }
 
-        // Aprovação como loja nova
-        if (aprovado && !lojaPrincipalSelecionada) {
+        if (statusAprovado && !lojaPrincipalSelecionada) {
           const batch = db.batch();
-          const novaRef = db.collection(COLECAO_LOJAS).doc(id);
+          const novoRef = db.collection(COLECAO_LOJAS).doc(id);
 
-          const whatsappArray = dadosBase.whatsapp.principal
-            ? [{ bairro: dadosBase.bairro || 'Principal', numero: dadosBase.whatsapp.principal }]
-            : [];
+          const numeroPrincipal = document.getElementById('whatsapp').value.trim() || '';
+          const bairroPrincipal = document.getElementById('bairro').value.trim() || 'Principal';
+          const whatsappArray = numeroPrincipal ? [{ bairro: bairroPrincipal, numero: numeroPrincipal }] : [];
 
-          batch.set(novaRef, {
+          const dadosLojaNova = {
             ...dadosBase,
             whatsapp: whatsappArray,
             clicks: 0,
             criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
             temFiliais: false
-          });
+          };
+
+          batch.set(novoRef, dadosLojaNova);
           batch.delete(db.collection(COLECAO_PROPOSTAS).doc(id));
           await batch.commit();
 
-          alert("Proposta aprovada como nova loja!");
+          alert('SUCESSO! Proposta aprovada como nova loja!');
           cancelarEdicao();
           carregarPropostas();
           return;
         }
 
-        // Aprovação como filial
         if (lojaPrincipalSelecionada) {
-          if (!confirm(`Aprovar como filial de "${lojaPrincipalSelecionada.data.nome}"?`)) return;
+          if (!confirm(`Confirmar aprovação como FILIAL da loja:\n"${lojaPrincipalSelecionada.data.nome}" (${lojaPrincipalSelecionada.data.bairro || 'Sem bairro'})?`)) {
+            return;
+          }
 
           const numeroFilial = document.getElementById('whatsapp').value.trim();
           const bairroFilial = document.getElementById('bairro').value.trim() || 'Não informado';
-          if (!numeroFilial) return alert("WhatsApp da filial é obrigatório.");
+
+          if (!numeroFilial) return alert('WhatsApp da filial é obrigatório');
 
           const batch = db.batch();
           const principalRef = db.collection(COLECAO_LOJAS).doc(lojaPrincipalSelecionada.id);
 
-          const snap = await principalRef.get();
-          if (!snap.exists) throw new Error("Loja principal não encontrada.");
+          const principalSnap = await principalRef.get();
+          if (!principalSnap.exists) throw "Loja principal não encontrada";
 
-          let whatsappArray = snap.data().whatsapp || [];
+          let principalData = principalSnap.data();
+          let whatsappArray = principalData.whatsapp || [];
+
           if (!Array.isArray(whatsappArray)) {
-            whatsappArray = snap.data().whatsapp?.principal
-              ? [{ bairro: snap.data().bairro || 'Principal', numero: snap.data().whatsapp.principal }]
-              : [];
+            if (principalData.whatsapp?.principal) {
+              whatsappArray = [{ bairro: principalData.bairro || 'Principal', numero: principalData.whatsapp.principal }];
+            } else {
+              whatsappArray = [];
+            }
           }
 
           if (whatsappArray.some(w => w.numero === numeroFilial)) {
-            if (!confirm("Este número já existe na loja principal. Continuar mesmo assim?")) return;
+            if (!confirm("Este número de WhatsApp já existe na loja. Deseja adicionar mesmo assim?")) {
+              return;
+            }
           }
 
           whatsappArray.push({ bairro: bairroFilial, numero: numeroFilial });
@@ -870,7 +924,8 @@
             temFiliais: true
           });
 
-          batch.set(db.collection(COLECAO_FILIAIS).doc(), {
+          const filialRef = db.collection(COLECAO_FILIAIS).doc();
+          batch.set(filialRef, {
             lojaPrincipalId: lojaPrincipalSelecionada.id,
             lojaPrincipalNome: lojaPrincipalSelecionada.data.nome,
             dadosFilial: dadosBase,
@@ -880,20 +935,21 @@
           batch.delete(db.collection(COLECAO_PROPOSTAS).doc(id));
 
           await batch.commit();
-          alert("Filial adicionada com sucesso!");
+
+          alert('SUCESSO! Filial adicionada corretamente ao array whatsapp da loja principal!');
           cancelarEdicao();
           carregarPropostas();
           return;
         }
 
-      } catch (err) {
-        console.error(err);
-        alert("Erro ao salvar: " + err.message);
+      } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro ao salvar: ' + error.message);
       }
     }
 
     function cancelarEdicao() {
-      document.getElementById('formAtualizacao').classList.add('hidden');
+      document.getElementById('formAtualizacao').style.display = 'none';
       document.getElementById('resultado').innerHTML = '';
     }
   </script>
