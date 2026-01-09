@@ -507,7 +507,7 @@
             item.style.padding = '12px';
             item.style.borderBottom = '1px solid #eee';
             item.style.cursor = 'pointer';
-            item.innerHTML = `<strong>${data.nome}</strong> <small>(${data.bairro || 'Sem bairro'}) - Whats: ${data.whatsapp?.principal || data.whatsapp?.array?.[0]?.numero || 'N/A'}</small>`;
+            item.innerHTML = `<strong>${data.nome}</strong> <small>(${data.bairro || 'Sem bairro'}) - Whats: ${data.whatsapp[0].numero || data.whatsapp?.array?.[0]?.numero || 'N/A'}</small>`;
             item.onclick = () => {
               lojaPrincipalSelecionada = { id: doc.id, data: data };
               document.getElementById('nomeLojaPrincipal').textContent = data.nome;
