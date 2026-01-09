@@ -4,13 +4,488 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin BuscaZap</title>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <style>
+    :root {
+      --primary: #128C7E;
+      --primary-light: #e8f5f2;
+      --danger: #e74c3c;
+      --warning: #f39c12;
+      --gray: #6c757d;
+      --light: #f8f9fa;
+      --border: #dee2e6;
+    }
 
-  <!-- Firebase v10+ Modular -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, collection, doc, getDocs, getDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f4f6f9;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+      line-height: 1.6;
+    }
 
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    .user-info {
+      text-align: right;
+      padding: 15px 20px;
+      background: #f1f1f1;
+      font-size: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section {
+      padding: 25px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section:last-child {
+      border-bottom: none;
+    }
+
+    h2 {
+      color: var(--primary);
+      border-bottom: 2px solid var(--primary-light);
+      padding-bottom: 10px;
+      margin-top: 0;
+    }
+
+    .list {
+      display: grid;
+      gap: 12px;
+      margin-top: 15px;
+    }
+
+    .item {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .item:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+    }
+
+    .item.proposta {
+      border-left: 4px solid var(--warning);
+    }
+
+    .item.desativada {
+      border-left: 4px solid var(--danger);
+      background: #fff5f5;
+    }
+
+    .item-info {
+      flex: 1;
+    }
+
+    .item-info strong {
+      display: block;
+      font-size: 17px;
+    }
+
+    .item-info small {
+      color: var(--gray);
+      font-size: 14px;
+    }
+
+    .btn {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #0e6b60;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #c0392b;
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #545b62;
+    }
+
+    input, textarea, button {
+      font-family: inherit;
+    }
+
+    input[type="text"], textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin: 8px 0;
+      box-sizing: border-box;
+    }
+
+    label {
+      font-weight: 600;
+      margin-top: 15px;
+      display: block;
+      color: #444;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 56px;
+      height: 30px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #ccc;
+      transition: .4s;
+      border-radius: 30px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 22px;
+      width: 22px;
+      left: 4px;
+      bottom: 4px;
+      background: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background: var(--primary);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+
+    .switch-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 15px 0;
+    }
+
+    .subfields {
+      margin-left: 20px;
+      padding: 15px;
+      background: var(--light);
+      border-radius: 6px;
+      display: none;
+    }
+
+    .subfields.show {
+      display: block;
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .row > input {
+      flex: 1;
+    }
+
+    #loginScreen {
+      text-align: center;
+      padding: 80px 20px;
+    }
+
+    #loginScreen button {
+      background: #4285F4;
+      color: white;
+      padding: 15px 30px;
+      font-size: 18px;
+      margin-top: 20px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 500px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .alert {
+      padding: 12px;
+      border-radius: 6px;
+      margin: 15px 0;
+      font-size: 14px;
+    }
+
+    .alert-info {
+      background: var(--primary-light);
+      border: 1px solid var(--primary);
+      color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="loginScreen">
+    <div class="container">
+      <header>
+        <h1>Admin BuscaZap</h1>
+      </header>
+      <div style="padding:60px 20px;">
+        <p>Faça login com uma conta Google autorizada para acessar o painel administrativo.</p>
+        <button onclick="loginComGoogle()">Entrar com Google</button>
+        <p style="margin-top:30px; color:#666; font-size:14px;">
+          Apenas administradores autorizados têm acesso.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div id="adminContent" class="hidden">
+    <div class="container">
+      <div class="user-info">
+        Logado como: <strong id="userEmail"></strong> | 
+        <a href="#" onclick="logout()" style="color:var(--danger); text-decoration:none;">Sair</a>
+      </div>
+
+      <header>
+        <h1>Painel Administrativo – BuscaZap</h1>
+      </header>
+
+      <div class="section">
+        <h2>Propostas Pendentes</h2>
+        <div id="propostasLista" class="list">
+          <p style="text-align:center; color:#999;">Carregando propostas...</p>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Lojas Desativadas</h2>
+        <div id="desativadosLista" class="list">
+          <p style="text-align:center; color:#999;">Carregando lojas desativadas...</p>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Buscar Loja Existente</h2>
+        <div style="display:flex; gap:10px;">
+          <input type="text" id="buscaNome" placeholder="Digite parte do nome da loja">
+          <button class="btn btn-primary" onclick="buscarLojas()">Buscar</button>
+        </div>
+        <div id="resultado" class="list" style="margin-top:20px;"></div>
+      </div>
+
+      <div id="formAtualizacao" class="section hidden">
+        <h2>Editando: <span id="nomeLojaAtual"></span> <small id="fonteItem" style="color:var(--gray);"></small></h2>
+
+        <div id="campoStatus" class="alert alert-info">
+          <div class="switch-container">
+            <span>Aprovar esta proposta como nova loja?</span>
+            <label class="switch">
+              <input type="checkbox" id="statusAprovado">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div id="campoFilial" class="alert alert-info">
+          <strong>Ou aprovar como filial de loja existente?</strong>
+          <p style="margin:8px 0 15px; font-size:14px;">
+            O WhatsApp e bairro serão adicionados à loja principal. Todos os dados serão salvos no histórico de filiais.
+          </p>
+          <button type="button" class="btn btn-primary" onclick="abrirModalFilial()">Escolher Loja Principal</button>
+          <div id="lojaPrincipalInfo" class="hidden" style="margin-top:12px; padding:10px; background:#f0f8f7; border-radius:6px;">
+            <strong>Loja principal:</strong> <span id="nomeLojaPrincipal"></span> (<span id="bairroLojaPrincipal"></span>)
+            <button type="button" class="btn btn-danger" style="margin-left:10px; padding:4px 8px; font-size:12px;" onclick="limparSelecaoFilial()">Remover</button>
+          </div>
+        </div>
+
+        <form id="formLoja">
+          <input type="hidden" id="lojaId">
+          <input type="hidden" id="colecaoOrigem" value="users">
+
+          <div class="form-group">
+            <label>Nome da loja</label>
+            <input type="text" id="nome" required>
+          </div>
+
+          <div class="form-group">
+            <label>Descrição</label>
+            <textarea id="descricao" rows="3"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Bairro</label>
+            <input type="text" id="bairro">
+          </div>
+
+          <div class="form-group">
+            <label>Tags (separadas por vírgula)</label>
+            <input type="text" id="tags" placeholder="ex: padaria, delivery, 24h">
+          </div>
+
+          <div class="form-group">
+            <label>WhatsApp Principal</label>
+            <input type="text" id="whatsapp" placeholder="5599999999999">
+          </div>
+
+          <div class="switch-container">
+            <span>Faz entrega?</span>
+            <label class="switch">
+              <input type="checkbox" id="fazEntrega">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <h3 style="margin-bottom:15px; color:var(--primary);">Destaques</h3>
+            <div class="switch-container"><span>Destaque na busca</span><label class="switch"><input type="checkbox" id="anuncioBusca"><span class="slider"></span></label></div>
+            <div class="switch-container"><span>Destaque na postagem</span><label class="switch"><input type="checkbox" id="anuncioPostagem"><span class="slider"></span></label></div>
+            <div class="switch-container"><span>Loja Premium</span><label class="switch"><input type="checkbox" id="anuncioPremium"><span class="slider"></span></label></div>
+          </div>
+
+          <div class="form-group">
+            <h3 style="margin-bottom:15px; color:var(--primary);">Horários de Funcionamento</h3>
+
+            <label>Segunda a Sexta</label>
+            <div class="row">
+              <input type="text" id="semanaAbre" placeholder="Abre (ex: 08:00)">
+              <input type="text" id="semanaFecha" placeholder="Fecha (ex: 18:00)">
+            </div>
+
+            <div class="switch-container">
+              <span>Aberto aos sábados?</span>
+              <label class="switch"><input type="checkbox" id="sabadoAtivo" onchange="toggleSubfields('sabado')"><span class="slider"></span></label>
+            </div>
+            <div id="sabadoFields" class="subfields">
+              <div class="row">
+                <input type="text" id="sabadoAbre" placeholder="Abre">
+                <input type="text" id="sabadoFecha" placeholder="Fecha">
+              </div>
+            </div>
+
+            <div class="switch-container">
+              <span>Aberto aos domingos?</span>
+              <label class="switch"><input type="checkbox" id="domingoAtivo" onchange="toggleSubfields('domingo')"><span class="slider"></span></label>
+            </div>
+            <div id="domingoFields" class="subfields">
+              <div class="row">
+                <input type="text" id="domingoAbre" placeholder="Abre">
+                <input type="text" id="domingoFecha" placeholder="Fecha">
+              </div>
+            </div>
+
+            <div class="switch-container">
+              <span>Possui intervalo de almoço?</span>
+              <label class="switch"><input type="checkbox" id="intervaloAtivo" onchange="toggleSubfields('intervalo')"><span class="slider"></span></label>
+            </div>
+            <div id="intervaloFields" class="subfields">
+              <div class="row">
+                <input type="text" id="intervaloInicio" placeholder="Início">
+                <input type="text" id="intervaloRetorno" placeholder="Retorno">
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:12px; margin-top:30px;">
+            <button type="button" class="btn btn-primary" onclick="atualizarLoja()" style="flex:1;">Salvar Alterações</button>
+            <button type="button" class="btn btn-secondary" onclick="cancelarEdicao()" style="flex:1;">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para escolher loja principal (filial) -->
+  <div id="modalFilial" class="modal">
+    <div class="modal-content">
+      <h3>Buscar Loja Principal (Matriz)</h3>
+      <div style="display:flex; gap:10px; margin:15px 0;">
+        <input type="text" id="buscaFilialInput" placeholder="Digite parte do nome">
+        <button class="btn btn-primary" onclick="buscarLojaParaFilial()">Buscar</button>
+      </div>
+      <div id="resultadoFilial" style="max-height:300px; overflow-y:auto; margin-top:10px;"></div>
+      <button class="btn btn-secondary" style="width:100%; margin-top:20px;" onclick="fecharModalFilial()">Cancelar</button>
+    </div>
+  </div>
+
+  <script>
+    // === CONFIGURAÇÃO DO FIREBASE ===
     const firebaseConfig = {
       apiKey: "AIzaSyDo0QQjxmXZLw8qiWC3Kc52ZYk9UtWCYmc",
       authDomain: "appguiacomercial-e6109.firebaseapp.com",
@@ -20,631 +495,151 @@
       appId: "1:292734642765:web:fc9d62106f1f72d4340a04"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const provider = new GoogleAuthProvider();
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-    window.firebaseAuth = { auth, provider, signInWithPopup, signOut, onAuthStateChanged };
-    window.firebaseDb = { db, collection, doc, getDocs, getDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp };
-  </script>
-
-  <style>
-    :root {
-      --primary: #25D366;
-      --primary-dark: #128C7E;
-      --danger: #e74c3c;
-      --warning: #f39c12;
-      --success: #27ae60;
-      --gray: #95a5a6;
-      --light: #f8f9fa;
-      --border: #e0e0e0;
-    }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      max-width: 900px;
-      margin: 40px auto;
-      padding: 20px;
-      background: #f4f6f9;
-      color: #2c3e50;
-    }
-    h1 { text-align: center; color: #2c3e50; margin-bottom: 8px; }
-    .subtitle { text-align: center; color: #7f8c8d; margin-bottom: 40px; }
-
-    #loginScreen {
-      text-align: center;
-      padding: 80px 20px;
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.1);
-      max-width: 500px;
-      margin: 0 auto;
-    }
-    #loginScreen button {
-      background: #4285F4;
-      color: white;
-      padding: 16px 32px;
-      font-size: 18px;
-      border-radius: 12px;
-      margin-top: 20px;
-      border: none;
-      cursor: pointer;
-    }
-
-    #adminHeader {
-      text-align: right;
-      font-size: 14px;
-      color: #7f8c8d;
-      margin-bottom: 30px;
-    }
-    #adminHeader a { color: var(--danger); text-decoration: none; }
-
-    .card {
-      background: white;
-      border-radius: 16px;
-      padding: 24px;
-      margin-bottom: 30px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-    }
-    .card h3 {
-      margin: 0 0 20px;
-      font-size: 18px;
-      text-align: center;
-    }
-    .propostas .card h3 { color: var(--warning); }
-    .desativadas .card h3 { color: var(--danger); }
-
-    .item {
-      padding: 16px;
-      border-radius: 12px;
-      margin-bottom: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-    .proposta-item { background: #fff8e1; border-left: 5px solid var(--warning); }
-    .desativado-item { background: #ffebee; border-left: 5px solid var(--danger); }
-
-    .item-info strong { display: block; font-size: 16px; }
-    .item-info small { color: #636e72; font-size: 14px; }
-
-    .btn-delete {
-      background: var(--danger);
-      color: white;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 8px;
-      font-size: 13px;
-      cursor: pointer;
-    }
-
-    .search-box {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 30px;
-    }
-    .search-box input {
-      flex: 1;
-      padding: 14px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      font-size: 16px;
-    }
-    .search-box button {
-      background: var(--primary);
-      color: white;
-      padding: 0 24px;
-      border-radius: 12px;
-      border: none;
-      cursor: pointer;
-    }
-
-    #formAtualizacao {
-      display: none;
-      background: white;
-      border-radius: 16px;
-      padding: 30px;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.1);
-      margin: 40px 0;
-    }
-    #formAtualizacao h2 {
-      text-align: left;
-      font-size: 22px;
-      margin-bottom: 10px;
-    }
-    #formAtualizacao .subtitle-form {
-      color: #7f8c8d;
-      font-size: 15px;
-      margin-bottom: 30px;
-    }
-
-    .form-group {
-      margin-bottom: 24px;
-    }
-    .form-group label {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 8px;
-      color: #34495e;
-    }
-    .form-group input,
-    .form-group textarea {
-      width: 100%;
-      padding: 12px 14px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      font-size: 16px;
-      box-sizing: border-box;
-    }
-    .form-group textarea { resize: vertical; min-height: 100px; }
-
-    .row {
-      display: flex;
-      gap: 16px;
-    }
-    .row > div { flex: 1; }
-
-    .section {
-      background: var(--light);
-      padding: 20px;
-      border-radius: 12px;
-      margin-bottom: 24px;
-    }
-    .section h4 {
-      margin: 0 0 16px;
-      font-size: 17px;
-      color: #2c3e50;
-    }
-
-    .switch-group {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 0;
-    }
-    .switch-label { font-size: 15.5px; color: #34495e; }
-
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 56px;
-      height: 32px;
-    }
-    .switch input { opacity: 0; width: 0; height: 0; }
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: #ccc;
-      transition: .3s;
-      border-radius: 32px;
-    }
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 24px;
-      width: 24px;
-      left: 4px;
-      bottom: 4px;
-      background: white;
-      transition: .3s;
-      border-radius: 50%;
-    }
-    input:checked + .slider { background: var(--primary); }
-    input:checked + .slider:before { transform: translateX(24px); }
-
-    .subfields { margin-top: 16px; display: none; }
-    .subfields.show { display: block; }
-
-    .btn-group {
-      display: flex;
-      gap: 16px;
-      margin-top: 30px;
-    }
-    .btn-primary {
-      flex: 1;
-      background: var(--primary);
-      color: white;
-      padding: 16px;
-      font-size: 17px;
-      font-weight: 600;
-      border-radius: 12px;
-      border: none;
-      cursor: pointer;
-    }
-    .btn-secondary {
-      flex: 1;
-      background: #95a5a6;
-      color: white;
-      padding: 16px;
-      font-size: 17px;
-      border-radius: 12px;
-      border: none;
-      cursor: pointer;
-    }
-
-    .filial-box {
-      background: #e8f5e9;
-      border: 1px solid #a8e6b4;
-      border-radius: 12px;
-      padding: 18px;
-      margin: 20px 0;
-    }
-    .filial-box strong { display: block; margin-bottom: 10px; }
-    .filial-selected {
-      background: white;
-      padding: 12px;
-      border-radius: 8px;
-      margin-top: 12px;
-      border: 1px solid #a8e6b4;
-    }
-
-    #modalFilial {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.7);
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-    .modal-content {
-      background: white;
-      width: 90%;
-      max-width: 600px;
-      border-radius: 16px;
-      padding: 30px;
-      max-height: 80vh;
-      overflow-y: auto;
-    }
-    .resultado-item {
-      padding: 14px;
-      border-bottom: 1px solid #eee;
-      cursor: pointer;
-    }
-    .resultado-item:hover { background: #f0f0f0; }
-  </style>
-</head>
-<body>
-
-  <div id="loginScreen">
-    <h1>Admin BuscaZap</h1>
-    <p>Faça login com uma conta Google autorizada para acessar o painel administrativo.</p>
-    <button onclick="loginComGoogle()">Entrar com Google</button>
-    <p style="margin-top:30px; color:#666; font-size:14px;">
-      Apenas administradores autorizados podem acessar este painel.
-    </p>
-  </div>
-
-  <div id="adminContent" style="display:none;">
-    <div id="adminHeader">
-      Logado como: <strong id="userEmail"></strong> | 
-      <a href="#" onclick="logout()">Sair</a>
-    </div>
-
-    <h1>Admin BuscaZap</h1>
-    <p class="subtitle">Gerencie lojas, propostas e destaques com facilidade.</p>
-
-    <div class="propostas">
-      <div class="card" id="propostasLista">
-        <p style="text-align:center; color:#95a5a6;">Carregando propostas...</p>
-      </div>
-    </div>
-
-    <div class="desativadas">
-      <div class="card" id="desativadosLista">
-        <p style="text-align:center; color:#95a5a6;">Carregando lojas desativadas...</p>
-      </div>
-    </div>
-
-    <div class="search-box">
-      <input type="text" id="buscaNome" placeholder="Buscar loja por nome..." />
-      <button onclick="buscarLojas()">Buscar</button>
-    </div>
-
-    <div id="resultado"></div>
-
-    <div id="formAtualizacao">
-      <h2>Editando: <span id="nomeLojaAtual"></span></h2>
-      <p class="subtitle-form" id="fonteItem"></p>
-
-      <input type="hidden" id="lojaId" />
-      <input type="hidden" id="colecaoOrigem" />
-
-      <div id="campoStatus" style="display:none;" class="filial-box">
-        <strong>Status da Proposta</strong>
-        <div class="switch-group">
-          <span class="switch-label">Aprovar esta proposta?</span>
-          <label class="switch">
-            <input type="checkbox" id="statusAprovado">
-            <span class="slider"></span>
-          </label>
-        </div>
-      </div>
-
-      <div id="campoFilial" style="display:none;" class="filial-box">
-        <strong>Aprovar como FILIAL?</strong>
-        <p style="font-size:14px; margin:10px 0 16px; color:#555;">
-          Adiciona o WhatsApp + bairro à loja principal e salva histórico completo.
-        </p>
-        <button type="button" onclick="abrirModalFilial()" style="background:var(--primary-dark); padding:12px 20px; border-radius:10px; color:white;">
-          Selecionar Loja Principal
-        </button>
-
-        <div id="lojaPrincipalInfo" class="filial-selected" style="display:none;">
-          <strong>Loja principal:</strong> <span id="nomeLojaPrincipal"></span> 
-          (<span id="bairroLojaPrincipal"></span>)
-          <button type="button" onclick="limparSelecaoFilial()" style="float:right; background:var(--danger); padding:6px 12px; font-size:13px;">Remover</button>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>Nome da loja *</label>
-        <input type="text" id="nome" required />
-      </div>
-
-      <div class="form-group">
-        <label>Descrição</label>
-        <textarea id="descricao" rows="3"></textarea>
-      </div>
-
-      <div class="row">
-        <div class="form-group">
-          <label>Bairro</label>
-          <input type="text" id="bairro" />
-        </div>
-        <div class="form-group">
-          <label>WhatsApp Principal</label>
-          <input type="text" id="whatsapp" placeholder="5599999999999" />
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>Tags (separadas por vírgula)</label>
-        <input type="text" id="tags" placeholder="ex: padaria, delivery, café da manhã, 24h" />
-      </div>
-
-      <div class="section">
-        <h4>Destaques e Anúncios</h4>
-        <div class="switch-group">
-          <span class="switch-label">Destaque na busca</span>
-          <label class="switch"><input type="checkbox" id="anuncioBusca"><span class="slider"></span></label>
-        </div>
-        <div class="switch-group">
-          <span class="switch-label">Destaque na postagem</span>
-          <label class="switch"><input type="checkbox" id="anuncioPostagem"><span class="slider"></span></label>
-        </div>
-        <div class="switch-group">
-          <span class="switch-label">Loja Premium</span>
-          <label class="switch"><input type="checkbox" id="anuncioPremium"><span class="slider"></span></label>
-        </div>
-      </div>
-
-      <div class="section">
-        <h4>Outras Informações</h4>
-        <div class="switch-group">
-          <span class="switch-label">Faz entrega?</span>
-          <label class="switch"><input type="checkbox" id="fazEntrega"><span class="slider"></span></label>
-        </div>
-      </div>
-
-      <div class="section">
-        <h4>Horários de Funcionamento</h4>
-
-        <div class="row">
-          <div>
-            <label>Segunda a Sexta - Abre</label>
-            <input type="text" id="semanaAbre" placeholder="08:00" />
-          </div>
-          <div>
-            <label>Fecha</label>
-            <input type="text" id="semanaFecha" placeholder="18:00" />
-          </div>
-        </div>
-
-        <div class="switch-group">
-          <span class="switch-label">Aberto aos sábados?</span>
-          <label class="switch"><input type="checkbox" id="sabadoAtivo" onchange="toggleSubfields('sabado')"><span class="slider"></span></label>
-        </div>
-        <div id="sabadoFields" class="subfields">
-          <div class="row">
-            <div><input type="text" id="sabadoAbre" placeholder="08:00" /></div>
-            <div><input type="text" id="sabadoFecha" placeholder="13:00" /></div>
-          </div>
-        </div>
-
-        <div class="switch-group">
-          <span class="switch-label">Aberto aos domingos?</span>
-          <label class="switch"><input type="checkbox" id="domingoAtivo" onchange="toggleSubfields('domingo')"><span class="slider"></span></label>
-        </div>
-        <div id="domingoFields" class="subfields">
-          <div class="row">
-            <div><input type="text" id="domingoAbre" placeholder="09:00" /></div>
-            <div><input type="text" id="domingoFecha" placeholder="13:00" /></div>
-          </div>
-        </div>
-
-        <div class="switch-group">
-          <span class="switch-label">Possui intervalo de almoço?</span>
-          <label class="switch"><input type="checkbox" id="intervaloAtivo" onchange="toggleSubfields('intervalo')"><span class="slider"></span></label>
-        </div>
-        <div id="intervaloFields" class="subfields">
-          <div class="row">
-            <div><input type="text" id="intervaloInicio" placeholder="12:00" /></div>
-            <div><input type="text" id="intervaloRetorno" placeholder="13:30" /></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="btn-group">
-        <button type="button" class="btn-primary" onclick="atualizarLoja()">Salvar Alterações</button>
-        <button type="button" class="btn-secondary" onclick="cancelarEdicao()">Cancelar</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="modalFilial">
-    <div class="modal-content">
-      <h3>Buscar Loja Principal (Matriz)</h3>
-      <input type="text" id="buscaFilialInput" placeholder="Digite parte do nome da loja..." />
-      <button onclick="buscarLojaParaFilial()">Buscar</button>
-      <div id="resultadoFilial" style="margin-top:20px; max-height:300px; overflow-y:auto;"></div>
-      <button onclick="fecharModalFilial()" style="background:#95a5a6; color:white; margin-top:20px; padding:12px; width:100%; border-radius:10px;">Cancelar</button>
-    </div>
-  </div>
-
-  <script>
     const COLECAO_LOJAS = 'users';
     const COLECAO_PROPOSTAS = 'propostas';
     const COLECAO_FILIAIS = 'filiais';
 
     const ADMINS_PERMITIDOS = ["hupcontato@gmail.com"];
 
-    let usuarioAtual = null;
     let lojaPrincipalSelecionada = null;
 
+    // === AUTENTICAÇÃO ===
     function loginComGoogle() {
-      const { auth, provider, signInWithPopup } = window.firebaseAuth;
-      signInWithPopup(auth, provider).catch(err => alert("Erro: " + err.message));
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider);
     }
 
     function logout() {
-      const { auth, signOut } = window.firebaseAuth;
-      signOut(auth);
+      auth.signOut();
     }
 
-    const { auth, onAuthStateChanged } = window.firebaseAuth;
-    onAuthStateChanged(auth, user => {
-      if (user) {
-        if (ADMINS_PERMITIDOS.map(e => e.toLowerCase()).includes(user.email.toLowerCase())) {
-          usuarioAtual = user;
-          document.getElementById('userEmail').textContent = user.email;
-          document.getElementById('loginScreen').style.display = 'none';
-          document.getElementById('adminContent').style.display = 'block';
-          carregarPropostas();
-          carregarDesativados();
-        } else {
-          alert("Acesso negado.");
-          logout();
-        }
+    auth.onAuthStateChanged(user => {
+      if (user && ADMINS_PERMITIDOS.map(e => e.toLowerCase()).includes(user.email.toLowerCase())) {
+        document.getElementById('userEmail').textContent = user.email;
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('adminContent').classList.remove('hidden');
+        carregarPropostas();
+        carregarDesativados();
+      } else if (user) {
+        alert("Acesso negado: e-mail não autorizado.");
+        auth.signOut();
       } else {
-        document.getElementById('loginScreen').style.display = 'block';
-        document.getElementById('adminContent').style.display = 'none';
+        document.getElementById('loginScreen').classList.remove('hidden');
+        document.getElementById('adminContent').classList.add('hidden');
       }
     });
 
+    // === CARREGAMENTO DE DADOS ===
     async function carregarPropostas() {
-      const { db, collection, getDocs } = window.firebaseDb;
-      const div = document.getElementById('propostasLista');
-      div.innerHTML = '<p style="text-align:center;">Carregando...</p>';
+      const lista = document.getElementById('propostasLista');
+      lista.innerHTML = '<p style="text-align:center; color:#999;">Carregando...</p>';
 
       try {
-        const snapshot = await getDocs(collection(db, COLECAO_PROPOSTAS));
-        if (snapshot.empty) {
-          div.innerHTML = '<p style="color:#666; text-align:center;">Nenhuma proposta pendente.</p>';
+        const snap = await db.collection(COLECAO_PROPOSTAS).get();
+        if (snap.empty) {
+          lista.innerHTML = '<p style="text-align:center; color:#999;">Nenhuma proposta pendente.</p>';
           return;
         }
-        div.innerHTML = '<h3 style="text-align:center; color:var(--warning);">Propostas Pendentes</h3>';
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          const item = document.createElement('div');
-          item.className = 'item proposta-item';
-          item.innerHTML = `
+
+        lista.innerHTML = '';
+        snap.forEach(doc => {
+          const d = doc.data();
+          const div = document.createElement('div');
+          div.className = 'item proposta';
+          div.innerHTML = `
             <div class="item-info">
-              <strong>${data.nome || 'Sem nome'}</strong>
-              <small>${data.descricao || 'Sem descrição'} | WhatsApp: ${data.whatsapp?.principal || 'N/I'}</small>
+              <strong>${d.nome || 'Sem nome'}</strong>
+              <small>${d.descricao || 'Sem descrição'} • WhatsApp: ${d.whatsapp?.principal || 'Não informado'}</small>
             </div>
           `;
-          item.onclick = () => carregarParaEdicao({ id: doc.id, ...data, _colecao: 'propostas' });
-          div.appendChild(item);
+          div.onclick = () => carregarParaEdicao({ id: doc.id, ...d, _colecao: 'propostas' });
+          lista.appendChild(div);
         });
       } catch (err) {
-        div.innerHTML = '<p style="color:red;">Erro ao carregar.</p>';
+        lista.innerHTML = '<p style="color:var(--danger);">Erro ao carregar propostas.</p>';
       }
     }
 
     async function carregarDesativados() {
-      const { db, collection, getDocs, query, where } = window.firebaseDb;
-      const div = document.getElementById('desativadosLista');
-      div.innerHTML = '<p style="text-align:center;">Carregando...</p>';
+      const lista = document.getElementById('desativadosLista');
+      lista.innerHTML = '<p style="text-align:center; color:#999;">Carregando...</p>';
 
       try {
-        const q = query(collection(db, COLECAO_LOJAS), where('anuncio.postagem', '==', false));
-        const snapshot = await getDocs(q);
-        if (snapshot.empty) {
-          div.innerHTML = '<p style="color:#666; text-align:center;">Nenhuma loja desativada.</p>';
+        const snap = await db.collection(COLECAO_LOJAS).where('anuncio.postagem', '==', false).get();
+        if (snap.empty) {
+          lista.innerHTML = '<p style="text-align:center; color:#999;">Nenhuma loja desativada.</p>';
           return;
         }
-        div.innerHTML = '<h3 style="text-align:center; color:var(--danger);">Lojas Desativadas</h3>';
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          const item = document.createElement('div');
-          item.className = 'item desativado-item';
-          item.innerHTML = `
+
+        lista.innerHTML = '';
+        snap.forEach(doc => {
+          const d = doc.data();
+          const div = document.createElement('div');
+          div.className = 'item desativada';
+          div.innerHTML = `
             <div class="item-info">
-              <strong>${data.nome || 'Sem nome'}</strong>
-              <small>${data.descricao || 'Sem descrição'} | Bairro: ${data.bairro || 'N/I'}</small>
+              <strong>${d.nome || 'Sem nome'}</strong>
+              <small>${d.descricao || 'Sem descrição'} • Bairro: ${d.bairro || 'Não informado'}</small>
             </div>
-            <button class="btn-delete" onclick="excluirLoja('${doc.id}', event)">Excluir</button>
+            <button class="btn btn-danger" onclick="excluirLoja('${doc.id}', event)">Excluir</button>
           `;
-          item.querySelector('.item-info').onclick = () => carregarParaEdicao({ id: doc.id, ...data, _colecao: 'users' });
-          div.appendChild(item);
+          div.querySelector('.item-info').onclick = () => carregarParaEdicao({ id: doc.id, ...d, _colecao: 'users' });
+          lista.appendChild(div);
         });
       } catch (err) {
-        div.innerHTML = '<p style="color:red;">Erro ao carregar.</p>';
+        lista.innerHTML = '<p style="color:var(--danger);">Erro ao carregar lojas desativadas.</p>';
       }
     }
 
-    async function excluirLoja(id, event) {
-      event.stopPropagation();
-      if (!confirm("EXCLUIR permanentemente esta loja?")) return;
-      const { db, doc, deleteDoc } = window.firebaseDb;
+    async function excluirLoja(id, e) {
+      e.stopPropagation();
+      if (!confirm("Excluir permanentemente esta loja? Esta ação não pode ser desfeita.")) return;
       try {
-        await deleteDoc(doc(db, COLECAO_LOJAS, id));
-        alert("Loja excluída!");
+        await db.collection(COLECAO_LOJAS).doc(id).delete();
+        alert("Loja excluída.");
         carregarDesativados();
       } catch (err) {
-        alert("Erro: " + err.message);
+        alert("Erro ao excluir: " + err.message);
       }
     }
 
     async function buscarLojas() {
-      const termo = document.getElementById('buscaNome').value.trim();
-      if (!termo) return alert('Digite parte do nome');
-      const termoLower = termo.toLowerCase();
-      const div = document.getElementById('resultado');
-      div.innerHTML = '<p style="text-align:center;">Buscando...</p>';
+      const termo = document.getElementById('buscaNome').value.trim().toLowerCase();
+      if (!termo) return alert("Digite parte do nome da loja.");
 
-      const { db, collection, getDocs } = window.firebaseDb;
+      const res = document.getElementById('resultado');
+      res.innerHTML = '<p style="text-align:center; color:#999;">Buscando...</p>';
+
       try {
-        const snapshot = await getDocs(collection(db, COLECAO_LOJAS));
-        div.innerHTML = '';
+        const snap = await db.collection(COLECAO_LOJAS).get();
+        res.innerHTML = '';
         let encontrou = false;
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          if (data.nome && data.nome.toLowerCase().includes(termoLower)) {
+        snap.forEach(doc => {
+          const d = doc.data();
+          if (d.nome && d.nome.toLowerCase().includes(termo)) {
             encontrou = true;
-            const item = document.createElement('div');
-            item.className = 'item';
-            item.style.background = '#e8f5e9';
-            item.innerHTML = `<div class="item-info"><strong>${data.nome}</strong><small>Bairro: ${data.bairro || 'N/I'}</small></div>`;
-            item.onclick = () => carregarParaEdicao({ id: doc.id, ...data, _colecao: 'users' });
-            div.appendChild(item);
+            const div = document.createElement('div');
+            div.className = 'item';
+            div.innerHTML = `<div class="item-info"><strong>${d.nome}</strong><small>Bairro: ${d.bairro || 'Não informado'}</small></div>`;
+            div.onclick = () => carregarParaEdicao({ id: doc.id, ...d, _colecao: 'users' });
+            res.appendChild(div);
           }
         });
-        if (!encontrou) div.innerHTML = '<p>Nenhuma loja encontrada.</p>';
+        if (!encontrou) res.innerHTML = '<p>Nenhuma loja encontrada.</p>';
       } catch (err) {
-        div.innerHTML = '<p style="color:red;">Erro na busca.</p>';
+        res.innerHTML = '<p style="color:var(--danger);">Erro na busca.</p>';
       }
     }
 
+    // === MODAL FILIAL ===
     function abrirModalFilial() {
       document.getElementById('modalFilial').style.display = 'flex';
       document.getElementById('buscaFilialInput').value = '';
-      document.getElementById('resultadoFilial').innerHTML = '';
+      document.getElementById('resultadoFilial').innerHTML = '<p>Digite e clique em Buscar...</p>';
     }
 
     function fecharModalFilial() {
@@ -653,56 +648,58 @@
 
     function limparSelecaoFilial() {
       lojaPrincipalSelecionada = null;
-      document.getElementById('lojaPrincipalInfo').style.display = 'none';
+      document.getElementById('lojaPrincipalInfo').classList.add('hidden');
     }
 
     async function buscarLojaParaFilial() {
-      const termo = document.getElementById('buscaFilialInput').value.trim();
-      if (!termo) return alert('Digite parte do nome');
-      const termoLower = termo.toLowerCase();
-      const div = document.getElementById('resultadoFilial');
-      div.innerHTML = '<p>Buscando...</p>';
+      const termo = document.getElementById('buscaFilialInput').value.trim().toLowerCase();
+      if (!termo) return alert("Digite parte do nome.");
 
-      const { db, collection, getDocs } = window.firebaseDb;
+      const res = document.getElementById('resultadoFilial');
+      res.innerHTML = '<p>Buscando...</p>';
+
       try {
-        const snapshot = await getDocs(collection(db, COLECAO_LOJAS));
-        div.innerHTML = '';
+        const snap = await db.collection(COLECAO_LOJAS).get();
+        res.innerHTML = '';
         let encontrou = false;
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          if (data.nome && data.nome.toLowerCase().includes(termoLower)) {
+        snap.forEach(doc => {
+          const d = doc.data();
+          if (d.nome && d.nome.toLowerCase().includes(termo)) {
             encontrou = true;
-            const item = document.createElement('div');
-            item.className = 'resultado-item';
-            item.innerHTML = `<strong>${data.nome}</strong> <small>(${data.bairro || 'Sem bairro'})</small>`;
-            item.onclick = () => {
-              lojaPrincipalSelecionada = { id: doc.id, data };
-              document.getElementById('nomeLojaPrincipal').textContent = data.nome;
-              document.getElementById('bairroLojaPrincipal').textContent = data.bairro || 'Sem bairro';
-              document.getElementById('lojaPrincipalInfo').style.display = 'block';
+            const div = document.createElement('div');
+            div.style.padding = '12px';
+            div.style.borderBottom = '1px solid #eee';
+            div.style.cursor = 'pointer';
+            div.innerHTML = `<strong>${d.nome}</strong> <small>(${d.bairro || 'Sem bairro'}) - ${d.whatsapp?.principal || d.whatsapp?.array?.[0]?.numero || 'Sem WhatsApp'}</small>`;
+            div.onclick = () => {
+              lojaPrincipalSelecionada = { id: doc.id, data: d };
+              document.getElementById('nomeLojaPrincipal').textContent = d.nome;
+              document.getElementById('bairroLojaPrincipal').textContent = d.bairro || 'Sem bairro';
+              document.getElementById('lojaPrincipalInfo').classList.remove('hidden');
               fecharModalFilial();
             };
-            div.appendChild(item);
+            res.appendChild(div);
           }
         });
-        if (!encontrou) div.innerHTML = '<p>Nenhuma loja encontrada.</p>';
+        if (!encontrou) res.innerHTML = '<p>Nenhuma loja encontrada.</p>';
       } catch (err) {
-        div.innerHTML = '<p style="color:red;">Erro.</p>';
+        res.innerHTML = '<p style="color:var(--danger);">Erro na busca.</p>';
       }
     }
 
+    // === EDIÇÃO ===
     function carregarParaEdicao(item) {
-      document.getElementById('formAtualizacao').style.display = 'block';
+      document.getElementById('formAtualizacao').classList.remove('hidden');
       document.getElementById('nomeLojaAtual').textContent = item.nome || 'Sem nome';
-      document.getElementById('fonteItem').textContent = item._colecao === 'propostas' ? '(Proposta pendente)' : '(Loja ativa)';
+      document.getElementById('fonteItem').textContent = item._colecao === 'propostas' ? '(Proposta Pendente)' : '(Loja Existente)';
       document.getElementById('lojaId').value = item.id;
-      document.getElementById('colecaoOrigem').value = item._colecao;
+      document.getElementById('colecaoOrigem').value = item._colecao || 'users';
 
       const isProposta = item._colecao === 'propostas';
-      document.getElementById('campoStatus').style.display = isProposta ? 'block' : 'none';
-      document.getElementById('campoFilial').style.display = isProposta ? 'block' : 'none';
+      document.getElementById('campoStatus').classList.toggle('hidden', !isProposta);
+      document.getElementById('campoFilial').classList.toggle('hidden', !isProposta);
 
-      document.getElementById('statusAprovado').checked = !!item.status;
+      if (isProposta) document.getElementById('statusAprovado').checked = !!item.status;
 
       limparSelecaoFilial();
 
@@ -711,12 +708,11 @@
       document.getElementById('bairro').value = item.bairro || '';
       document.getElementById('tags').value = Array.isArray(item.tags) ? item.tags.join(', ') : '';
       document.getElementById('whatsapp').value = item.whatsapp?.principal || '';
+      document.getElementById('fazEntrega').checked = !!item.fazEntrega;
 
-      document.getElementById('anuncioBusca').checked = item.anuncio?.busca === true;
-      document.getElementById('anuncioPostagem').checked = item.anuncio?.postagem === true;
-      document.getElementById('anuncioPremium').checked = item.anuncio?.premium === true;
-
-      document.getElementById('fazEntrega').checked = item.fazEntrega === true;
+      document.getElementById('anuncioBusca').checked = !!item.anuncio?.busca;
+      document.getElementById('anuncioPostagem').checked = item.anuncio?.postagem !== false;
+      document.getElementById('anuncioPremium').checked = !!item.anuncio?.premium;
 
       document.getElementById('semanaAbre').value = item.horarios?.semana?.abre || '';
       document.getElementById('semanaFecha').value = item.horarios?.semana?.fecha || '';
@@ -733,7 +729,7 @@
       document.getElementById('domingoFecha').value = item.horarios?.domingo?.fecha || '';
       toggleSubfields('domingo');
 
-      const intervaloAtivo = item.horarios?.intervalo?.global === true;
+      const intervaloAtivo = !!item.horarios?.intervalo?.global;
       document.getElementById('intervaloAtivo').checked = intervaloAtivo;
       document.getElementById('intervaloInicio').value = item.horarios?.intervalo?.inicio || '';
       document.getElementById('intervaloRetorno').value = item.horarios?.intervalo?.retorno || '';
@@ -742,20 +738,21 @@
       document.getElementById('formAtualizacao').scrollIntoView({ behavior: 'smooth' });
     }
 
-    function toggleSubfields(tipo) {
-      const checked = document.getElementById(tipo + 'Ativo').checked;
-      document.getElementById(tipo + 'Fields').classList.toggle('show', checked);
+    function toggleSubfields(id) {
+      const checked = document.getElementById(id + 'Ativo').checked;
+      document.getElementById(id + 'Fields').classList.toggle('show', checked);
     }
 
     async function atualizarLoja() {
       const id = document.getElementById('lojaId').value;
       const colecao = document.getElementById('colecaoOrigem').value;
-      if (!id) return alert('ID não encontrado');
+      if (!id) return alert("Erro interno: ID não encontrado.");
 
       const isProposta = colecao === 'propostas';
-      const aprovado = isProposta ? document.getElementById('statusAprovado').checked : false;
+      const aprovado = isProposta && document.getElementById('statusAprovado').checked;
 
-      const tags = document.getElementById('tags').value.trim().split(',').map(t => t.trim()).filter(t => t);
+      const tags = document.getElementById('tags').value.trim()
+        .split(',').map(t => t.trim()).filter(t => t);
 
       const horarios = {
         semana: {
@@ -775,7 +772,6 @@
           fecha: document.getElementById('sabadoFecha').value.trim() || '13:00',
         };
       }
-
       if (document.getElementById('domingoAtivo').checked) {
         horarios.domingo = {
           abre: document.getElementById('domingoAbre').value.trim() || '09:00',
@@ -798,95 +794,106 @@
         }
       };
 
-      const { db, doc, updateDoc, setDoc, deleteDoc, writeBatch, serverTimestamp } = window.firebaseDb;
-
       try {
         if (!isProposta) {
-          await updateDoc(doc(db, COLECAO_LOJAS, id), dadosBase);
-          alert('Loja atualizada!');
+          // Atualização simples de loja existente
+          await db.collection(COLECAO_LOJAS).doc(id).update(dadosBase);
+          alert("Loja atualizada com sucesso.");
           cancelarEdicao();
           carregarDesativados();
           return;
         }
 
+        // Proposta não aprovada
         if (!aprovado && !lojaPrincipalSelecionada) {
-          await updateDoc(doc(db, COLECAO_PROPOSTAS, id), { ...dadosBase, status: false });
-          alert('Proposta atualizada (pendente).');
+          await db.collection(COLECAO_PROPOSTAS).doc(id).update({ ...dadosBase, status: false });
+          alert("Proposta atualizada (continua pendente).");
           cancelarEdicao();
           carregarPropostas();
           return;
         }
 
+        // Aprovação como loja nova
         if (aprovado && !lojaPrincipalSelecionada) {
-          const batch = writeBatch(db);
-          const novoRef = doc(db, COLECAO_LOJAS, id);
+          const batch = db.batch();
+          const novaRef = db.collection(COLECAO_LOJAS).doc(id);
 
-          const numero = document.getElementById('whatsapp').value.trim();
-          const bairro = document.getElementById('bairro').value.trim() || 'Principal';
-          const whatsappArray = numero ? [{ bairro, numero }] : [];
+          const whatsappArray = dadosBase.whatsapp.principal
+            ? [{ bairro: dadosBase.bairro || 'Principal', numero: dadosBase.whatsapp.principal }]
+            : [];
 
-          batch.set(novoRef, {
+          batch.set(novaRef, {
             ...dadosBase,
             whatsapp: whatsappArray,
             clicks: 0,
-            criadoEm: serverTimestamp(),
+            criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
             temFiliais: false
           });
-          batch.delete(doc(db, COLECAO_PROPOSTAS, id));
+          batch.delete(db.collection(COLECAO_PROPOSTAS).doc(id));
           await batch.commit();
 
-          alert('Proposta aprovada como nova loja!');
+          alert("Proposta aprovada como nova loja!");
           cancelarEdicao();
           carregarPropostas();
           return;
         }
 
+        // Aprovação como filial
         if (lojaPrincipalSelecionada) {
           if (!confirm(`Aprovar como filial de "${lojaPrincipalSelecionada.data.nome}"?`)) return;
 
           const numeroFilial = document.getElementById('whatsapp').value.trim();
           const bairroFilial = document.getElementById('bairro').value.trim() || 'Não informado';
-          if (!numeroFilial) return alert('WhatsApp obrigatório para filial');
+          if (!numeroFilial) return alert("WhatsApp da filial é obrigatório.");
 
-          const batch = writeBatch(db);
-          const principalRef = doc(db, COLECAO_LOJAS, lojaPrincipalSelecionada.id);
+          const batch = db.batch();
+          const principalRef = db.collection(COLECAO_LOJAS).doc(lojaPrincipalSelecionada.id);
 
-          const principalSnap = await getDoc(principalRef);
-          let whatsappArray = principalSnap.data().whatsapp || [];
+          const snap = await principalRef.get();
+          if (!snap.exists) throw new Error("Loja principal não encontrada.");
 
+          let whatsappArray = snap.data().whatsapp || [];
           if (!Array.isArray(whatsappArray)) {
-            whatsappArray = principalSnap.data().whatsapp?.principal ? [{ bairro: principalSnap.data().bairro || 'Principal', numero: principalSnap.data().whatsapp.principal }] : [];
+            whatsappArray = snap.data().whatsapp?.principal
+              ? [{ bairro: snap.data().bairro || 'Principal', numero: snap.data().whatsapp.principal }]
+              : [];
           }
 
-          if (whatsappArray.some(w => w.numero === numeroFilial) && !confirm("Número já existe. Adicionar mesmo assim?")) return;
+          if (whatsappArray.some(w => w.numero === numeroFilial)) {
+            if (!confirm("Este número já existe na loja principal. Continuar mesmo assim?")) return;
+          }
 
           whatsappArray.push({ bairro: bairroFilial, numero: numeroFilial });
 
-          batch.update(principalRef, { whatsapp: whatsappArray, temFiliais: true });
+          batch.update(principalRef, {
+            whatsapp: whatsappArray,
+            temFiliais: true
+          });
 
-          batch.set(doc(db, COLECAO_FILIAIS), {
+          batch.set(db.collection(COLECAO_FILIAIS).doc(), {
             lojaPrincipalId: lojaPrincipalSelecionada.id,
             lojaPrincipalNome: lojaPrincipalSelecionada.data.nome,
             dadosFilial: dadosBase,
-            criadoEm: serverTimestamp()
+            criadoEm: firebase.firestore.FieldValue.serverTimestamp()
           });
 
-          batch.delete(doc(db, COLECAO_PROPOSTAS, id));
+          batch.delete(db.collection(COLECAO_PROPOSTAS).doc(id));
 
           await batch.commit();
-
-          alert('Filial adicionada com sucesso!');
+          alert("Filial adicionada com sucesso!");
           cancelarEdicao();
           carregarPropostas();
+          return;
         }
+
       } catch (err) {
         console.error(err);
-        alert('Erro: ' + err.message);
+        alert("Erro ao salvar: " + err.message);
       }
     }
 
     function cancelarEdicao() {
-      document.getElementById('formAtualizacao').style.display = 'none';
+      document.getElementById('formAtualizacao').classList.add('hidden');
       document.getElementById('resultado').innerHTML = '';
     }
   </script>
