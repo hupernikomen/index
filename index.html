@@ -4,9 +4,31 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin BuscaZap</title>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <!-- Firebase v10+ Modular -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, collection, doc, getDocs, getDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDo0QQjxmXZLw8qiWC3Kc52ZYk9UtWCYmc",
+      authDomain: "appguiacomercial-e6109.firebaseapp.com",
+      projectId: "appguiacomercial-e6109",
+      storageBucket: "appguiacomercial-e6109.appspot.com",
+      messagingSenderId: "292734642765",
+      appId: "1:292734642765:web:fc9d62106f1f72d4340a04"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+
+    window.firebaseAuth = { auth, provider, signInWithPopup, signOut, onAuthStateChanged };
+    window.firebaseDb = { db, collection, doc, getDocs, getDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp };
+  </script>
+
   <style>
     :root {
       --primary: #25D366;
@@ -27,10 +49,8 @@
       color: #2c3e50;
     }
     h1 { text-align: center; color: #2c3e50; margin-bottom: 8px; }
-    h2 { font-size: 20px; margin: 0 0 20px; color: #34495e; text-align: center; }
     .subtitle { text-align: center; color: #7f8c8d; margin-bottom: 40px; }
 
-    /* Login */
     #loginScreen {
       text-align: center;
       padding: 80px 20px;
@@ -47,9 +67,10 @@
       font-size: 18px;
       border-radius: 12px;
       margin-top: 20px;
+      border: none;
+      cursor: pointer;
     }
 
-    /* Header */
     #adminHeader {
       text-align: right;
       font-size: 14px;
@@ -58,7 +79,6 @@
     }
     #adminHeader a { color: var(--danger); text-decoration: none; }
 
-    /* Cards de lista */
     .card {
       background: white;
       border-radius: 16px;
@@ -101,7 +121,6 @@
       cursor: pointer;
     }
 
-    /* Busca */
     .search-box {
       display: flex;
       gap: 12px;
@@ -119,9 +138,10 @@
       color: white;
       padding: 0 24px;
       border-radius: 12px;
+      border: none;
+      cursor: pointer;
     }
 
-    /* Formulário de edição */
     #formAtualizacao {
       display: none;
       background: white;
@@ -232,6 +252,8 @@
       font-size: 17px;
       font-weight: 600;
       border-radius: 12px;
+      border: none;
+      cursor: pointer;
     }
     .btn-secondary {
       flex: 1;
@@ -240,9 +262,10 @@
       padding: 16px;
       font-size: 17px;
       border-radius: 12px;
+      border: none;
+      cursor: pointer;
     }
 
-    /* Filial */
     .filial-box {
       background: #e8f5e9;
       border: 1px solid #a8e6b4;
@@ -259,7 +282,6 @@
       border: 1px solid #a8e6b4;
     }
 
-    /* Modal */
     #modalFilial {
       display: none;
       position: fixed;
@@ -278,6 +300,12 @@
       max-height: 80vh;
       overflow-y: auto;
     }
+    .resultado-item {
+      padding: 14px;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+    }
+    .resultado-item:hover { background: #f0f0f0; }
   </style>
 </head>
 <body>
@@ -300,21 +328,18 @@
     <h1>Admin BuscaZap</h1>
     <p class="subtitle">Gerencie lojas, propostas e destaques com facilidade.</p>
 
-    <!-- Propostas -->
     <div class="propostas">
       <div class="card" id="propostasLista">
         <p style="text-align:center; color:#95a5a6;">Carregando propostas...</p>
       </div>
     </div>
 
-    <!-- Desativadas -->
     <div class="desativadas">
       <div class="card" id="desativadosLista">
         <p style="text-align:center; color:#95a5a6;">Carregando lojas desativadas...</p>
       </div>
     </div>
 
-    <!-- Busca de lojas -->
     <div class="search-box">
       <input type="text" id="buscaNome" placeholder="Buscar loja por nome..." />
       <button onclick="buscarLojas()">Buscar</button>
@@ -322,10 +347,12 @@
 
     <div id="resultado"></div>
 
-    <!-- Formulário de Edição -->
     <div id="formAtualizacao">
-      <h2>Editando: <span id="nomeLojaAtual">Loja</span></h2>
-      <p class="subtitle-form" id="fonteItem">(Loja ativa)</p>
+      <h2>Editando: <span id="nomeLojaAtual"></span></h2>
+      <p class="subtitle-form" id="fonteItem"></p>
+
+      <input type="hidden" id="lojaId" />
+      <input type="hidden" id="colecaoOrigem" />
 
       <div id="campoStatus" style="display:none;" class="filial-box">
         <strong>Status da Proposta</strong>
@@ -459,45 +486,409 @@
     </div>
   </div>
 
-  <!-- Modal Filial -->
   <div id="modalFilial">
     <div class="modal-content">
       <h3>Buscar Loja Principal (Matriz)</h3>
-      <input type="text" id="buscaFilialInput" placeholder="Digite parte do nome da loja..." style="width:100%; padding:14px; margin:16px 0; border-radius:10px; border:1px solid #ddd;" />
-      <button onclick="buscarLojaParaFilial()" style="background:var(--primary); color:white; padding:12px 24px; border-radius:10px; width:100%;">Buscar</button>
+      <input type="text" id="buscaFilialInput" placeholder="Digite parte do nome da loja..." />
+      <button onclick="buscarLojaParaFilial()">Buscar</button>
       <div id="resultadoFilial" style="margin-top:20px; max-height:300px; overflow-y:auto;"></div>
       <button onclick="fecharModalFilial()" style="background:#95a5a6; color:white; margin-top:20px; padding:12px; width:100%; border-radius:10px;">Cancelar</button>
     </div>
   </div>
 
   <script>
-    // === Seu código JavaScript permanece exatamente o mesmo ===
-    // (todas as funções: login, carregarPropostas, atualizarLoja, etc.)
-    // Apenas o HTML/CSS foi melhorado acima.
-
-    const firebaseConfig = { /* seu config */ };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
     const COLECAO_LOJAS = 'users';
     const COLECAO_PROPOSTAS = 'propostas';
     const COLECAO_FILIAIS = 'filiais';
 
     const ADMINS_PERMITIDOS = ["hupcontato@gmail.com"];
+
     let usuarioAtual = null;
     let lojaPrincipalSelecionada = null;
 
-    // === Todas as funções do seu script original aqui ===
-    // (loginComGoogle, carregarPropostas, atualizarLoja, etc.)
-    // Não precisa alterar nada no JS — só cole o seu código completo aqui.
+    function loginComGoogle() {
+      const { auth, provider, signInWithPopup } = window.firebaseAuth;
+      signInWithPopup(auth, provider).catch(err => alert("Erro: " + err.message));
+    }
 
-    // Exemplo das funções principais (mantenha as suas):
-    function loginComGoogle() { /* seu código */ }
-    function logout() { auth.signOut(); }
-    auth.onAuthStateChanged((user) => { /* seu código */ });
-    // ... resto do seu script JavaScript completo
+    function logout() {
+      const { auth, signOut } = window.firebaseAuth;
+      signOut(auth);
+    }
 
+    const { auth, onAuthStateChanged } = window.firebaseAuth;
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        if (ADMINS_PERMITIDOS.map(e => e.toLowerCase()).includes(user.email.toLowerCase())) {
+          usuarioAtual = user;
+          document.getElementById('userEmail').textContent = user.email;
+          document.getElementById('loginScreen').style.display = 'none';
+          document.getElementById('adminContent').style.display = 'block';
+          carregarPropostas();
+          carregarDesativados();
+        } else {
+          alert("Acesso negado.");
+          logout();
+        }
+      } else {
+        document.getElementById('loginScreen').style.display = 'block';
+        document.getElementById('adminContent').style.display = 'none';
+      }
+    });
+
+    async function carregarPropostas() {
+      const { db, collection, getDocs } = window.firebaseDb;
+      const div = document.getElementById('propostasLista');
+      div.innerHTML = '<p style="text-align:center;">Carregando...</p>';
+
+      try {
+        const snapshot = await getDocs(collection(db, COLECAO_PROPOSTAS));
+        if (snapshot.empty) {
+          div.innerHTML = '<p style="color:#666; text-align:center;">Nenhuma proposta pendente.</p>';
+          return;
+        }
+        div.innerHTML = '<h3 style="text-align:center; color:var(--warning);">Propostas Pendentes</h3>';
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const item = document.createElement('div');
+          item.className = 'item proposta-item';
+          item.innerHTML = `
+            <div class="item-info">
+              <strong>${data.nome || 'Sem nome'}</strong>
+              <small>${data.descricao || 'Sem descrição'} | WhatsApp: ${data.whatsapp?.principal || 'N/I'}</small>
+            </div>
+          `;
+          item.onclick = () => carregarParaEdicao({ id: doc.id, ...data, _colecao: 'propostas' });
+          div.appendChild(item);
+        });
+      } catch (err) {
+        div.innerHTML = '<p style="color:red;">Erro ao carregar.</p>';
+      }
+    }
+
+    async function carregarDesativados() {
+      const { db, collection, getDocs, query, where } = window.firebaseDb;
+      const div = document.getElementById('desativadosLista');
+      div.innerHTML = '<p style="text-align:center;">Carregando...</p>';
+
+      try {
+        const q = query(collection(db, COLECAO_LOJAS), where('anuncio.postagem', '==', false));
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) {
+          div.innerHTML = '<p style="color:#666; text-align:center;">Nenhuma loja desativada.</p>';
+          return;
+        }
+        div.innerHTML = '<h3 style="text-align:center; color:var(--danger);">Lojas Desativadas</h3>';
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const item = document.createElement('div');
+          item.className = 'item desativado-item';
+          item.innerHTML = `
+            <div class="item-info">
+              <strong>${data.nome || 'Sem nome'}</strong>
+              <small>${data.descricao || 'Sem descrição'} | Bairro: ${data.bairro || 'N/I'}</small>
+            </div>
+            <button class="btn-delete" onclick="excluirLoja('${doc.id}', event)">Excluir</button>
+          `;
+          item.querySelector('.item-info').onclick = () => carregarParaEdicao({ id: doc.id, ...data, _colecao: 'users' });
+          div.appendChild(item);
+        });
+      } catch (err) {
+        div.innerHTML = '<p style="color:red;">Erro ao carregar.</p>';
+      }
+    }
+
+    async function excluirLoja(id, event) {
+      event.stopPropagation();
+      if (!confirm("EXCLUIR permanentemente esta loja?")) return;
+      const { db, doc, deleteDoc } = window.firebaseDb;
+      try {
+        await deleteDoc(doc(db, COLECAO_LOJAS, id));
+        alert("Loja excluída!");
+        carregarDesativados();
+      } catch (err) {
+        alert("Erro: " + err.message);
+      }
+    }
+
+    async function buscarLojas() {
+      const termo = document.getElementById('buscaNome').value.trim();
+      if (!termo) return alert('Digite parte do nome');
+      const termoLower = termo.toLowerCase();
+      const div = document.getElementById('resultado');
+      div.innerHTML = '<p style="text-align:center;">Buscando...</p>';
+
+      const { db, collection, getDocs } = window.firebaseDb;
+      try {
+        const snapshot = await getDocs(collection(db, COLECAO_LOJAS));
+        div.innerHTML = '';
+        let encontrou = false;
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          if (data.nome && data.nome.toLowerCase().includes(termoLower)) {
+            encontrou = true;
+            const item = document.createElement('div');
+            item.className = 'item';
+            item.style.background = '#e8f5e9';
+            item.innerHTML = `<div class="item-info"><strong>${data.nome}</strong><small>Bairro: ${data.bairro || 'N/I'}</small></div>`;
+            item.onclick = () => carregarParaEdicao({ id: doc.id, ...data, _colecao: 'users' });
+            div.appendChild(item);
+          }
+        });
+        if (!encontrou) div.innerHTML = '<p>Nenhuma loja encontrada.</p>';
+      } catch (err) {
+        div.innerHTML = '<p style="color:red;">Erro na busca.</p>';
+      }
+    }
+
+    function abrirModalFilial() {
+      document.getElementById('modalFilial').style.display = 'flex';
+      document.getElementById('buscaFilialInput').value = '';
+      document.getElementById('resultadoFilial').innerHTML = '';
+    }
+
+    function fecharModalFilial() {
+      document.getElementById('modalFilial').style.display = 'none';
+    }
+
+    function limparSelecaoFilial() {
+      lojaPrincipalSelecionada = null;
+      document.getElementById('lojaPrincipalInfo').style.display = 'none';
+    }
+
+    async function buscarLojaParaFilial() {
+      const termo = document.getElementById('buscaFilialInput').value.trim();
+      if (!termo) return alert('Digite parte do nome');
+      const termoLower = termo.toLowerCase();
+      const div = document.getElementById('resultadoFilial');
+      div.innerHTML = '<p>Buscando...</p>';
+
+      const { db, collection, getDocs } = window.firebaseDb;
+      try {
+        const snapshot = await getDocs(collection(db, COLECAO_LOJAS));
+        div.innerHTML = '';
+        let encontrou = false;
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          if (data.nome && data.nome.toLowerCase().includes(termoLower)) {
+            encontrou = true;
+            const item = document.createElement('div');
+            item.className = 'resultado-item';
+            item.innerHTML = `<strong>${data.nome}</strong> <small>(${data.bairro || 'Sem bairro'})</small>`;
+            item.onclick = () => {
+              lojaPrincipalSelecionada = { id: doc.id, data };
+              document.getElementById('nomeLojaPrincipal').textContent = data.nome;
+              document.getElementById('bairroLojaPrincipal').textContent = data.bairro || 'Sem bairro';
+              document.getElementById('lojaPrincipalInfo').style.display = 'block';
+              fecharModalFilial();
+            };
+            div.appendChild(item);
+          }
+        });
+        if (!encontrou) div.innerHTML = '<p>Nenhuma loja encontrada.</p>';
+      } catch (err) {
+        div.innerHTML = '<p style="color:red;">Erro.</p>';
+      }
+    }
+
+    function carregarParaEdicao(item) {
+      document.getElementById('formAtualizacao').style.display = 'block';
+      document.getElementById('nomeLojaAtual').textContent = item.nome || 'Sem nome';
+      document.getElementById('fonteItem').textContent = item._colecao === 'propostas' ? '(Proposta pendente)' : '(Loja ativa)';
+      document.getElementById('lojaId').value = item.id;
+      document.getElementById('colecaoOrigem').value = item._colecao;
+
+      const isProposta = item._colecao === 'propostas';
+      document.getElementById('campoStatus').style.display = isProposta ? 'block' : 'none';
+      document.getElementById('campoFilial').style.display = isProposta ? 'block' : 'none';
+
+      document.getElementById('statusAprovado').checked = !!item.status;
+
+      limparSelecaoFilial();
+
+      document.getElementById('nome').value = item.nome || '';
+      document.getElementById('descricao').value = item.descricao || '';
+      document.getElementById('bairro').value = item.bairro || '';
+      document.getElementById('tags').value = Array.isArray(item.tags) ? item.tags.join(', ') : '';
+      document.getElementById('whatsapp').value = item.whatsapp?.principal || '';
+
+      document.getElementById('anuncioBusca').checked = item.anuncio?.busca === true;
+      document.getElementById('anuncioPostagem').checked = item.anuncio?.postagem === true;
+      document.getElementById('anuncioPremium').checked = item.anuncio?.premium === true;
+
+      document.getElementById('fazEntrega').checked = item.fazEntrega === true;
+
+      document.getElementById('semanaAbre').value = item.horarios?.semana?.abre || '';
+      document.getElementById('semanaFecha').value = item.horarios?.semana?.fecha || '';
+
+      const sabadoAtivo = !!item.horarios?.sabado;
+      document.getElementById('sabadoAtivo').checked = sabadoAtivo;
+      document.getElementById('sabadoAbre').value = item.horarios?.sabado?.abre || '';
+      document.getElementById('sabadoFecha').value = item.horarios?.sabado?.fecha || '';
+      toggleSubfields('sabado');
+
+      const domingoAtivo = !!item.horarios?.domingo;
+      document.getElementById('domingoAtivo').checked = domingoAtivo;
+      document.getElementById('domingoAbre').value = item.horarios?.domingo?.abre || '';
+      document.getElementById('domingoFecha').value = item.horarios?.domingo?.fecha || '';
+      toggleSubfields('domingo');
+
+      const intervaloAtivo = item.horarios?.intervalo?.global === true;
+      document.getElementById('intervaloAtivo').checked = intervaloAtivo;
+      document.getElementById('intervaloInicio').value = item.horarios?.intervalo?.inicio || '';
+      document.getElementById('intervaloRetorno').value = item.horarios?.intervalo?.retorno || '';
+      toggleSubfields('intervalo');
+
+      document.getElementById('formAtualizacao').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function toggleSubfields(tipo) {
+      const checked = document.getElementById(tipo + 'Ativo').checked;
+      document.getElementById(tipo + 'Fields').classList.toggle('show', checked);
+    }
+
+    async function atualizarLoja() {
+      const id = document.getElementById('lojaId').value;
+      const colecao = document.getElementById('colecaoOrigem').value;
+      if (!id) return alert('ID não encontrado');
+
+      const isProposta = colecao === 'propostas';
+      const aprovado = isProposta ? document.getElementById('statusAprovado').checked : false;
+
+      const tags = document.getElementById('tags').value.trim().split(',').map(t => t.trim()).filter(t => t);
+
+      const horarios = {
+        semana: {
+          abre: document.getElementById('semanaAbre').value.trim() || '08:00',
+          fecha: document.getElementById('semanaFecha').value.trim() || '18:00',
+        },
+        intervalo: {
+          global: document.getElementById('intervaloAtivo').checked,
+          inicio: document.getElementById('intervaloInicio').value.trim() || '12:00',
+          retorno: document.getElementById('intervaloRetorno').value.trim() || '13:30',
+        }
+      };
+
+      if (document.getElementById('sabadoAtivo').checked) {
+        horarios.sabado = {
+          abre: document.getElementById('sabadoAbre').value.trim() || '08:00',
+          fecha: document.getElementById('sabadoFecha').value.trim() || '13:00',
+        };
+      }
+
+      if (document.getElementById('domingoAtivo').checked) {
+        horarios.domingo = {
+          abre: document.getElementById('domingoAbre').value.trim() || '09:00',
+          fecha: document.getElementById('domingoFecha').value.trim() || '13:00',
+        };
+      }
+
+      const dadosBase = {
+        nome: document.getElementById('nome').value.trim() || 'Sem nome',
+        descricao: document.getElementById('descricao').value.trim(),
+        bairro: document.getElementById('bairro').value.trim(),
+        tags: tags,
+        whatsapp: { principal: document.getElementById('whatsapp').value.trim() },
+        fazEntrega: document.getElementById('fazEntrega').checked,
+        horarios: horarios,
+        anuncio: {
+          premium: document.getElementById('anuncioPremium').checked,
+          busca: document.getElementById('anuncioBusca').checked,
+          postagem: document.getElementById('anuncioPostagem').checked || true,
+        }
+      };
+
+      const { db, doc, updateDoc, setDoc, deleteDoc, writeBatch, serverTimestamp } = window.firebaseDb;
+
+      try {
+        if (!isProposta) {
+          await updateDoc(doc(db, COLECAO_LOJAS, id), dadosBase);
+          alert('Loja atualizada!');
+          cancelarEdicao();
+          carregarDesativados();
+          return;
+        }
+
+        if (!aprovado && !lojaPrincipalSelecionada) {
+          await updateDoc(doc(db, COLECAO_PROPOSTAS, id), { ...dadosBase, status: false });
+          alert('Proposta atualizada (pendente).');
+          cancelarEdicao();
+          carregarPropostas();
+          return;
+        }
+
+        if (aprovado && !lojaPrincipalSelecionada) {
+          const batch = writeBatch(db);
+          const novoRef = doc(db, COLECAO_LOJAS, id);
+
+          const numero = document.getElementById('whatsapp').value.trim();
+          const bairro = document.getElementById('bairro').value.trim() || 'Principal';
+          const whatsappArray = numero ? [{ bairro, numero }] : [];
+
+          batch.set(novoRef, {
+            ...dadosBase,
+            whatsapp: whatsappArray,
+            clicks: 0,
+            criadoEm: serverTimestamp(),
+            temFiliais: false
+          });
+          batch.delete(doc(db, COLECAO_PROPOSTAS, id));
+          await batch.commit();
+
+          alert('Proposta aprovada como nova loja!');
+          cancelarEdicao();
+          carregarPropostas();
+          return;
+        }
+
+        if (lojaPrincipalSelecionada) {
+          if (!confirm(`Aprovar como filial de "${lojaPrincipalSelecionada.data.nome}"?`)) return;
+
+          const numeroFilial = document.getElementById('whatsapp').value.trim();
+          const bairroFilial = document.getElementById('bairro').value.trim() || 'Não informado';
+          if (!numeroFilial) return alert('WhatsApp obrigatório para filial');
+
+          const batch = writeBatch(db);
+          const principalRef = doc(db, COLECAO_LOJAS, lojaPrincipalSelecionada.id);
+
+          const principalSnap = await getDoc(principalRef);
+          let whatsappArray = principalSnap.data().whatsapp || [];
+
+          if (!Array.isArray(whatsappArray)) {
+            whatsappArray = principalSnap.data().whatsapp?.principal ? [{ bairro: principalSnap.data().bairro || 'Principal', numero: principalSnap.data().whatsapp.principal }] : [];
+          }
+
+          if (whatsappArray.some(w => w.numero === numeroFilial) && !confirm("Número já existe. Adicionar mesmo assim?")) return;
+
+          whatsappArray.push({ bairro: bairroFilial, numero: numeroFilial });
+
+          batch.update(principalRef, { whatsapp: whatsappArray, temFiliais: true });
+
+          batch.set(doc(db, COLECAO_FILIAIS), {
+            lojaPrincipalId: lojaPrincipalSelecionada.id,
+            lojaPrincipalNome: lojaPrincipalSelecionada.data.nome,
+            dadosFilial: dadosBase,
+            criadoEm: serverTimestamp()
+          });
+
+          batch.delete(doc(db, COLECAO_PROPOSTAS, id));
+
+          await batch.commit();
+
+          alert('Filial adicionada com sucesso!');
+          cancelarEdicao();
+          carregarPropostas();
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Erro: ' + err.message);
+      }
+    }
+
+    function cancelarEdicao() {
+      document.getElementById('formAtualizacao').style.display = 'none';
+      document.getElementById('resultado').innerHTML = '';
+    }
   </script>
 </body>
 </html>
