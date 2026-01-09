@@ -546,7 +546,7 @@
       document.getElementById('descricao').value = item.descricao || '';
       document.getElementById('bairro').value = item.bairro || '';
       document.getElementById('tags').value = Array.isArray(item.tags) ? item.tags.join(', ') : '';
-      document.getElementById('whatsapp').value = item.whatsapp?.principal || '';
+      document.getElementById('whatsapp').value = item.whatsapp[0].numero || '';
 
       document.getElementById('anuncioBusca').checked = item.anuncio?.busca === true;
       document.getElementById('anuncioPostagem').checked = item.anuncio?.postagem === true;
