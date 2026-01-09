@@ -4,9 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin BuscaZap</title>
+
+  <!-- Firebase v9 compat - Mantido igual ao seu código original que funcionava -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
   <style>
     :root {
       --primary: #128C7E;
@@ -279,6 +282,8 @@
       font-size: 18px;
       margin-top: 20px;
       border-radius: 10px;
+      border: none;
+      cursor: pointer;
     }
 
     .modal {
@@ -333,7 +338,6 @@
         <h1>Painel Admin – BuscaZap</h1>
       </header>
 
-      <!-- Propostas Pendentes -->
       <div class="section">
         <h2>Propostas Pendentes</h2>
         <div id="propostasLista" class="card-list">
@@ -341,7 +345,6 @@
         </div>
       </div>
 
-      <!-- Lojas Desativadas -->
       <div class="section">
         <h2>Lojas Desativadas</h2>
         <div id="desativadosLista" class="card-list">
@@ -349,7 +352,6 @@
         </div>
       </div>
 
-      <!-- Buscar Loja -->
       <div class="section">
         <h2>Buscar Loja Existente</h2>
         <div style="display: flex; gap: 12px;">
@@ -359,11 +361,9 @@
         <div id="resultado" class="card-list" style="margin-top: 20px;"></div>
       </div>
 
-      <!-- Formulário de Edição -->
       <div id="formAtualizacao" class="section hidden">
         <h2>Editando: <span id="nomeLojaAtual" style="color:var(--primary);"></span> <small id="fonteItem" style="color:var(--gray);"></small></h2>
 
-        <!-- Status da Proposta -->
         <div id="campoStatus" class="alert-box">
           <div class="switch-container">
             <span>Aprovar esta proposta como nova loja independente?</span>
@@ -374,11 +374,10 @@
           </div>
         </div>
 
-        <!-- Opção de Filial -->
         <div id="campoFilial" class="alert-box">
           <strong>Ou aprovar como filial de loja existente?</strong>
           <p style="margin: 10px 0 16px; font-size: 14.5px; color: #555;">
-            O WhatsApp e bairro serão adicionados à loja principal. Todos os dados serão salvos no histórico.
+            O WhatsApp e bairro serão adicionados à loja principal. Todos os dados serão salvos no histórico de filiais.
           </p>
           <button type="button" class="btn btn-primary" onclick="abrirModalFilial()">Escolher Loja Principal</button>
 
@@ -426,7 +425,6 @@
             </label>
           </div>
 
-          <!-- Destaques -->
           <div class="group-box">
             <h3>Destaques e Premium</h3>
             <div class="switch-container"><span>Destaque na busca</span><label class="switch"><input type="checkbox" id="anuncioBusca"><span class="slider"></span></label></div>
@@ -434,7 +432,6 @@
             <div class="switch-container"><span>Loja Premium</span><label class="switch"><input type="checkbox" id="anuncioPremium"><span class="slider"></span></label></div>
           </div>
 
-          <!-- Horários -->
           <div class="group-box">
             <h3>Horários de Funcionamento</h3>
 
@@ -487,7 +484,7 @@
     </div>
   </div>
 
-  <!-- Modal Filial -->
+  <!-- Modal para filial -->
   <div id="modalFilial" class="modal">
     <div class="modal-content">
       <h3 style="margin-top:0; color:var(--primary);">Buscar Loja Principal (Matriz)</h3>
@@ -501,7 +498,6 @@
   </div>
 
   <script>
-    // === SEU CÓDIGO ORIGINAL INTACTO (Firebase + Lógica) ===
     const firebaseConfig = {
       apiKey: "AIzaSyDo0QQjxmXZLw8qiWC3Kc52ZYk9UtWCYmc",
       authDomain: "appguiacomercial-e6109.firebaseapp.com",
@@ -520,15 +516,17 @@
     const COLECAO_FILIAIS = 'filiais';
 
     const ADMINS_PERMITIDOS = [
-      "hupcontato@gmail.com",
+      "hupcontato@gmail.com"
     ];
 
-    let usuarioAtual = null;
     let lojaPrincipalSelecionada = null;
 
     function loginComGoogle() {
       const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider);
+      auth.signInWithPopup(provider).catch(error => {
+        console.error("Erro no login:", error);
+        alert("Erro ao fazer login. Verifique o console (F12) para detalhes.");
+      });
     }
 
     function logout() {
@@ -536,12 +534,13 @@
     }
 
     auth.onAuthStateChanged((user) => {
+      console.log("Estado de autenticação alterado:", user ? user.email : "deslogado");
+
       if (user) {
         if (ADMINS_PERMITIDOS.map(e => e.toLowerCase()).includes(user.email.toLowerCase())) {
-          usuarioAtual = user;
           document.getElementById('userEmail').textContent = user.email;
-          document.getElementById('loginScreen').style.display = 'none';
-          document.getElementById('adminContent').style.display = 'block';
+          document.getElementById('loginScreen').classList.add('hidden');
+          document.getElementById('adminContent').classList.remove('hidden');
           carregarPropostas();
           carregarDesativados();
         } else {
@@ -549,9 +548,8 @@
           auth.signOut();
         }
       } else {
-        usuarioAtual = null;
-        document.getElementById('loginScreen').style.display = 'block';
-        document.getElementById('adminContent').style.display = 'none';
+        document.getElementById('loginScreen').classList.remove('hidden');
+        document.getElementById('adminContent').classList.add('hidden');
       }
     });
 
@@ -579,11 +577,7 @@
               <small>${data.descricao || 'Sem descrição'} | WhatsApp: ${data.whatsapp?.principal || 'Não informado'}</small>
             </div>
           `;
-          item.onclick = (e) => {
-            if (!e.target.classList.contains('btn-excluir')) {
-              carregarParaEdicao({ id: doc.id, ...data, _colecao: 'propostas' });
-            }
-          };
+          item.onclick = () => carregarParaEdicao({ id: doc.id, ...data, _colecao: 'propostas' });
           listaDiv.appendChild(item);
         });
       } catch (error) {
@@ -713,6 +707,7 @@
             item.style.cursor = 'pointer';
             item.style.borderRadius = '8px';
             item.style.marginBottom = '8px';
+            item.style.background = '#f9f9f9';
             item.innerHTML = `<strong>${data.nome}</strong> <small>(${data.bairro || 'Sem bairro'}) - Whats: ${data.whatsapp?.principal || data.whatsapp?.array?.[0]?.numero || 'N/A'}</small>`;
             item.onclick = () => {
               lojaPrincipalSelecionada = { id: doc.id, data: data };
