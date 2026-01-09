@@ -312,9 +312,7 @@
     const COLECAO_PROPOSTAS = 'propostas';
     const COLECAO_FILIAIS = 'filiais';
 
-    const ADMINS_PERMITIDOS = [
-      "hupcontato@gmail.com"
-    ];
+    const ADMINS_PERMITIDOS = ["hupcontato@gmail.com"];
 
     let lojaPrincipalSelecionada = null;
 
@@ -361,19 +359,16 @@
 
         snapshot.forEach(doc => {
           const data = doc.data();
+          const numeroWhats = Array.isArray(data.whatsapp) ? data.whatsapp[0]?.numero : data.whatsapp?.principal || 'Não informado';
           const item = document.createElement('div');
           item.className = 'proposta-item';
           item.innerHTML = `
             <div>
               <strong>${data.nome || 'Sem nome'}</strong><br>
-              <small>${data.descricao || 'Sem descrição'} | WhatsApp: ${data.whatsapp?.principal || data.whatsapp?.[0]?.numero || 'Não informado'}</small>
+              <small>${data.descricao || 'Sem descrição'} | WhatsApp: ${numeroWhats}</small>
             </div>
           `;
-          item.onclick = (e) => {
-            if (!e.target.classList.contains('btn-excluir')) {
-              carregarParaEdicao({ id: doc.id, ...data, _colecao: 'propostas' });
-            }
-          };
+          item.onclick = () => carregarParaEdicao({ id: doc.id, ...data, _colecao: 'propostas' });
           listaDiv.appendChild(item);
         });
       } catch (error) {
@@ -540,11 +535,11 @@
       document.getElementById('descricao').value = item.descricao || '';
       document.getElementById('bairro').value = item.bairro || '';
       document.getElementById('tags').value = Array.isArray(item.tags) ? item.tags.join(', ') : '';
-      
-      // CORREÇÃO PRINCIPAL: lê o número do array na posição 0
+
+      // Lê o número do array na posição 0 (ou fallback para estrutura antiga)
       const numeroWhats = Array.isArray(item.whatsapp) 
-        ? item.whatsapp[0]?.numero 
-        : item.whatsapp?.principal || '';
+        ? (item.whatsapp[0]?.numero || '') 
+        : (item.whatsapp?.principal || '');
       document.getElementById('whatsapp').value = numeroWhats;
 
       document.getElementById('anuncioBusca').checked = item.anuncio?.busca === true;
@@ -620,12 +615,17 @@
         };
       }
 
+      // SEMPRE SALVA COMO ARRAY [{ bairro, numero }]
+      const numeroWhats = document.getElementById('whatsapp').value.trim();
+      const bairroWhats = document.getElementById('bairro').value.trim() || 'Principal';
+      const whatsappArray = numeroWhats ? [{ bairro: bairroWhats, numero: numeroWhats }] : [];
+
       const dadosBase = {
         nome: document.getElementById('nome').value.trim() || 'Sem nome',
         descricao: document.getElementById('descricao').value.trim() || '',
         bairro: document.getElementById('bairro').value.trim() || '',
         tags: tagsArray,
-        whatsapp: { principal: document.getElementById('whatsapp').value.trim() || '' },
+        whatsapp: whatsappArray, // Sempre array!
         fazEntrega: document.getElementById('fazEntrega').checked,
         horarios: horarios,
         anuncio: {
@@ -656,10 +656,6 @@
           const batch = db.batch();
           const novoRef = db.collection(COLECAO_LOJAS).doc(id);
 
-          const numeroPrincipal = document.getElementById('whatsapp').value.trim() || '';
-          const bairroPrincipal = document.getElementById('bairro').value.trim() || 'Principal';
-          const whatsappArray = numeroPrincipal ? [{ bairro: bairroPrincipal, numero: numeroPrincipal }] : [];
-
           const dadosLojaNova = {
             ...dadosBase,
             whatsapp: whatsappArray,
@@ -683,10 +679,7 @@
             return;
           }
 
-          const numeroFilial = document.getElementById('whatsapp').value.trim();
-          const bairroFilial = document.getElementById('bairro').value.trim() || 'Não informado';
-
-          if (!numeroFilial) return alert('WhatsApp da filial é obrigatório');
+          if (!numeroWhats) return alert('WhatsApp da filial é obrigatório');
 
           const batch = db.batch();
           const principalRef = db.collection(COLECAO_LOJAS).doc(lojaPrincipalSelecionada.id);
@@ -694,28 +687,25 @@
           const principalSnap = await principalRef.get();
           if (!principalSnap.exists) throw "Loja principal não encontrada";
 
-          let principalData = principalSnap.data();
-          let whatsappArray = principalData.whatsapp || [];
+          let whatsappArrayPrincipal = principalSnap.data().whatsapp || [];
 
-          // Converte estruturas antigas
-          if (!Array.isArray(whatsappArray)) {
-            if (principalData.whatsapp?.principal) {
-              whatsappArray = [{ bairro: principalData.bairro || 'Principal', numero: principalData.whatsapp.principal }];
-            } else {
-              whatsappArray = [];
-            }
+          // Converte estrutura antiga se necessário
+          if (!Array.isArray(whatsappArrayPrincipal)) {
+            whatsappArrayPrincipal = principalSnap.data().whatsapp?.principal
+              ? [{ bairro: principalSnap.data().bairro || 'Principal', numero: principalSnap.data().whatsapp.principal }]
+              : [];
           }
 
-          if (whatsappArray.some(w => w.numero === numeroFilial)) {
+          if (whatsappArrayPrincipal.some(w => w.numero === numeroWhats)) {
             if (!confirm("Este número de WhatsApp já existe na loja. Deseja adicionar mesmo assim?")) {
               return;
             }
           }
 
-          whatsappArray.push({ bairro: bairroFilial, numero: numeroFilial });
+          whatsappArrayPrincipal.push({ bairro: bairroWhats, numero: numeroWhats });
 
           batch.update(principalRef, {
-            whatsapp: whatsappArray,
+            whatsapp: whatsappArrayPrincipal,
             temFiliais: true
           });
 
@@ -728,7 +718,6 @@
           });
 
           batch.delete(db.collection(COLECAO_PROPOSTAS).doc(id));
-
           await batch.commit();
 
           alert('SUCESSO! Filial adicionada corretamente ao array whatsapp da loja principal!');
