@@ -708,8 +708,8 @@
 
       // Converte estruturas antigas automaticamente
       if (!Array.isArray(whatsappArray)) {
-        if (principalData.whatsapp?.principal) {
-          whatsappArray = [{ bairro: principalData.bairro || 'Principal', numero: principalData.whatsapp.principal }];
+        if (principalData.whatsapp[0].numero) {
+          whatsappArray = [{ bairro: principalData.bairro || 'Principal', numero: principalData.whatsapp[0].numero }];
         } else {
           whatsappArray = [];
         }
