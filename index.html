@@ -15,22 +15,24 @@
 
   <style>
     :root {
-      --primary: #12c755;
-      --primary-dark: #0f9d4a;
-      --success: #25D366;
-      --danger: #e74c3c;
-      --warning: #f39c12;
-      --gray: #666;
-      --light-gray: #f1f1f1;
+      --bg: #f5f5f5;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-light: #555;
+      --text-lighter: #777;
       --border: #e0e0e0;
-      --radius: 12px;
+      --border-dark: #ccc;
+      --accent: #333; /* cor principal (botões, destaques) */
+      --accent-hover: #222;
+      --switch-on: #444;
+      --radius: 10px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: #f8f9fa;
-      color: #333;
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
       padding: 12px;
       line-height: 1.5;
@@ -47,18 +49,18 @@
     h1 {
       font-size: 1.8rem;
       font-weight: 700;
-      color: var(--primary);
+      color: var(--text);
       margin-bottom: 6px;
     }
 
     .subtitle {
       font-size: 0.95rem;
-      color: var(--gray);
+      color: var(--text-lighter);
       font-weight: 400;
     }
 
     .card {
-      background: white;
+      background: var(--card-bg);
       border-radius: var(--radius);
       border: 1px solid var(--border);
       padding: 16px;
@@ -68,10 +70,10 @@
     .card-title {
       font-size: 1.2rem;
       font-weight: 600;
-      color: #333;
+      color: var(--text);
       margin-bottom: 12px;
       padding-bottom: 8px;
-      border-bottom: 2px solid var(--primary);
+      border-bottom: 1px solid var(--border-dark);
       display: inline-block;
     }
 
@@ -81,36 +83,42 @@
       font-weight: 500;
       margin-bottom: 6px;
       font-size: 0.9rem;
-      color: #444;
+      color: var(--text-light);
     }
     input, textarea {
       width: 100%;
       padding: 11px 14px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
+      border: 1px solid var(--border-dark);
+      border-radius: 8px;
       font-size: 1rem;
-      background: #fff;
+      background: #fafafa;
+      color: var(--text);
     }
     input:focus, textarea:focus {
       outline: none;
-      border-color: var(--primary);
+      border-color: var(--accent);
+      background: white;
     }
     textarea { min-height: 80px; resize: vertical; }
 
     .btn {
       padding: 12px 20px;
       border: none;
-      border-radius: 10px;
+      border-radius: 8px;
       font-size: 1rem;
       font-weight: 600;
       cursor: pointer;
       width: 100%;
       margin-top: 8px;
+      background: var(--accent);
+      color: white;
     }
-    .btn-primary { background: var(--primary); color: white; }
-    .btn-primary:hover { background: var(--primary-dark); }
-    .btn-danger { background: var(--danger); color: white; }
-    .btn-secondary { background: #888; color: white; }
+    .btn:hover { background: var(--accent-hover); }
+    .btn-secondary {
+      background: #999;
+      color: white;
+    }
+    .btn-secondary:hover { background: #888; }
     .btn-small { padding: 7px 12px; font-size: 0.85rem; width: auto; }
 
     .switch {
@@ -124,7 +132,7 @@
       position: absolute;
       cursor: pointer;
       top: 0; left: 0; right: 0; bottom: 0;
-      background-color: #ccc;
+      background-color: #bbb;
       transition: .3s;
       border-radius: 30px;
     }
@@ -139,7 +147,7 @@
       transition: .3s;
       border-radius: 50%;
     }
-    input:checked + .slider { background-color: var(--success); }
+    input:checked + .slider { background-color: var(--switch-on); }
     input:checked + .slider:before { transform: translateX(22px); }
 
     .switch-group {
@@ -151,15 +159,15 @@
     .switch-label {
       font-size: 0.95rem;
       font-weight: 500;
-      color: #444;
+      color: var(--text-light);
     }
 
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .item-list { display: flex; flex-direction: column; gap: 10px; }
 
     .item {
-      background: white;
-      border-radius: 10px;
+      background: var(--card-bg);
+      border-radius: 8px;
       padding: 14px;
       border: 1px solid var(--border);
       display: flex;
@@ -167,17 +175,15 @@
       align-items: center;
       cursor: pointer;
     }
-    .item:hover { background: #f0fdf4; }
-    .item-proposta { border-left: 4px solid var(--warning); }
-    .item-desativada { border-left: 4px solid var(--danger); opacity: 0.85; }
+    .item:hover { background: #f0f0f0; border-color: var(--accent); }
 
     .item-info h4 {
       margin: 0 0 4px 0;
       font-size: 1.05rem;
-      color: #333;
+      color: var(--text);
     }
     .item-info small {
-      color: var(--gray);
+      color: var(--text-lighter);
       font-size: 0.85rem;
     }
 
@@ -186,24 +192,26 @@
       padding: 60px 20px 40px;
     }
     .login-btn {
-      background: #4285F4;
+      background: #333;
       color: white;
       padding: 14px 28px;
       font-size: 1.1rem;
       margin: 20px 0;
     }
+    .login-btn:hover { background: #222; }
 
     .user-info {
       text-align: right;
       font-size: 0.85rem;
-      color: var(--gray);
+      color: var(--text-lighter);
       margin-bottom: 12px;
     }
-    .user-info a { color: var(--danger); text-decoration: none; }
+    .user-info a { color: #555; text-decoration: none; }
+    .user-info a:hover { color: #333; }
 
     .hidden { display: none; }
 
-    /* Mobile First Adjustments */
+    /* Responsivo */
     @media (min-width: 768px) {
       body { padding: 20px; }
       .card { padding: 20px; }
@@ -222,7 +230,7 @@
       <h1>Admin BuscaZap</h1>
       <p class="subtitle">Painel administrativo</p>
       <button class="btn login-btn" onclick="loginComGoogle()">Entrar com Google</button>
-      <p style="color:#777; font-size:0.9rem; margin-top:30px;">
+      <p style="color:#888; font-size:0.9rem; margin-top:30px;">
         Acesso exclusivo para administradores.
       </p>
     </div>
@@ -243,7 +251,7 @@
       <div class="card">
         <h2 class="card-title">Propostas Pendentes</h2>
         <div id="propostasLista" class="item-list">
-          <p style="text-align:center; color:#777;">Carregando...</p>
+          <p style="text-align:center; color:#888;">Carregando...</p>
         </div>
       </div>
 
@@ -251,7 +259,7 @@
       <div class="card">
         <h2 class="card-title">Lojas Desativadas</h2>
         <div id="desativadosLista" class="item-list">
-          <p style="text-align:center; color:#777;">Carregando...</p>
+          <p style="text-align:center; color:#888;">Carregando...</p>
         </div>
       </div>
 
@@ -259,13 +267,13 @@
       <div class="card">
         <h2 class="card-title">Buscar Loja</h2>
         <input type="text" id="buscaNome" placeholder="Nome da loja..." style="margin-bottom:10px;" />
-        <button class="btn btn-primary" onclick="buscarLojas()">Buscar</button>
+        <button class="btn" onclick="buscarLojas()">Buscar</button>
         <div id="resultado" class="item-list" style="margin-top:14px;"></div>
       </div>
 
       <!-- Formulário de Edição -->
       <div id="formAtualizacao" class="card hidden">
-        <h2 class="card-title">Editando: <span id="nomeLojaAtual"></span> <small id="fonteItem" style="color:#777;"></small></h2>
+        <h2 class="card-title">Editando: <span id="nomeLojaAtual"></span> <small id="fonteItem" style="color:#888;"></small></h2>
 
         <form id="formLoja">
           <input type="hidden" id="lojaId" />
@@ -286,15 +294,15 @@
             <input type="text" id="tags" placeholder="pizza, delivery, 24h" />
           </div>
 
-          <div class="card" style="background:#f8fff9; padding:14px; margin:16px 0;">
-            <h3 style="font-size:1rem; margin-bottom:12px; color:var(--primary);">Anúncios</h3>
+          <div class="card" style="background:#f9f9f9; padding:14px; margin:16px 0;">
+            <h3 style="font-size:1rem; margin-bottom:12px; color:#333;">Anúncios</h3>
             <div class="switch-group"><span class="switch-label">Destaque na busca</span><label class="switch"><input type="checkbox" id="anuncioBusca"><span class="slider"></span></label></div>
             <div class="switch-group"><span class="switch-label">Visível no app</span><label class="switch"><input type="checkbox" id="anuncioPostagem"><span class="slider"></span></label></div>
             <div class="switch-group"><span class="switch-label">Loja Premium</span><label class="switch"><input type="checkbox" id="anuncioPremium"><span class="slider"></span></label></div>
           </div>
 
-          <div class="card" style="background:#f0f8ff; padding:14px;">
-            <h3 style="font-size:1rem; margin-bottom:12px; color:#0066cc;">Dados da Loja</h3>
+          <div class="card" style="background:#f9f9f9; padding:14px;">
+            <h3 style="font-size:1rem; margin-bottom:12px; color:#333;">Dados da Loja</h3>
 
             <div class="grid-2">
               <div class="input-group">
@@ -317,7 +325,7 @@
               <label class="switch"><input type="checkbox" id="fazEntrega"><span class="slider"></span></label>
             </div>
 
-            <h3 style="font-size:1rem; margin:20px 0 12px; color:#0066cc;">Horários</h3>
+            <h3 style="font-size:1rem; margin:20px 0 12px; color:#333;">Horários</h3>
 
             <div class="grid-2">
               <div class="input-group">
@@ -358,7 +366,7 @@
             </div>
           </div>
 
-          <button type="button" class="btn btn-primary" onclick="atualizarLoja()">Salvar</button>
+          <button type="button" class="btn" onclick="atualizarLoja()">Salvar</button>
           <button type="button" class="btn btn-secondary" onclick="cancelarEdicao()">Cancelar</button>
         </form>
       </div>
@@ -411,13 +419,13 @@
 
     async function carregarPropostas() {
       const listaDiv = document.getElementById('propostasLista');
-      listaDiv.innerHTML = '<p style="text-align:center; color:#777;">Carregando...</p>';
+      listaDiv.innerHTML = '<p style="text-align:center; color:#888;">Carregando...</p>';
 
       try {
         const snapshot = await db.collection(COLECAO_PROPOSTAS).get();
 
         if (snapshot.empty) {
-          listaDiv.innerHTML = '<p style="text-align:center; color:#777;">Nenhuma proposta pendente.</p>';
+          listaDiv.innerHTML = '<p style="text-align:center; color:#888;">Nenhuma proposta pendente.</p>';
           return;
         }
 
@@ -431,7 +439,7 @@
           const descricao = data.descricao || 'Sem descrição';
 
           const item = document.createElement('div');
-          item.className = 'item item-proposta';
+          item.className = 'item';
           item.innerHTML = `
             <div class="item-info">
               <h4>${data.nome || 'Sem nome'}</h4>
@@ -442,13 +450,13 @@
           listaDiv.appendChild(item);
         });
       } catch (error) {
-        listaDiv.innerHTML = '<p style="color:red;">Erro ao carregar.</p>';
+        listaDiv.innerHTML = '<p style="color:#c00;">Erro ao carregar.</p>';
       }
     }
 
     async function carregarDesativados() {
       const listaDiv = document.getElementById('desativadosLista');
-      listaDiv.innerHTML = '<p style="text-align:center; color:#777;">Carregando...</p>';
+      listaDiv.innerHTML = '<p style="text-align:center; color:#888;">Carregando...</p>';
 
       try {
         const snapshot = await db.collection(COLECAO_LOJAS)
@@ -456,7 +464,7 @@
           .get();
 
         if (snapshot.empty) {
-          listaDiv.innerHTML = '<p style="text-align:center; color:#777;">Nenhuma loja desativada.</p>';
+          listaDiv.innerHTML = '<p style="text-align:center; color:#888;">Nenhuma loja desativada.</p>';
           return;
         }
 
@@ -465,19 +473,19 @@
         snapshot.forEach(doc => {
           const data = doc.data();
           const item = document.createElement('div');
-          item.className = 'item item-desativada';
+          item.className = 'item';
           item.innerHTML = `
             <div class="item-info">
               <h4>${data.nome || 'Sem nome'}</h4>
               <small>${data.descricao || 'Sem descrição'} • ${data.filiais ? data.filiais.length + ' filial(is)' : '1 filial'}</small>
             </div>
-            <button class="btn btn-danger btn-small" onclick="excluirLoja('${doc.id}', event)">Excluir</button>
+            <button class="btn btn-secondary btn-small" onclick="excluirLoja('${doc.id}', event)">Excluir</button>
           `;
           item.querySelector('.item-info').onclick = () => carregarParaEdicao({ id: doc.id, ...data, _colecao: 'users' });
           listaDiv.appendChild(item);
         });
       } catch (error) {
-        listaDiv.innerHTML = '<p style="color:red;">Erro ao carregar.</p>';
+        listaDiv.innerHTML = '<p style="color:#c00;">Erro ao carregar.</p>';
       }
     }
 
@@ -524,7 +532,7 @@
 
         if (!encontrou) resultadoDiv.innerHTML = '<p style="text-align:center;">Nenhuma loja encontrada.</p>';
       } catch (error) {
-        resultadoDiv.innerHTML = '<p style="color:red;">Erro na busca.</p>';
+        resultadoDiv.innerHTML = '<p style="color:#c00;">Erro na busca.</p>';
       }
     }
 
