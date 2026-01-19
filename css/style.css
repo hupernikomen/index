@@ -1,16 +1,15 @@
 :root {
-  --bg: #f8f9fb;
-  --card-bg: #ffffff;
-  --text: #2c3e50;
-  --text-light: #5a6c7d;
-  --text-lighter: #95a5b8;
-  --primary-soft: #a8dadc;     /* azul pastel suave */
-  --accent: #81b29a;           /* verde menta suave */
-  --accent-hover: #6fa589;
-  --highlight: #f4a261;        /* laranja pastel suave */
-  --success: #b2d8b2;          /* verde claro suave */
-  --shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-  --radius: 16px;
+  --bg: #f8f8f8;               /* fundo da página */
+  --card-bg: #ffffff;          /* fundo dos cards */
+  --text: #1a1a1a;             /* texto principal */
+  --text-light: #444444;       /* labels e textos secundários */
+  --text-lighter: #777777;     /* textos menores, placeholders */
+  --border: #e0e0e0;           /* bordas suaves */
+  --accent: #222222;           /* botões principais */
+  --accent-hover: #000000;     /* hover dos botões */
+  --switch-on: #333333;        /* switch ligado */
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  --radius: 14px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -20,30 +19,25 @@ body {
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
-  padding: 0;
+  padding: 12px 16px;
   line-height: 1.6;
 }
 
 .container {
   max-width: 100%;
   margin: 0 auto;
-  padding: 0 16px;
-  padding-top: env(safe-area-inset-top); /* respeita notch no iOS */
 }
 
-/* Header como em app mobile */
+/* Header minimalista como app */
 header {
   text-align: center;
   padding: 20px 0 16px;
   background: var(--card-bg);
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  margin-bottom: 10px;
 }
 
 h1 {
-  font-size: 1.7rem;
+  font-size: 1.8rem;
   font-weight: 600;
   color: var(--text);
   margin: 0;
@@ -53,19 +47,18 @@ h1 {
   font-size: 0.9rem;
   color: var(--text-lighter);
   margin-top: 4px;
-  font-weight: 400;
 }
 
-/* Cards sem borda, com fundo branco e sombra suave */
+/* Cards sem borda, só sombra suave */
 .card {
   background: var(--card-bg);
   border-radius: var(--radius);
   padding: 18px;
   margin-bottom: 18px;
   box-shadow: var(--shadow);
-  border: none; /* removida borda */
 }
 
+/* Títulos dos cards */
 .card-title {
   font-size: 1.25rem;
   font-weight: 600;
@@ -74,7 +67,7 @@ h1 {
   padding-bottom: 8px;
 }
 
-/* Inputs sem borda, fundo suave */
+/* Inputs sem borda */
 .input-group {
   margin-bottom: 16px;
 }
@@ -91,16 +84,15 @@ input, textarea {
   width: 100%;
   padding: 12px 14px;
   border: none;
-  border-radius: 12px;
+  border-radius: 10px;
   font-size: 1rem;
-  background: #f0f4f8; /* fundo pastel suave */
+  background: #f2f2f2;
   color: var(--text);
-  transition: background 0.2s;
 }
 
 input:focus, textarea:focus {
   outline: none;
-  background: #e8f0f8;
+  background: #eaeaea;
 }
 
 textarea {
@@ -108,11 +100,11 @@ textarea {
   resize: vertical;
 }
 
-/* Botões com cor pastel suave */
+/* Botões em preto puro */
 .btn {
   padding: 13px 20px;
   border: none;
-  border-radius: 12px;
+  border-radius: 10px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
@@ -128,12 +120,12 @@ textarea {
 }
 
 .btn-secondary {
-  background: #bdc3c7;
+  background: #888888;
   color: white;
 }
 
 .btn-secondary:hover {
-  background: #a7b0b6;
+  background: #666666;
 }
 
 .btn-small {
@@ -142,7 +134,7 @@ textarea {
   width: auto;
 }
 
-/* Switches suaves */
+/* Switches minimalistas em cinza */
 .switch {
   position: relative;
   display: inline-block;
@@ -156,7 +148,7 @@ textarea {
   position: absolute;
   cursor: pointer;
   top: 0; left: 0; right: 0; bottom: 0;
-  background-color: #cfd8dc;
+  background-color: #cccccc;
   transition: .3s;
   border-radius: 32px;
 }
@@ -174,7 +166,7 @@ textarea {
 }
 
 input:checked + .slider {
-  background-color: var(--success);
+  background-color: var(--switch-on);
 }
 
 input:checked + .slider:before {
@@ -209,7 +201,7 @@ input:checked + .slider:before {
 
 .item {
   background: var(--card-bg);
-  border-radius: 14px;
+  border-radius: 12px;
   padding: 16px;
   box-shadow: var(--shadow);
   display: flex;
@@ -221,7 +213,7 @@ input:checked + .slider:before {
 
 .item:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
 }
 
 .item-info h4 {
@@ -259,7 +251,6 @@ input:checked + .slider:before {
   font-size: 0.85rem;
   color: var(--text-lighter);
   margin: 8px 0 16px;
-  padding: 0 4px;
 }
 
 .user-info a {
@@ -275,7 +266,7 @@ input:checked + .slider:before {
 
 /* Responsivo */
 @media (min-width: 768px) {
-  .container { padding: 0 24px; }
+  body { padding: 20px; }
   .card { padding: 22px; }
   h1 { font-size: 2rem; }
   .btn { width: auto; padding: 14px 32px; }
