@@ -11,7 +11,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-  <!-- Google Fonts: Inter (mesma do app) -->
+  <!-- Google Fonts: Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
 
   <style>
@@ -37,29 +37,11 @@
       padding: 20px;
     }
 
-    .container {
-      max-width: 1000px;
-      margin: 0 auto;
-    }
+    .container { max-width: 1000px; margin: 0 auto; }
 
-    header {
-      text-align: center;
-      margin-bottom: 40px;
-      padding: 30px 0;
-    }
-
-    h1 {
-      font-size: 2.5rem;
-      font-weight: 700;
-      color: var(--primary);
-      margin-bottom: 8px;
-    }
-
-    .subtitle {
-      font-size: 1.1rem;
-      color: var(--gray);
-      font-weight: 400;
-    }
+    header { text-align: center; margin-bottom: 40px; padding: 30px 0; }
+    h1 { font-size: 2.5rem; font-weight: 700; color: var(--primary); margin-bottom: 8px; }
+    .subtitle { font-size: 1.1rem; color: var(--gray); font-weight: 400; }
 
     .card {
       background: white;
@@ -69,11 +51,7 @@
       margin-bottom: 24px;
       transition: transform 0.2s, box-shadow 0.2s;
     }
-
-    .card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-    }
+    .card:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.12); }
 
     .card-title {
       font-size: 1.4rem;
@@ -85,14 +63,7 @@
       display: inline-block;
     }
 
-    .section {
-      margin-bottom: 32px;
-    }
-
-    .input-group {
-      margin-bottom: 20px;
-    }
-
+    .input-group { margin-bottom: 20px; }
     label {
       display: block;
       font-weight: 500;
@@ -100,7 +71,6 @@
       color: #444;
       font-size: 0.95rem;
     }
-
     input, textarea {
       width: 100%;
       padding: 14px 16px;
@@ -110,18 +80,13 @@
       transition: border 0.3s, box-shadow 0.3s;
       background: #fafafa;
     }
-
     input:focus, textarea:focus {
       outline: none;
       border-color: var(--primary);
       box-shadow: 0 0 0 3px rgba(18, 199, 85, 0.15);
       background: white;
     }
-
-    textarea {
-      min-height: 100px;
-      resize: vertical;
-    }
+    textarea { min-height: 100px; resize: vertical; }
 
     .btn {
       padding: 14px 24px;
@@ -133,31 +98,11 @@
       transition: all 0.3s;
       display: inline-block;
     }
-
-    .btn-primary {
-      background: var(--primary);
-      color: white;
-    }
-
-    .btn-primary:hover {
-      background: var(--primary-dark);
-      transform: translateY(-1px);
-    }
-
-    .btn-danger {
-      background: var(--danger);
-      color: white;
-    }
-
-    .btn-secondary {
-      background: #6c757d;
-      color: white;
-    }
-
-    .btn-small {
-      padding: 8px 14px;
-      font-size: 0.9rem;
-    }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-secondary { background: #6c757d; color: white; }
+    .btn-small { padding: 8px 14px; font-size: 0.9rem; }
 
     .switch {
       position: relative;
@@ -165,13 +110,7 @@
       width: 60px;
       height: 34px;
     }
-
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
+    .switch input { opacity: 0; width: 0; height: 0; }
     .slider {
       position: absolute;
       cursor: pointer;
@@ -180,7 +119,6 @@
       transition: .4s;
       border-radius: 34px;
     }
-
     .slider:before {
       position: absolute;
       content: "";
@@ -192,14 +130,8 @@
       transition: .4s;
       border-radius: 50%;
     }
-
-    input:checked + .slider {
-      background-color: var(--success);
-    }
-
-    input:checked + .slider:before {
-      transform: translateX(26px);
-    }
+    input:checked + .slider { background-color: var(--success); }
+    input:checked + .slider:before { transform: translateX(26px); }
 
     .switch-group {
       display: flex;
@@ -207,23 +139,10 @@
       align-items: center;
       padding: 16px 0;
     }
+    .switch-label { font-weight: 500; color: #444; }
 
-    .switch-label {
-      font-weight: 500;
-      color: #444;
-    }
-
-    .grid-2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-
-    .item-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .item-list { display: flex; flex-direction: column; gap: 12px; }
 
     .item {
       background: white;
@@ -236,56 +155,18 @@
       cursor: pointer;
       transition: all 0.2s;
     }
+    .item:hover { border-color: var(--primary); box-shadow: 0 4px 15px rgba(18,199,85,0.1); }
+    .item-proposta { border-left: 5px solid var(--warning); }
+    .item-desativada { border-left: 5px solid var(--danger); opacity: 0.9; }
 
-    .item:hover {
-      border-color: var(--primary);
-      box-shadow: 0 4px 15px rgba(18,199,85,0.1);
-    }
+    .item-info h4 { margin: 0 0 6px 0; font-size: 1.1rem; color: #2d3436; }
+    .item-info small { color: var(--gray); font-size: 0.9rem; }
 
-    .item-proposta {
-      border-left: 5px solid var(--warning);
-    }
+    .login-screen { text-align: center; padding: 80px 20px; }
+    .login-btn { background: #4285F4; color: white; padding: 16px 32px; font-size: 1.2rem; margin: 30px 0; }
 
-    .item-desativada {
-      border-left: 5px solid var(--danger);
-      opacity: 0.9;
-    }
-
-    .item-info h4 {
-      margin: 0 0 6px 0;
-      font-size: 1.1rem;
-      color: #2d3436;
-    }
-
-    .item-info small {
-      color: var(--gray);
-      font-size: 0.9rem;
-    }
-
-    .login-screen {
-      text-align: center;
-      padding: 80px 20px;
-    }
-
-    .login-btn {
-      background: #4285F4;
-      color: white;
-      padding: 16px 32px;
-      font-size: 1.2rem;
-      margin: 30px 0;
-    }
-
-    .user-info {
-      text-align: right;
-      font-size: 0.9rem;
-      color: var(--gray);
-      margin-bottom: 20px;
-    }
-
-    .user-info a {
-      color: var(--danger);
-      text-decoration: none;
-    }
+    .user-info { text-align: right; font-size: 0.9rem; color: var(--gray); margin-bottom: 20px; }
+    .user-info a { color: var(--danger); text-decoration: none; }
 
     .hidden { display: none; }
 
@@ -321,7 +202,7 @@
       </header>
 
       <!-- Propostas Pendentes -->
-      <div class="card section">
+      <div class="card">
         <h2 class="card-title">Propostas Pendentes</h2>
         <div id="propostasLista" class="item-list">
           <p style="text-align:center; color:#666;">Carregando propostas...</p>
@@ -329,7 +210,7 @@
       </div>
 
       <!-- Lojas Desativadas -->
-      <div class="card section">
+      <div class="card">
         <h2 class="card-title">Lojas Desativadas</h2>
         <div id="desativadosLista" class="item-list">
           <p style="text-align:center; color:#666;">Carregando...</p>
@@ -337,7 +218,7 @@
       </div>
 
       <!-- Busca de Lojas -->
-      <div class="card section">
+      <div class="card">
         <h2 class="card-title">Buscar Loja para Editar</h2>
         <div style="display:flex; gap:12px;">
           <input type="text" id="buscaNome" placeholder="Digite parte do nome da loja" style="flex:1;" />
@@ -354,7 +235,6 @@
           <input type="hidden" id="lojaId" />
           <input type="hidden" id="colecaoOrigem" value="users" />
 
-          <!-- Opções para Proposta -->
           <div id="campoStatus" class="hidden">
             <div class="switch-group">
               <span class="switch-label">Proposta Aprovada?</span>
@@ -370,13 +250,12 @@
             <button type="button" class="btn btn-primary" style="margin-top:12px;" onclick="abrirModalFilial()">
               Selecionar Loja Principal
             </button>
-            <div id="lojaPrincipalInfo" style="margin-top:16px; padding:16px; background:white; border-radius:10px; display:none;">
+            <div id="lojaPrincipalInfo" class="hidden" style="margin-top:16px; padding:16px; background:white; border-radius:10px;">
               <strong>Loja principal:</strong> <span id="nomeLojaPrincipal"></span>
               <button type="button" class="btn btn-danger btn-small" style="margin-left:12px;" onclick="limparSelecaoFilial()">Remover</button>
             </div>
           </div>
 
-          <!-- Dados Gerais -->
           <div class="input-group">
             <label>Nome da loja *</label>
             <input type="text" id="nome" required />
@@ -392,7 +271,6 @@
             <input type="text" id="tags" placeholder="ex: pizza, delivery, farmácia, 24h" />
           </div>
 
-          <!-- Destaques -->
           <div class="card" style="background:#f0fdf4;">
             <h3 style="margin-bottom:20px; color:var(--primary);">Destaques e Anúncios</h3>
             <div class="switch-group"><span class="switch-label">Destaque na busca</span><label class="switch"><input type="checkbox" id="anuncioBusca"><span class="slider"></span></label></div>
@@ -400,7 +278,6 @@
             <div class="switch-group"><span class="switch-label">Loja Premium</span><label class="switch"><input type="checkbox" id="anuncioPremium"><span class="slider"></span></label></div>
           </div>
 
-          <!-- Dados da Filial -->
           <div class="card" style="background:#f0f8ff;">
             <h3 style="margin-bottom:20px; color:#0066cc;">Dados da Filial</h3>
 
@@ -425,7 +302,6 @@
               <label class="switch"><input type="checkbox" id="fazEntrega"><span class="slider"></span></label>
             </div>
 
-            <!-- Horários -->
             <h3 style="margin-top:32px; margin-bottom:16px; color:#0066cc;">Horários de Funcionamento</h3>
 
             <div class="grid-2">
@@ -443,7 +319,7 @@
               <span class="switch-label">Aberto aos sábados?</span>
               <label class="switch"><input type="checkbox" id="sabadoAtivo" onchange="toggleSubfields('sabado')"><span class="slider"></span></label>
             </div>
-            <div id="sabadoFields" class="subfields hidden grid-2">
+            <div id="sabadoFields" class="hidden grid-2">
               <div class="input-group"><input type="text" id="sabadoAbre" placeholder="08:00" /></div>
               <div class="input-group"><input type="text" id="sabadoFecha" placeholder="12:00" /></div>
             </div>
@@ -452,7 +328,7 @@
               <span class="switch-label">Aberto aos domingos?</span>
               <label class="switch"><input type="checkbox" id="domingoAtivo" onchange="toggleSubfields('domingo')"><span class="slider"></span></label>
             </div>
-            <div id="domingoFields" class="subfields hidden grid-2">
+            <div id="domingoFields" class="hidden grid-2">
               <div class="input-group"><input type="text" id="domingoAbre" placeholder="09:00" /></div>
               <div class="input-group"><input type="text" id="domingoFecha" placeholder="12:00" /></div>
             </div>
@@ -461,7 +337,7 @@
               <span class="switch-label">Possui intervalo de almoço?</span>
               <label class="switch"><input type="checkbox" id="intervaloAtivo" onchange="toggleSubfields('intervalo')"><span class="slider"></span></label>
             </div>
-            <div id="intervaloFields" class="subfields hidden grid-2">
+            <div id="intervaloFields" class="hidden grid-2">
               <div class="input-group"><input type="text" id="intervaloInicio" placeholder="12:00" /></div>
               <div class="input-group"><input type="text" id="intervaloRetorno" placeholder="13:30" /></div>
             </div>
@@ -489,25 +365,421 @@
     </div>
   </div>
 
-  <!-- Seu script original aqui (mantido 100% igual) -->
   <script>
-    // ... todo o seu JavaScript original (firebaseConfig, login, funções, etc.)
-    // Apenas adicionei uma classe 'hidden' no estilo para controle de exibição
-    // e troquei alguns style.display por classList.toggle('hidden')
+    const firebaseConfig = {
+      apiKey: "AIzaSyDo0QQjxmXZLw8qiWC3Kc52ZYk9UtWCYmc",
+      authDomain: "appguiacomercial-e6109.firebaseapp.com",
+      projectId: "appguiacomercial-e6109",
+      storageBucket: "appguiacomercial-e6109.appspot.com",
+      messagingSenderId: "292734642765",
+      appId: "1:292734642765:web:fc9d62106f1f72d4340a04"
+    };
 
-    const firebaseConfig = { /* seu config */ };
-    // ... todo o resto do código JavaScript que você já tem
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-    // Pequenas adaptações para o novo layout
-    function toggleSubfields(tipo) {
-      const fields = document.getElementById(tipo + 'Fields');
-      fields.classList.toggle('hidden', !document.getElementById(tipo + 'Ativo').checked);
+    const COLECAO_LOJAS = 'users';
+    const COLECAO_PROPOSTAS = 'propostas';
+    const COLECAO_FILIAIS_BACKUP = 'filiais';
+
+    const ADMINS_PERMITIDOS = ["hupcontato@gmail.com"];
+
+    let lojaPrincipalSelecionada = null;
+
+    function loginComGoogle() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider);
     }
 
-    // No final, substitua display: 'none'/'block' por classList
-    // Exemplo nas funções existentes:
-    document.getElementById('formAtualizacao').classList.add('hidden');
-    // Em vez de style.display = 'block'
+    function logout() {
+      auth.signOut();
+    }
+
+    auth.onAuthStateChanged((user) => {
+      if (user && ADMINS_PERMITIDOS.map(e => e.toLowerCase()).includes(user.email.toLowerCase())) {
+        document.getElementById('userEmail').textContent = user.email;
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('adminContent').classList.remove('hidden');
+        carregarPropostas();
+        carregarDesativados();
+      } else if (user) {
+        alert("Acesso negado: seu e-mail não tem permissão.");
+        auth.signOut();
+      } else {
+        document.getElementById('loginScreen').classList.remove('hidden');
+        document.getElementById('adminContent').classList.add('hidden');
+      }
+    });
+
+    async function carregarPropostas() {
+      const listaDiv = document.getElementById('propostasLista');
+      listaDiv.innerHTML = '<p style="text-align:center; color:#666;">Carregando propostas...</p>';
+
+      try {
+        const snapshot = await db.collection(COLECAO_PROPOSTAS).get();
+
+        if (snapshot.empty) {
+          listaDiv.innerHTML = '<p style="color:#666; text-align:center;">Nenhuma proposta pendente no momento.</p>';
+          return;
+        }
+
+        listaDiv.innerHTML = '';
+
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const primeiraFilial = data.filiais && Array.isArray(data.filiais) ? data.filiais[0] : {};
+          const numeroWhats = primeiraFilial.whatsapp?.numero || 'Não informado';
+          const bairro = primeiraFilial.bairro || 'Não informado';
+          const descricao = data.descricao || 'Sem descrição';
+
+          const item = document.createElement('div');
+          item.className = 'item item-proposta';
+          item.innerHTML = `
+            <div class="item-info">
+              <h4>${data.nome || 'Sem nome'}</h4>
+              <small>${descricao} | WhatsApp: ${numeroWhats} | Bairro: ${bairro}</small>
+            </div>
+          `;
+          item.onclick = () => carregarParaEdicao({ id: doc.id, ...data, _colecao: 'propostas' });
+          listaDiv.appendChild(item);
+        });
+      } catch (error) {
+        console.error("Erro ao carregar propostas:", error);
+        listaDiv.innerHTML = '<p style="color:red;">Erro ao carregar propostas: ' + error.message + '</p>';
+      }
+    }
+
+    async function carregarDesativados() {
+      const listaDiv = document.getElementById('desativadosLista');
+      listaDiv.innerHTML = '<p style="text-align:center; color:#666;">Carregando...</p>';
+
+      try {
+        const snapshot = await db.collection(COLECAO_LOJAS)
+          .where('anuncio.postagem', '==', false)
+          .get();
+
+        if (snapshot.empty) {
+          listaDiv.innerHTML = '<p style="color:#666; text-align:center;">Nenhuma loja desativada.</p>';
+          return;
+        }
+
+        listaDiv.innerHTML = '';
+
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const item = document.createElement('div');
+          item.className = 'item item-desativada';
+          item.innerHTML = `
+            <div class="item-info">
+              <h4>${data.nome || 'Sem nome'}</h4>
+              <small>${data.descricao || 'Sem descrição'} | ${data.filiais ? data.filiais.length + ' filial(is)' : 'Sem dados de filial'}</small>
+            </div>
+            <button class="btn btn-danger btn-small" onclick="excluirLoja('${doc.id}', event)">Excluir</button>
+          `;
+          item.querySelector('.item-info').onclick = () => carregarParaEdicao({ id: doc.id, ...data, _colecao: 'users' });
+          listaDiv.appendChild(item);
+        });
+      } catch (error) {
+        console.error(error);
+        listaDiv.innerHTML = '<p style="color:red;">Erro ao carregar desativadas.</p>';
+      }
+    }
+
+    async function excluirLoja(id, event) {
+      event.stopPropagation();
+      if (!confirm("EXCLUIR permanentemente esta loja e todas as suas filiais?")) return;
+      try {
+        await db.collection(COLECAO_LOJAS).doc(id).delete();
+        alert("Loja excluída!");
+        carregarDesativados();
+      } catch (error) {
+        alert("Erro: " + error.message);
+      }
+    }
+
+    async function buscarLojas() {
+      const termo = document.getElementById('buscaNome').value.trim().toLowerCase();
+      if (!termo) return alert('Digite parte do nome');
+
+      const resultadoDiv = document.getElementById('resultado');
+      resultadoDiv.innerHTML = '<p>Buscando...</p>';
+
+      try {
+        const snapshot = await db.collection(COLECAO_LOJAS).get();
+        resultadoDiv.innerHTML = '';
+        let encontrou = false;
+
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          if (data.nome && data.nome.toLowerCase().includes(termo)) {
+            encontrou = true;
+            const item = document.createElement('div');
+            item.className = 'item';
+            item.innerHTML = `
+              <div class="item-info">
+                <h4>${data.nome}</h4>
+                <small>${data.filiais ? data.filiais.length + ' filial(is)' : '1 filial'}</small>
+              </div>
+            `;
+            item.onclick = () => carregarParaEdicao({ id: doc.id, ...data, _colecao: 'users' });
+            resultadoDiv.appendChild(item);
+          }
+        });
+
+        if (!encontrou) resultadoDiv.innerHTML = '<p>Nenhuma loja encontrada.</p>';
+      } catch (error) {
+        resultadoDiv.innerHTML = '<p style="color:red;">Erro na busca.</p>';
+      }
+    }
+
+    function abrirModalFilial() {
+      document.getElementById('modalFilial').classList.remove('hidden');
+      document.getElementById('buscaFilialInput').value = '';
+      document.getElementById('resultadoFilial').innerHTML = '<p>Digite e busque...</p>';
+    }
+
+    function fecharModalFilial() {
+      document.getElementById('modalFilial').classList.add('hidden');
+    }
+
+    function limparSelecaoFilial() {
+      lojaPrincipalSelecionada = null;
+      document.getElementById('lojaPrincipalInfo').classList.add('hidden');
+    }
+
+    async function buscarLojaParaFilial() {
+      const termo = document.getElementById('buscaFilialInput').value.trim().toLowerCase();
+      if (!termo) return alert('Digite parte do nome');
+
+      const divResultado = document.getElementById('resultadoFilial');
+      divResultado.innerHTML = '<p>Buscando...</p>';
+
+      try {
+        const snapshot = await db.collection(COLECAO_LOJAS).get();
+        divResultado.innerHTML = '';
+        let encontrou = false;
+
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          if (data.nome && data.nome.toLowerCase().includes(termo)) {
+            encontrou = true;
+            const item = document.createElement('div');
+            item.className = 'item';
+            item.innerHTML = `
+              <div class="item-info">
+                <h4>${data.nome}</h4>
+                <small>${data.filiais ? data.filiais.length : 0} filiais</small>
+              </div>
+            `;
+            item.onclick = () => {
+              lojaPrincipalSelecionada = { id: doc.id, data: data };
+              document.getElementById('nomeLojaPrincipal').textContent = data.nome;
+              document.getElementById('lojaPrincipalInfo').classList.remove('hidden');
+              fecharModalFilial();
+            };
+            divResultado.appendChild(item);
+          }
+        });
+
+        if (!encontrou) divResultado.innerHTML = '<p>Nenhuma loja encontrada.</p>';
+      } catch (error) {
+        divResultado.innerHTML = '<p style="color:red;">Erro na busca.</p>';
+      }
+    }
+
+    function toggleSubfields(tipo) {
+      const fields = document.getElementById(tipo + 'Fields');
+      const checked = document.getElementById(tipo + 'Ativo').checked;
+      if (checked) {
+        fields.classList.remove('hidden');
+      } else {
+        fields.classList.add('hidden');
+      }
+    }
+
+    function carregarParaEdicao(item) {
+      document.getElementById('formAtualizacao').classList.remove('hidden');
+      document.getElementById('nomeLojaAtual').textContent = item.nome || 'Sem nome';
+      document.getElementById('fonteItem').textContent = item._colecao === 'propostas' ? '(Proposta)' : '(Loja)';
+      document.getElementById('lojaId').value = item.id;
+      document.getElementById('colecaoOrigem').value = item._colecao || 'users';
+
+      const isProposta = item._colecao === 'propostas';
+      document.getElementById('campoStatus').classList.toggle('hidden', !isProposta);
+      document.getElementById('campoFilial').classList.toggle('hidden', !isProposta);
+
+      lojaPrincipalSelecionada = null;
+      document.getElementById('lojaPrincipalInfo').classList.add('hidden');
+
+      document.getElementById('nome').value = item.nome || '';
+      document.getElementById('descricao').value = item.descricao || '';
+      document.getElementById('tags').value = Array.isArray(item.tags) ? item.tags.join(', ') : '';
+
+      document.getElementById('anuncioBusca').checked = item.anuncio?.busca === true;
+      document.getElementById('anuncioPostagem').checked = item.anuncio?.postagem !== false;
+      document.getElementById('anuncioPremium').checked = item.anuncio?.premium === true;
+
+      const filial = item.filiais?.[0] || {};
+      const horarios = filial.horarios || {};
+
+      document.getElementById('bairro').value = filial.bairro || '';
+      document.getElementById('endereco').value = filial.endereco || '';
+      document.getElementById('whatsapp').value = filial.whatsapp?.numero || '';
+      document.getElementById('fazEntrega').checked = filial.fazEntrega === true;
+
+      document.getElementById('semanaAbre').value = horarios.semana?.abre || '';
+      document.getElementById('semanaFecha').value = horarios.semana?.fecha || '';
+
+      const sabadoAtivo = !!horarios.sabado;
+      document.getElementById('sabadoAtivo').checked = sabadoAtivo;
+      document.getElementById('sabadoAbre').value = horarios.sabado?.abre || '';
+      document.getElementById('sabadoFecha').value = horarios.sabado?.fecha || '';
+      toggleSubfields('sabado');
+
+      const domingoAtivo = !!horarios.domingo;
+      document.getElementById('domingoAtivo').checked = domingoAtivo;
+      document.getElementById('domingoAbre').value = horarios.domingo?.abre || '';
+      document.getElementById('domingoFecha').value = horarios.domingo?.fecha || '';
+      toggleSubfields('domingo');
+
+      const intervaloAtivo = horarios.intervalo?.global === true;
+      document.getElementById('intervaloAtivo').checked = intervaloAtivo;
+      document.getElementById('intervaloInicio').value = horarios.intervalo?.inicio || '';
+      document.getElementById('intervaloRetorno').value = horarios.intervalo?.retorno || '';
+      toggleSubfields('intervalo');
+
+      document.getElementById('formAtualizacao').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    async function atualizarLoja() {
+      const id = document.getElementById('lojaId').value;
+      const colecao = document.getElementById('colecaoOrigem').value;
+      const isProposta = colecao === 'propostas';
+
+      const tagsArray = document.getElementById('tags').value.trim()
+        ? document.getElementById('tags').value.trim().split(',').map(t => t.trim()).filter(Boolean)
+        : [];
+
+      const numeroWhats = document.getElementById('whatsapp').value.trim();
+      const bairro = document.getElementById('bairro').value.trim();
+      const endereco = document.getElementById('endereco').value.trim();
+
+      if (isProposta && (!numeroWhats || !bairro)) {
+        return alert('WhatsApp e Bairro são obrigatórios.');
+      }
+
+      const horarios = {
+        semana: {
+          abre: document.getElementById('semanaAbre').value.trim() || '08:00',
+          fecha: document.getElementById('semanaFecha').value.trim() || '18:00',
+        },
+        intervalo: {
+          global: document.getElementById('intervaloAtivo').checked,
+          inicio: document.getElementById('intervaloInicio').value.trim() || null,
+          retorno: document.getElementById('intervaloRetorno').value.trim() || null,
+        },
+      };
+
+      if (document.getElementById('sabadoAtivo').checked) {
+        horarios.sabado = {
+          abre: document.getElementById('sabadoAbre').value.trim() || '08:00',
+          fecha: document.getElementById('sabadoFecha').value.trim() || '12:00',
+        };
+      }
+
+      if (document.getElementById('domingoAtivo').checked) {
+        horarios.domingo = {
+          abre: document.getElementById('domingoAbre').value.trim() || '09:00',
+          fecha: document.getElementById('domingoFecha').value.trim() || '12:00',
+        };
+      }
+
+      const novaFilial = {
+        whatsapp: { numero: numeroWhats, principal: true },
+        bairro: bairro,
+        endereco: endereco || null,
+        fazEntrega: document.getElementById('fazEntrega').checked,
+        horarios: horarios
+      };
+
+      const dadosGerais = {
+        nome: document.getElementById('nome').value.trim() || 'Sem nome',
+        descricao: document.getElementById('descricao').value.trim(),
+        tags: tagsArray,
+        anuncio: {
+          busca: document.getElementById('anuncioBusca').checked,
+          postagem: document.getElementById('anuncioPostagem').checked,
+          premium: document.getElementById('anuncioPremium').checked
+        }
+      };
+
+      try {
+        if (!isProposta) {
+          await db.collection(COLECAO_LOJAS).doc(id).update(dadosGerais);
+          alert('Loja atualizada com sucesso!');
+          cancelarEdicao();
+          return;
+        }
+
+        const batch = db.batch();
+
+        if (lojaPrincipalSelecionada) {
+          if (!confirm(`Adicionar como filial da loja "${lojaPrincipalSelecionada.data.nome}"?`)) return;
+
+          const principalRef = db.collection(COLECAO_LOJAS).doc(lojaPrincipalSelecionada.id);
+          const principalSnap = await principalRef.get();
+          if (!principalSnap.exists) throw "Loja principal não encontrada";
+
+          const filiaisAtuais = principalSnap.data().filiais || [];
+          if (filiaisAtuais.some(f => f.whatsapp?.numero === numeroWhats)) {
+            if (!confirm("Este WhatsApp já existe. Continuar?")) return;
+          }
+
+          batch.update(principalRef, {
+            filiais: [...filiaisAtuais, novaFilial],
+            temFiliais: true
+          });
+
+          const backupRef = db.collection(COLECAO_FILIAIS_BACKUP).doc();
+          batch.set(backupRef, {
+            lojaPrincipalId: lojaPrincipalSelecionada.id,
+            lojaPrincipalNome: lojaPrincipalSelecionada.data.nome,
+            dadosFilial: { ...dadosGerais, ...novaFilial },
+            criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+          });
+
+          batch.delete(db.collection(COLECAO_PROPOSTAS).doc(id));
+          await batch.commit();
+          alert('Filial adicionada com sucesso!');
+        } else {
+          const novaLojaRef = db.collection(COLECAO_LOJAS).doc(id);
+          batch.set(novaLojaRef, {
+            ...dadosGerais,
+            filiais: [novaFilial],
+            temFiliais: false,
+            clicks: 0,
+            criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+          });
+
+          batch.delete(db.collection(COLECAO_PROPOSTAS).doc(id));
+          await batch.commit();
+          alert('Nova loja criada com sucesso!');
+        }
+
+        cancelarEdicao();
+        carregarPropostas();
+
+      } catch (error) {
+        console.error(error);
+        alert('Erro: ' + error.message);
+      }
+    }
+
+    function cancelarEdicao() {
+      document.getElementById('formAtualizacao').classList.add('hidden');
+      document.getElementById('resultado').innerHTML = '';
+    }
   </script>
 </body>
 </html>
