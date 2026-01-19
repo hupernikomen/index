@@ -1,13 +1,13 @@
 :root {
-  --bg: #f8f8f8;               /* fundo da página */
-  --card-bg: #ffffff;          /* fundo dos cards */
-  --text: #1a1a1a;             /* texto principal */
-  --text-light: #444444;       /* labels e textos secundários */
-  --text-lighter: #777777;     /* textos menores, placeholders */
-  --border: #e0e0e0;           /* bordas suaves */
-  --accent: #6fa589;           /* botões principais */
-  --accent-hover: #000000;     /* hover dos botões */
-  --switch-on: #333333;        /* switch ligado */
+  --bg: #f8f8f8;
+  --card-bg: #ffffff;
+  --text: #1a1a1a;
+  --text-light: #444444;
+  --text-lighter: #777777;
+  --border: #e0e0e0;
+  --accent: #6fa589;
+  --accent-hover: #6fa589;
+  --switch-on: #333333;
   --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   --radius: 14px;
 }
@@ -28,229 +28,32 @@ body {
   margin: 0 auto;
 }
 
-/* Header minimalista como app */
+/* Header simples e centralizado */
 header {
   text-align: center;
-  padding: 20px 0 16px;
-  background: var(--card-bg);
-  margin-bottom: 10px;
+  padding: 24px 0 20px;
+  margin-bottom: 8px;
 }
 
 h1 {
   font-size: 1.8rem;
   font-weight: 600;
   color: var(--text);
-  margin: 0;
 }
 
 .subtitle {
   font-size: 0.9rem;
   color: var(--text-lighter);
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
-/* Cards sem borda, só sombra suave */
-.card {
-  background: var(--card-bg);
-  border-radius: var(--radius);
-  padding: 18px;
-  margin-bottom: 18px;
-  box-shadow: var(--shadow);
-}
-
-/* Títulos dos cards */
-.card-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text);
-  margin-bottom: 14px;
-  padding-bottom: 8px;
-}
-
-/* Inputs sem borda */
-.input-group {
-  margin-bottom: 16px;
-}
-
-label {
-  display: block;
-  font-weight: 500;
-  margin-bottom: 6px;
-  font-size: 0.92rem;
-  color: var(--text-light);
-}
-
-input, textarea {
-  width: 100%;
-  padding: 12px 14px;
-  border: none;
-  border-radius: 10px;
-  font-size: 1rem;
-  background: #f2f2f2;
-  color: var(--text);
-}
-
-input:focus, textarea:focus {
-  outline: none;
-  background: #eaeaea;
-}
-
-textarea {
-  min-height: 90px;
-  resize: vertical;
-}
-
-/* Botões em preto puro */
-.btn {
-  padding: 13px 20px;
-  border: none;
-  border-radius: 10px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  width: 100%;
-  margin-top: 10px;
-  background: var(--accent);
-  color: white;
-  transition: background 0.2s;
-}
-
-.btn:hover {
-  background: var(--accent-hover);
-}
-
-.btn-secondary {
-  background: #888888;
-  color: white;
-}
-
-.btn-secondary:hover {
-  background: #666666;
-}
-
-.btn-small {
-  padding: 8px 14px;
-  font-size: 0.9rem;
-  width: auto;
-}
-
-/* Switches minimalistas em cinza */
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 54px;
-  height: 32px;
-}
-
-.switch input { opacity: 0; width: 0; height: 0; }
-
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: #cccccc;
-  transition: .3s;
-  border-radius: 32px;
-}
-
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 26px;
-  width: 26px;
-  left: 3px;
-  bottom: 3px;
-  background-color: white;
-  transition: .3s;
-  border-radius: 50%;
-}
-
-input:checked + .slider {
-  background-color: var(--switch-on);
-}
-
-input:checked + .slider:before {
-  transform: translateX(22px);
-}
-
-.switch-group {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 0;
-}
-
-.switch-label {
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: var(--text-light);
-}
-
-/* Grid e lista */
-.grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-}
-
-.item-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.item {
-  background: var(--card-bg);
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: var(--shadow);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-}
-
-.item-info h4 {
-  margin: 0 0 4px 0;
-  font-size: 1.05rem;
-  color: var(--text);
-}
-
-.item-info small {
-  color: var(--text-lighter);
-  font-size: 0.88rem;
-}
-
-/* Tela de login */
-.login-screen {
-  text-align: center;
-  padding: 80px 20px 40px;
-}
-
-.login-btn {
-  background: var(--accent);
-  color: white;
-  padding: 16px 32px;
-  font-size: 1.1rem;
-  margin: 24px 0;
-}
-
-.login-btn:hover {
-  background: var(--accent-hover);
-}
-
-/* User info */
+/* User info alinhado à direita, discreto */
 .user-info {
   text-align: right;
   font-size: 0.85rem;
   color: var(--text-lighter);
-  margin: 8px 0 16px;
+  margin-bottom: 12px;
+  padding: 0 4px;
 }
 
 .user-info a {
@@ -262,13 +65,165 @@ input:checked + .slider:before {
   color: var(--text);
 }
 
+/* Cards com espaçamento consistente */
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+}
+
+/* Títulos dos cards com linha sutil abaixo */
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+/* Inputs com espaçamento melhor */
+.input-group {
+  margin-bottom: 18px;
+}
+
+label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 7px;
+  font-size: 0.94rem;
+  color: var(--text-light);
+}
+
+input, textarea {
+  width: 100%;
+  padding: 13px 14px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  background: #f2f2f2;
+  color: var(--text);
+  transition: background 0.2s;
+}
+
+input:focus, textarea:focus {
+  outline: none;
+  background: #eaeaea;
+}
+
+textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* Switches alinhados e espaçados */
+.switch-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.switch-group:last-child {
+  border-bottom: none;
+}
+
+.switch-label {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-light);
+}
+
+/* Grid com melhor proporção */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Lista de itens mais organizada */
+.item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.item {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.item-info h4 {
+  margin: 0 0 6px 0;
+  font-size: 1.1rem;
+  color: var(--text);
+}
+
+.item-info small {
+  color: var(--text-lighter);
+  font-size: 0.9rem;
+}
+
+/* Botões no final do formulário */
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.form-actions .btn {
+  flex: 1;
+}
+
+/* Tela de login centralizada e clean */
+.login-screen {
+  text-align: center;
+  padding: 100px 20px 60px;
+}
+
+.login-btn {
+  background: var(--accent);
+  color: white;
+  padding: 16px 36px;
+  font-size: 1.1rem;
+  margin: 30px 0;
+}
+
+.login-btn:hover {
+  background: var(--accent-hover);
+}
+
+.info-text {
+  color: var(--text-lighter);
+  font-size: 0.9rem;
+  margin-top: 30px;
+}
+
 .hidden { display: none; }
 
-/* Responsivo */
+/* Responsivo - desktop */
 @media (min-width: 768px) {
   body { padding: 20px; }
-  .card { padding: 22px; }
+  .container { max-width: 800px; margin: 0 auto; }
+  .card { padding: 24px; }
   h1 { font-size: 2rem; }
-  .btn { width: auto; padding: 14px 32px; }
-  .grid-2 { gap: 18px; }
+  .grid-2 { gap: 20px; }
+  .form-actions .btn { width: auto; padding: 14px 32px; }
+  .form-actions { justify-content: flex-end; }
 }
