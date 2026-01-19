@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,6 +17,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
+
 <body>
   <div class="container">
 
@@ -30,7 +32,7 @@
     <!-- Conteúdo Admin -->
     <div id="adminContent" class="hidden">
       <div class="user-info">
-        Logado como: <strong id="userEmail"></strong> | 
+        Logado como: <strong id="userEmail"></strong> |
         <a href="#" id="logoutBtn">Sair</a>
       </div>
 
@@ -84,9 +86,12 @@
 
           <div class="card" style="background:#f8fff9;">
             <h3>Anúncios</h3>
-            <div class="switch-group"><span class="switch-label">Destaque na busca</span><label class="switch"><input type="checkbox" id="anuncioBusca"><span class="slider"></span></label></div>
-            <div class="switch-group"><span class="switch-label">Visível no app</span><label class="switch"><input type="checkbox" id="anuncioPostagem"><span class="slider"></span></label></div>
-            <div class="switch-group"><span class="switch-label">Loja Premium</span><label class="switch"><input type="checkbox" id="anuncioPremium"><span class="slider"></span></label></div>
+            <div class="switch-group"><span class="switch-label">Destaque na busca</span><label class="switch"><input
+                  type="checkbox" id="anuncioBusca"><span class="slider"></span></label></div>
+            <div class="switch-group"><span class="switch-label">Visível no app</span><label class="switch"><input
+                  type="checkbox" id="anuncioPostagem"><span class="slider"></span></label></div>
+            <div class="switch-group"><span class="switch-label">Loja Premium</span><label class="switch"><input
+                  type="checkbox" id="anuncioPremium"><span class="slider"></span></label></div>
           </div>
 
           <div class="card" style="background:#f0f8ff;">
@@ -116,13 +121,16 @@
             <h3>Horários</h3>
 
             <div class="grid-2">
-              <div class="input-group"><label>Seg–Sex Abre</label><input type="text" id="semanaAbre" placeholder="08:00" /></div>
-              <div class="input-group"><label>Seg–Sex Fecha</label><input type="text" id="semanaFecha" placeholder="18:00" /></div>
+              <div class="input-group"><label>Seg–Sex Abre</label><input type="text" id="semanaAbre"
+                  placeholder="08:00" /></div>
+              <div class="input-group"><label>Seg–Sex Fecha</label><input type="text" id="semanaFecha"
+                  placeholder="18:00" /></div>
             </div>
 
             <div class="switch-group">
               <span class="switch-label">Aberto sábado?</span>
-              <label class="switch"><input type="checkbox" id="sabadoAtivo" onchange="toggleSubfields('sabado')"><span class="slider"></span></label>
+              <label class="switch"><input type="checkbox" id="sabadoAtivo" onchange="toggleSubfields('sabado')"><span
+                  class="slider"></span></label>
             </div>
             <div id="sabadoFields" class="hidden grid-2">
               <div class="input-group"><input type="text" id="sabadoAbre" placeholder="08:00" /></div>
@@ -131,7 +139,8 @@
 
             <div class="switch-group">
               <span class="switch-label">Aberto domingo?</span>
-              <label class="switch"><input type="checkbox" id="domingoAtivo" onchange="toggleSubfields('domingo')"><span class="slider"></span></label>
+              <label class="switch"><input type="checkbox" id="domingoAtivo" onchange="toggleSubfields('domingo')"><span
+                  class="slider"></span></label>
             </div>
             <div id="domingoFields" class="hidden grid-2">
               <div class="input-group"><input type="text" id="domingoAbre" placeholder="09:00" /></div>
@@ -140,7 +149,8 @@
 
             <div class="switch-group">
               <span class="switch-label">Intervalo almoço?</span>
-              <label class="switch"><input type="checkbox" id="intervaloAtivo" onchange="toggleSubfields('intervalo')"><span class="slider"></span></label>
+              <label class="switch"><input type="checkbox" id="intervaloAtivo"
+                  onchange="toggleSubfields('intervalo')"><span class="slider"></span></label>
             </div>
             <div id="intervaloFields" class="hidden grid-2">
               <div class="input-group"><input type="text" id="intervaloInicio" placeholder="12:00" /></div>
@@ -148,8 +158,10 @@
             </div>
           </div>
 
-          <button type="button" class="btn" onclick="atualizarLoja()">Salvar</button>
-          <button type="button" class="btn btn-secondary" onclick="cancelarEdicao()">Cancelar</button>
+          <div class="form-actions">
+            <button type="button" class="btn btn-primary" onclick="atualizarLoja()">Salvar</button>
+            <button type="button" class="btn btn-secondary" onclick="cancelarEdicao()">Cancelar</button>
+          </div>
         </form>
       </div>
     </div>
@@ -162,4 +174,5 @@
   <script src="js/lojas.js"></script>
   <script src="js/main.js"></script>
 </body>
+
 </html>
