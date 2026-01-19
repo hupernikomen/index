@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin BuscaZap</title>
-  <meta name="description" content="Painel administrativo do BuscaZap Teresina">
   
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -12,103 +11,113 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
   <!-- Google Fonts: Inter -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
     :root {
       --primary: #12c755;
-      --primary-dark: #128C7E;
+      --primary-dark: #0f9d4a;
       --success: #25D366;
       --danger: #e74c3c;
       --warning: #f39c12;
-      --light: #f8f9fa;
-      --gray: #6c757d;
-      --border: #dee2e6;
-      --shadow: 0 4px 20px rgba(0,0,0,0.08);
-      --radius: 16px;
+      --gray: #666;
+      --light-gray: #f1f1f1;
+      --border: #e0e0e0;
+      --radius: 12px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
-      color: #2d3436;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f8f9fa;
+      color: #333;
       min-height: 100vh;
-      padding: 20px;
+      padding: 12px;
+      line-height: 1.5;
     }
 
-    .container { max-width: 1000px; margin: 0 auto; }
+    .container { max-width: 100%; margin: 0 auto; }
 
-    header { text-align: center; margin-bottom: 40px; padding: 30px 0; }
-    h1 { font-size: 2.5rem; font-weight: 700; color: var(--primary); margin-bottom: 8px; }
-    .subtitle { font-size: 1.1rem; color: var(--gray); font-weight: 400; }
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+      padding: 16px 0 20px;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      font-size: 0.95rem;
+      color: var(--gray);
+      font-weight: 400;
+    }
 
     .card {
       background: white;
       border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 24px;
-      margin-bottom: 24px;
-      transition: transform 0.2s, box-shadow 0.2s;
+      border: 1px solid var(--border);
+      padding: 16px;
+      margin-bottom: 16px;
     }
-    .card:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.12); }
 
     .card-title {
-      font-size: 1.4rem;
+      font-size: 1.2rem;
       font-weight: 600;
-      color: #2d3436;
-      margin-bottom: 16px;
-      padding-bottom: 12px;
+      color: #333;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
       border-bottom: 2px solid var(--primary);
       display: inline-block;
     }
 
-    .input-group { margin-bottom: 20px; }
+    .input-group { margin-bottom: 14px; }
     label {
       display: block;
       font-weight: 500;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
+      font-size: 0.9rem;
       color: #444;
-      font-size: 0.95rem;
     }
     input, textarea {
       width: 100%;
-      padding: 14px 16px;
-      border: 1.5px solid #ddd;
-      border-radius: 12px;
+      padding: 11px 14px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
       font-size: 1rem;
-      transition: border 0.3s, box-shadow 0.3s;
-      background: #fafafa;
+      background: #fff;
     }
     input:focus, textarea:focus {
       outline: none;
       border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(18, 199, 85, 0.15);
-      background: white;
     }
-    textarea { min-height: 100px; resize: vertical; }
+    textarea { min-height: 80px; resize: vertical; }
 
     .btn {
-      padding: 14px 24px;
+      padding: 12px 20px;
       border: none;
-      border-radius: 12px;
+      border-radius: 10px;
       font-size: 1rem;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.3s;
-      display: inline-block;
+      width: 100%;
+      margin-top: 8px;
     }
     .btn-primary { background: var(--primary); color: white; }
-    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    .btn-primary:hover { background: var(--primary-dark); }
     .btn-danger { background: var(--danger); color: white; }
-    .btn-secondary { background: #6c757d; color: white; }
-    .btn-small { padding: 8px 14px; font-size: 0.9rem; }
+    .btn-secondary { background: #888; color: white; }
+    .btn-small { padding: 7px 12px; font-size: 0.85rem; width: auto; }
 
     .switch {
       position: relative;
       display: inline-block;
-      width: 60px;
-      height: 34px;
+      width: 52px;
+      height: 30px;
     }
     .switch input { opacity: 0; width: 0; height: 0; }
     .slider {
@@ -116,64 +125,91 @@
       cursor: pointer;
       top: 0; left: 0; right: 0; bottom: 0;
       background-color: #ccc;
-      transition: .4s;
-      border-radius: 34px;
+      transition: .3s;
+      border-radius: 30px;
     }
     .slider:before {
       position: absolute;
       content: "";
-      height: 26px;
-      width: 26px;
-      left: 4px;
-      bottom: 4px;
+      height: 24px;
+      width: 24px;
+      left: 3px;
+      bottom: 3px;
       background-color: white;
-      transition: .4s;
+      transition: .3s;
       border-radius: 50%;
     }
     input:checked + .slider { background-color: var(--success); }
-    input:checked + .slider:before { transform: translateX(26px); }
+    input:checked + .slider:before { transform: translateX(22px); }
 
     .switch-group {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 16px 0;
+      padding: 10px 0;
     }
-    .switch-label { font-weight: 500; color: #444; }
+    .switch-label {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: #444;
+    }
 
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .item-list { display: flex; flex-direction: column; gap: 12px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .item-list { display: flex; flex-direction: column; gap: 10px; }
 
     .item {
       background: white;
-      border-radius: 12px;
-      padding: 18px;
+      border-radius: 10px;
+      padding: 14px;
       border: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
       cursor: pointer;
-      transition: all 0.2s;
     }
-    .item:hover { border-color: var(--primary); box-shadow: 0 4px 15px rgba(18,199,85,0.1); }
-    .item-proposta { border-left: 5px solid var(--warning); }
-    .item-desativada { border-left: 5px solid var(--danger); opacity: 0.9; }
+    .item:hover { background: #f0fdf4; }
+    .item-proposta { border-left: 4px solid var(--warning); }
+    .item-desativada { border-left: 4px solid var(--danger); opacity: 0.85; }
 
-    .item-info h4 { margin: 0 0 6px 0; font-size: 1.1rem; color: #2d3436; }
-    .item-info small { color: var(--gray); font-size: 0.9rem; }
+    .item-info h4 {
+      margin: 0 0 4px 0;
+      font-size: 1.05rem;
+      color: #333;
+    }
+    .item-info small {
+      color: var(--gray);
+      font-size: 0.85rem;
+    }
 
-    .login-screen { text-align: center; padding: 80px 20px; }
-    .login-btn { background: #4285F4; color: white; padding: 16px 32px; font-size: 1.2rem; margin: 30px 0; }
+    .login-screen {
+      text-align: center;
+      padding: 60px 20px 40px;
+    }
+    .login-btn {
+      background: #4285F4;
+      color: white;
+      padding: 14px 28px;
+      font-size: 1.1rem;
+      margin: 20px 0;
+    }
 
-    .user-info { text-align: right; font-size: 0.9rem; color: var(--gray); margin-bottom: 20px; }
+    .user-info {
+      text-align: right;
+      font-size: 0.85rem;
+      color: var(--gray);
+      margin-bottom: 12px;
+    }
     .user-info a { color: var(--danger); text-decoration: none; }
 
     .hidden { display: none; }
 
-    @media (max-width: 768px) {
-      .grid-2 { grid-template-columns: 1fr; }
-      h1 { font-size: 2rem; }
-      .container { padding: 10px; }
+    /* Mobile First Adjustments */
+    @media (min-width: 768px) {
+      body { padding: 20px; }
+      .card { padding: 20px; }
+      h1 { font-size: 2.2rem; }
+      .btn { width: auto; padding: 14px 28px; }
+      .grid-2 { gap: 16px; }
     }
   </style>
 </head>
@@ -184,9 +220,11 @@
     <!-- Tela de Login -->
     <div id="loginScreen" class="login-screen">
       <h1>Admin BuscaZap</h1>
-      <p class="subtitle">Painel administrativo exclusivo</p>
+      <p class="subtitle">Painel administrativo</p>
       <button class="btn login-btn" onclick="loginComGoogle()">Entrar com Google</button>
-      <p style="color:#666; margin-top:40px;">Acesso apenas para administradores autorizados.</p>
+      <p style="color:#777; font-size:0.9rem; margin-top:30px;">
+        Acesso exclusivo para administradores.
+      </p>
     </div>
 
     <!-- Conteúdo Admin -->
@@ -198,14 +236,14 @@
 
       <header>
         <h1>BuscaZap Admin</h1>
-        <p class="subtitle">Gerencie propostas, lojas e filiais com facilidade</p>
+        <p class="subtitle">Gerencie propostas e lojas</p>
       </header>
 
       <!-- Propostas Pendentes -->
       <div class="card">
         <h2 class="card-title">Propostas Pendentes</h2>
         <div id="propostasLista" class="item-list">
-          <p style="text-align:center; color:#666;">Carregando propostas...</p>
+          <p style="text-align:center; color:#777;">Carregando...</p>
         </div>
       </div>
 
@@ -213,23 +251,21 @@
       <div class="card">
         <h2 class="card-title">Lojas Desativadas</h2>
         <div id="desativadosLista" class="item-list">
-          <p style="text-align:center; color:#666;">Carregando...</p>
+          <p style="text-align:center; color:#777;">Carregando...</p>
         </div>
       </div>
 
       <!-- Busca de Lojas -->
       <div class="card">
-        <h2 class="card-title">Buscar Loja para Editar</h2>
-        <div style="display:flex; gap:12px;">
-          <input type="text" id="buscaNome" placeholder="Digite parte do nome da loja" style="flex:1;" />
-          <button class="btn btn-primary" onclick="buscarLojas()">Buscar</button>
-        </div>
-        <div id="resultado" class="item-list" style="margin-top:20px;"></div>
+        <h2 class="card-title">Buscar Loja</h2>
+        <input type="text" id="buscaNome" placeholder="Nome da loja..." style="margin-bottom:10px;" />
+        <button class="btn btn-primary" onclick="buscarLojas()">Buscar</button>
+        <div id="resultado" class="item-list" style="margin-top:14px;"></div>
       </div>
 
       <!-- Formulário de Edição -->
       <div id="formAtualizacao" class="card hidden">
-        <h2 class="card-title">Editando: <span id="nomeLojaAtual"></span> <small id="fonteItem" style="color:var(--gray);"></small></h2>
+        <h2 class="card-title">Editando: <span id="nomeLojaAtual"></span> <small id="fonteItem" style="color:#777;"></small></h2>
 
         <form id="formLoja">
           <input type="hidden" id="lojaId" />
@@ -242,23 +278,23 @@
 
           <div class="input-group">
             <label>Descrição</label>
-            <textarea id="descricao" rows="3"></textarea>
+            <textarea id="descricao"></textarea>
           </div>
 
           <div class="input-group">
             <label>Tags (separadas por vírgula)</label>
-            <input type="text" id="tags" placeholder="ex: pizza, delivery, farmácia, 24h" />
+            <input type="text" id="tags" placeholder="pizza, delivery, 24h" />
           </div>
 
-          <div class="card" style="background:#f0fdf4;">
-            <h3 style="margin-bottom:20px; color:var(--primary);">Destaques e Anúncios</h3>
+          <div class="card" style="background:#f8fff9; padding:14px; margin:16px 0;">
+            <h3 style="font-size:1rem; margin-bottom:12px; color:var(--primary);">Anúncios</h3>
             <div class="switch-group"><span class="switch-label">Destaque na busca</span><label class="switch"><input type="checkbox" id="anuncioBusca"><span class="slider"></span></label></div>
-            <div class="switch-group"><span class="switch-label">Visível no app (postagem)</span><label class="switch"><input type="checkbox" id="anuncioPostagem"><span class="slider"></span></label></div>
+            <div class="switch-group"><span class="switch-label">Visível no app</span><label class="switch"><input type="checkbox" id="anuncioPostagem"><span class="slider"></span></label></div>
             <div class="switch-group"><span class="switch-label">Loja Premium</span><label class="switch"><input type="checkbox" id="anuncioPremium"><span class="slider"></span></label></div>
           </div>
 
-          <div class="card" style="background:#f0f8ff;">
-            <h3 style="margin-bottom:20px; color:#0066cc;">Dados da Filial</h3>
+          <div class="card" style="background:#f0f8ff; padding:14px;">
+            <h3 style="font-size:1rem; margin-bottom:12px; color:#0066cc;">Dados da Loja</h3>
 
             <div class="grid-2">
               <div class="input-group">
@@ -266,14 +302,14 @@
                 <input type="text" id="bairro" required />
               </div>
               <div class="input-group">
-                <label>WhatsApp (apenas números) *</label>
+                <label>WhatsApp *</label>
                 <input type="text" id="whatsapp" placeholder="86999999999" required />
               </div>
             </div>
 
             <div class="input-group">
-              <label>Endereço completo (opcional)</label>
-              <input type="text" id="endereco" placeholder="Rua Exemplo, 123 - Próximo ao mercado" />
+              <label>Endereço (opcional)</label>
+              <input type="text" id="endereco" />
             </div>
 
             <div class="switch-group">
@@ -281,21 +317,21 @@
               <label class="switch"><input type="checkbox" id="fazEntrega"><span class="slider"></span></label>
             </div>
 
-            <h3 style="margin-top:32px; margin-bottom:16px; color:#0066cc;">Horários de Funcionamento</h3>
+            <h3 style="font-size:1rem; margin:20px 0 12px; color:#0066cc;">Horários</h3>
 
             <div class="grid-2">
               <div class="input-group">
-                <label>Segunda a Sexta - Abre</label>
+                <label>Seg–Sex Abre</label>
                 <input type="text" id="semanaAbre" placeholder="08:00" />
               </div>
               <div class="input-group">
-                <label>Segunda a Sexta - Fecha</label>
+                <label>Seg–Sex Fecha</label>
                 <input type="text" id="semanaFecha" placeholder="18:00" />
               </div>
             </div>
 
             <div class="switch-group">
-              <span class="switch-label">Aberto aos sábados?</span>
+              <span class="switch-label">Aberto sábado?</span>
               <label class="switch"><input type="checkbox" id="sabadoAtivo" onchange="toggleSubfields('sabado')"><span class="slider"></span></label>
             </div>
             <div id="sabadoFields" class="hidden grid-2">
@@ -304,7 +340,7 @@
             </div>
 
             <div class="switch-group">
-              <span class="switch-label">Aberto aos domingos?</span>
+              <span class="switch-label">Aberto domingo?</span>
               <label class="switch"><input type="checkbox" id="domingoAtivo" onchange="toggleSubfields('domingo')"><span class="slider"></span></label>
             </div>
             <div id="domingoFields" class="hidden grid-2">
@@ -313,7 +349,7 @@
             </div>
 
             <div class="switch-group">
-              <span class="switch-label">Possui intervalo de almoço?</span>
+              <span class="switch-label">Intervalo almoço?</span>
               <label class="switch"><input type="checkbox" id="intervaloAtivo" onchange="toggleSubfields('intervalo')"><span class="slider"></span></label>
             </div>
             <div id="intervaloFields" class="hidden grid-2">
@@ -322,10 +358,8 @@
             </div>
           </div>
 
-          <div style="display:flex; gap:16px; margin-top:32px;">
-            <button type="button" class="btn btn-primary" style="flex:1;" onclick="atualizarLoja()">Salvar Alterações</button>
-            <button type="button" class="btn btn-secondary" style="flex:1;" onclick="cancelarEdicao()">Cancelar</button>
-          </div>
+          <button type="button" class="btn btn-primary" onclick="atualizarLoja()">Salvar</button>
+          <button type="button" class="btn btn-secondary" onclick="cancelarEdicao()">Cancelar</button>
         </form>
       </div>
     </div>
@@ -377,13 +411,13 @@
 
     async function carregarPropostas() {
       const listaDiv = document.getElementById('propostasLista');
-      listaDiv.innerHTML = '<p style="text-align:center; color:#666;">Carregando propostas...</p>';
+      listaDiv.innerHTML = '<p style="text-align:center; color:#777;">Carregando...</p>';
 
       try {
         const snapshot = await db.collection(COLECAO_PROPOSTAS).get();
 
         if (snapshot.empty) {
-          listaDiv.innerHTML = '<p style="color:#666; text-align:center;">Nenhuma proposta pendente no momento.</p>';
+          listaDiv.innerHTML = '<p style="text-align:center; color:#777;">Nenhuma proposta pendente.</p>';
           return;
         }
 
@@ -391,7 +425,7 @@
 
         snapshot.forEach(doc => {
           const data = doc.data();
-          const primeiraFilial = data.filiais && Array.isArray(data.filiais) ? data.filiais[0] : {};
+          const primeiraFilial = data.filiais?.[0] || {};
           const numeroWhats = primeiraFilial.whatsapp?.numero || 'Não informado';
           const bairro = primeiraFilial.bairro || 'Não informado';
           const descricao = data.descricao || 'Sem descrição';
@@ -401,21 +435,20 @@
           item.innerHTML = `
             <div class="item-info">
               <h4>${data.nome || 'Sem nome'}</h4>
-              <small>${descricao} | WhatsApp: ${numeroWhats} | Bairro: ${bairro}</small>
+              <small>${descricao} • Whats: ${numeroWhats} • ${bairro}</small>
             </div>
           `;
           item.onclick = () => carregarParaEdicao({ id: doc.id, ...data, _colecao: 'propostas' });
           listaDiv.appendChild(item);
         });
       } catch (error) {
-        console.error("Erro ao carregar propostas:", error);
-        listaDiv.innerHTML = '<p style="color:red;">Erro ao carregar propostas: ' + error.message + '</p>';
+        listaDiv.innerHTML = '<p style="color:red;">Erro ao carregar.</p>';
       }
     }
 
     async function carregarDesativados() {
       const listaDiv = document.getElementById('desativadosLista');
-      listaDiv.innerHTML = '<p style="text-align:center; color:#666;">Carregando...</p>';
+      listaDiv.innerHTML = '<p style="text-align:center; color:#777;">Carregando...</p>';
 
       try {
         const snapshot = await db.collection(COLECAO_LOJAS)
@@ -423,7 +456,7 @@
           .get();
 
         if (snapshot.empty) {
-          listaDiv.innerHTML = '<p style="color:#666; text-align:center;">Nenhuma loja desativada.</p>';
+          listaDiv.innerHTML = '<p style="text-align:center; color:#777;">Nenhuma loja desativada.</p>';
           return;
         }
 
@@ -436,7 +469,7 @@
           item.innerHTML = `
             <div class="item-info">
               <h4>${data.nome || 'Sem nome'}</h4>
-              <small>${data.descricao || 'Sem descrição'} | ${data.filiais ? data.filiais.length + ' filial(is)' : 'Sem dados de filial'}</small>
+              <small>${data.descricao || 'Sem descrição'} • ${data.filiais ? data.filiais.length + ' filial(is)' : '1 filial'}</small>
             </div>
             <button class="btn btn-danger btn-small" onclick="excluirLoja('${doc.id}', event)">Excluir</button>
           `;
@@ -444,14 +477,13 @@
           listaDiv.appendChild(item);
         });
       } catch (error) {
-        console.error(error);
-        listaDiv.innerHTML = '<p style="color:red;">Erro ao carregar desativadas.</p>';
+        listaDiv.innerHTML = '<p style="color:red;">Erro ao carregar.</p>';
       }
     }
 
     async function excluirLoja(id, event) {
       event.stopPropagation();
-      if (!confirm("EXCLUIR permanentemente esta loja e todas as suas filiais?")) return;
+      if (!confirm("Excluir permanentemente esta loja?")) return;
       try {
         await db.collection(COLECAO_LOJAS).doc(id).delete();
         alert("Loja excluída!");
@@ -463,10 +495,10 @@
 
     async function buscarLojas() {
       const termo = document.getElementById('buscaNome').value.trim().toLowerCase();
-      if (!termo) return alert('Digite parte do nome');
+      if (!termo) return alert('Digite o nome');
 
       const resultadoDiv = document.getElementById('resultado');
-      resultadoDiv.innerHTML = '<p>Buscando...</p>';
+      resultadoDiv.innerHTML = '<p style="text-align:center;">Buscando...</p>';
 
       try {
         const snapshot = await db.collection(COLECAO_LOJAS).get();
@@ -490,7 +522,7 @@
           }
         });
 
-        if (!encontrou) resultadoDiv.innerHTML = '<p>Nenhuma loja encontrada.</p>';
+        if (!encontrou) resultadoDiv.innerHTML = '<p style="text-align:center;">Nenhuma loja encontrada.</p>';
       } catch (error) {
         resultadoDiv.innerHTML = '<p style="color:red;">Erro na busca.</p>';
       }
@@ -499,11 +531,7 @@
     function toggleSubfields(tipo) {
       const fields = document.getElementById(tipo + 'Fields');
       const checked = document.getElementById(tipo + 'Ativo').checked;
-      if (checked) {
-        fields.classList.remove('hidden');
-      } else {
-        fields.classList.add('hidden');
-      }
+      fields.classList.toggle('hidden', !checked);
     }
 
     function carregarParaEdicao(item) {
@@ -617,19 +645,17 @@
 
       try {
         if (!isProposta) {
-          // Atualiza loja existente
           await db.collection(COLECAO_LOJAS).doc(id).update({
             ...dadosGerais,
-            filiais: [novaFilial] // Sobrescreve com os novos dados da filial (assumindo 1 filial por loja simples)
+            filiais: [novaFilial]
           });
-          alert('Loja atualizada com sucesso!');
+          alert('Loja atualizada!');
           cancelarEdicao();
           return;
         }
 
-        // Para propostas: sempre cria uma nova loja independente
-        const novaLojaRef = db.collection(COLECAO_LOJAS).doc(id);
         const batch = db.batch();
+        const novaLojaRef = db.collection(COLECAO_LOJAS).doc(id);
 
         batch.set(novaLojaRef, {
           ...dadosGerais,
@@ -642,7 +668,7 @@
         batch.delete(db.collection(COLECAO_PROPOSTAS).doc(id));
 
         await batch.commit();
-        alert('Nova loja criada com sucesso a partir da proposta!');
+        alert('Loja criada com sucesso!');
         cancelarEdicao();
         carregarPropostas();
 
