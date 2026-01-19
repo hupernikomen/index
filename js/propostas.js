@@ -1,13 +1,9 @@
-import { db } from './auth.js';
-
-const COLECAO_PROPOSTAS = 'propostas';
-
-export async function carregarPropostas() {
+async function carregarPropostas() {
   const listaDiv = document.getElementById('propostasLista');
   listaDiv.innerHTML = '<p style="text-align:center; color:#888;">Carregando...</p>';
 
   try {
-    const snapshot = await db.collection(COLECAO_PROPOSTAS).get();
+    const snapshot = await db.collection('propostas').get();
 
     if (snapshot.empty) {
       listaDiv.innerHTML = '<p style="text-align:center; color:#888;">Nenhuma proposta pendente.</p>';
@@ -31,7 +27,7 @@ export async function carregarPropostas() {
           <small>${descricao} • Whats: ${numeroWhats} • ${bairro}</small>
         </div>
       `;
-      item.onclick = () => window.carregarParaEdicao({ id: doc.id, ...data, _colecao: 'propostas' });
+      item.onclick = () => carregarParaEdicao({ id: doc.id, ...data, _colecao: 'propostas' });
       listaDiv.appendChild(item);
     });
   } catch (error) {
@@ -39,3 +35,6 @@ export async function carregarPropostas() {
     console.error(error);
   }
 }
+
+// Expor função globalmente
+window.carregarPropostas = carregarPropostas;

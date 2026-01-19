@@ -1,13 +1,9 @@
-import { db } from './auth.js';
-
-const COLECAO_LOJAS = 'users';
-
-export async function carregarDesativados() {
+async function carregarDesativados() {
   const listaDiv = document.getElementById('desativadosLista');
   listaDiv.innerHTML = '<p style="text-align:center; color:#888;">Carregando...</p>';
 
   try {
-    const snapshot = await db.collection(COLECAO_LOJAS)
+    const snapshot = await db.collection('users')
       .where('anuncio.postagem', '==', false)
       .get();
 
@@ -27,9 +23,9 @@ export async function carregarDesativados() {
           <h4>${data.nome || 'Sem nome'}</h4>
           <small>${data.descricao || 'Sem descrição'} • ${data.filiais ? data.filiais.length + ' filial(is)' : '1 filial'}</small>
         </div>
-        <button class="btn btn-secondary btn-small" onclick="event.stopPropagation(); window.excluirLoja('${doc.id}')">Excluir</button>
+        <button class="btn btn-secondary btn-small" onclick="event.stopPropagation(); excluirLoja('${doc.id}')">Excluir</button>
       `;
-      item.querySelector('.item-info').onclick = () => window.carregarParaEdicao({ id: doc.id, ...data, _colecao: 'users' });
+      item.querySelector('.item-info').onclick = () => carregarParaEdicao({ id: doc.id, ...data, _colecao: 'users' });
       listaDiv.appendChild(item);
     });
   } catch (error) {
@@ -38,7 +34,7 @@ export async function carregarDesativados() {
   }
 }
 
-export async function buscarLojas() {
+async function buscarLojas() {
   const termo = document.getElementById('buscaNome').value.trim().toLowerCase();
   if (!termo) return alert('Digite o nome');
 
@@ -46,7 +42,7 @@ export async function buscarLojas() {
   resultadoDiv.innerHTML = '<p style="text-align:center;">Buscando...</p>';
 
   try {
-    const snapshot = await db.collection(COLECAO_LOJAS).get();
+    const snapshot = await db.collection('users').get();
     resultadoDiv.innerHTML = '';
     let encontrou = false;
 
@@ -62,7 +58,7 @@ export async function buscarLojas() {
             <small>${data.filiais ? data.filiais.length + ' filial(is)' : '1 filial'}</small>
           </div>
         `;
-        item.onclick = () => window.carregarParaEdicao({ id: doc.id, ...data, _colecao: 'users' });
+        item.onclick = () => carregarParaEdicao({ id: doc.id, ...data, _colecao: 'users' });
         resultadoDiv.appendChild(item);
       }
     });
@@ -74,13 +70,17 @@ export async function buscarLojas() {
   }
 }
 
-window.excluirLoja = async function(id) {
+async function excluirLoja(id) {
   if (!confirm("Excluir permanentemente esta loja?")) return;
   try {
-    await db.collection(COLECAO_LOJAS).doc(id).delete();
+    await db.collection('users').doc(id).delete();
     alert("Loja excluída!");
     carregarDesativados();
   } catch (error) {
     alert("Erro: " + error.message);
   }
-};
+}
+
+window.carregarDesativados = carregarDesativados;
+window.buscarLojas = buscarLojas;
+window.excluirLoja = excluirLoja;

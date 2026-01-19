@@ -1,14 +1,18 @@
-import { db } from './auth.js';
-import { carregarPropostas } from './propostas.js';
-import { carregarDesativados } from './lojas.js';
+// js/main.js
 
+// Função para mostrar/esconder subcampos de horários
 function toggleSubfields(tipo) {
   const fields = document.getElementById(tipo + 'Fields');
   const checked = document.getElementById(tipo + 'Ativo').checked;
-  fields.classList.toggle('hidden', !checked);
+  if (checked) {
+    fields.classList.remove('hidden');
+  } else {
+    fields.classList.add('hidden');
+  }
 }
 
-window.carregarParaEdicao = function(item) {
+// Carrega os dados no formulário de edição
+function carregarParaEdicao(item) {
   document.getElementById('formAtualizacao').classList.remove('hidden');
   document.getElementById('nomeLojaAtual').textContent = item.nome || 'Sem nome';
   document.getElementById('fonteItem').textContent = item._colecao === 'propostas' ? '(Proposta)' : '(Loja)';
@@ -53,9 +57,10 @@ window.carregarParaEdicao = function(item) {
   toggleSubfields('intervalo');
 
   document.getElementById('formAtualizacao').scrollIntoView({ behavior: 'smooth' });
-};
+}
 
-window.atualizarLoja = async function() {
+// Salva as alterações (atualiza loja existente ou cria nova a partir de proposta)
+async function atualizarLoja() {
   const id = document.getElementById('lojaId').value;
   const colecao = document.getElementById('colecaoOrigem').value;
   const isProposta = colecao === 'propostas';
@@ -119,12 +124,14 @@ window.atualizarLoja = async function() {
 
   try {
     if (!isProposta) {
+      // Atualiza loja existente
       await db.collection('users').doc(id).update({
         ...dadosGerais,
         filiais: [novaFilial]
       });
-      alert('Loja atualizada!');
+      alert('Loja atualizada com sucesso!');
     } else {
+      // Cria nova loja a partir da proposta
       const batch = db.batch();
       const novaLojaRef = db.collection('users').doc(id);
 
@@ -139,24 +146,25 @@ window.atualizarLoja = async function() {
       batch.delete(db.collection('propostas').doc(id));
 
       await batch.commit();
-      alert('Loja criada com sucesso!');
-      carregarPropostas();
+      alert('Nova loja criada com sucesso!');
+      carregarPropostas(); // Recarrega propostas após aprovação
     }
+
     cancelarEdicao();
   } catch (error) {
-    console.error(error);
+    console.error('Erro ao salvar:', error);
     alert('Erro: ' + error.message);
   }
-};
+}
 
+// Cancela edição e esconde o formulário
 function cancelarEdicao() {
   document.getElementById('formAtualizacao').classList.add('hidden');
   document.getElementById('resultado').innerHTML = '';
 }
 
+// Expõe as funções globalmente para serem chamadas do HTML e outros arquivos
+window.toggleSubfields = toggleSubfields;
+window.carregarParaEdicao = carregarParaEdicao;
+window.atualizarLoja = atualizarLoja;
 window.cancelarEdicao = cancelarEdicao;
-
-// Inicializa após login
-document.addEventListener('DOMContentLoaded', () => {
-  // As funções de carregamento são chamadas no auth.js após login
-});

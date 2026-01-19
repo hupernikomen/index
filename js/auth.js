@@ -1,9 +1,3 @@
-import { firebaseConfig, ADMINS_PERMITIDOS } from './firebase-config.js';
-
-firebase.initializeApp(firebaseConfig);
-export const auth = firebase.auth();
-export const db = firebase.firestore();
-
 const loginBtn = document.getElementById('loginBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 const userEmailSpan = document.getElementById('userEmail');
@@ -23,6 +17,10 @@ auth.onAuthStateChanged((user) => {
     userEmailSpan.textContent = user.email;
     document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('adminContent').classList.remove('hidden');
+    
+    // Chama as funções de carregamento após login
+    if (typeof carregarPropostas === 'function') carregarPropostas();
+    if (typeof carregarDesativados === 'function') carregarDesativados();
   } else if (user) {
     alert("Acesso negado.");
     auth.signOut();
