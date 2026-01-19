@@ -5,7 +5,7 @@
   --text-light: #444444;       /* labels e textos secundários */
   --text-lighter: #777777;     /* textos menores, placeholders */
   --border: #e0e0e0;           /* bordas suaves */
-  --accent: #222222;           /* botões principais */
+  --accent: #6fa589;           /* botões principais */
   --accent-hover: #000000;     /* hover dos botões */
   --switch-on: #333333;        /* switch ligado */
   --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
