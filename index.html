@@ -235,27 +235,6 @@
           <input type="hidden" id="lojaId" />
           <input type="hidden" id="colecaoOrigem" value="users" />
 
-          <div id="campoStatus" class="hidden">
-            <div class="switch-group">
-              <span class="switch-label">Proposta Aprovada?</span>
-              <label class="switch">
-                <input type="checkbox" id="statusAprovado">
-                <span class="slider"></span>
-              </label>
-            </div>
-          </div>
-
-          <div id="campoFilial" class="hidden" style="background:#e8f7ee; padding:20px; border-radius:12px; margin:20px 0;">
-            <strong>Adicionar como filial de loja existente?</strong>
-            <button type="button" class="btn btn-primary" style="margin-top:12px;" onclick="abrirModalFilial()">
-              Selecionar Loja Principal
-            </button>
-            <div id="lojaPrincipalInfo" class="hidden" style="margin-top:16px; padding:16px; background:white; border-radius:10px;">
-              <strong>Loja principal:</strong> <span id="nomeLojaPrincipal"></span>
-              <button type="button" class="btn btn-danger btn-small" style="margin-left:12px;" onclick="limparSelecaoFilial()">Remover</button>
-            </div>
-          </div>
-
           <div class="input-group">
             <label>Nome da loja *</label>
             <input type="text" id="nome" required />
@@ -350,19 +329,6 @@
         </form>
       </div>
     </div>
-
-    <!-- Modal Filial -->
-    <div id="modalFilial" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; z-index:1000;">
-      <div class="card" style="width:90%; max-width:500px; max-height:80vh; overflow-y:auto;">
-        <h2 class="card-title">Buscar Loja Principal</h2>
-        <div style="display:flex; gap:12px; margin-bottom:20px;">
-          <input type="text" id="buscaFilialInput" placeholder="Nome da loja matriz" style="flex:1;" />
-          <button class="btn btn-primary" onclick="buscarLojaParaFilial()">Buscar</button>
-        </div>
-        <div id="resultadoFilial" class="item-list"></div>
-        <button class="btn btn-secondary" style="width:100%; margin-top:20px;" onclick="fecharModalFilial()">Cancelar</button>
-      </div>
-    </div>
   </div>
 
   <script>
@@ -381,11 +347,8 @@
 
     const COLECAO_LOJAS = 'users';
     const COLECAO_PROPOSTAS = 'propostas';
-    const COLECAO_FILIAIS_BACKUP = 'filiais';
 
     const ADMINS_PERMITIDOS = ["hupcontato@gmail.com"];
-
-    let lojaPrincipalSelecionada = null;
 
     function loginComGoogle() {
       const provider = new firebase.auth.GoogleAuthProvider();
@@ -533,61 +496,6 @@
       }
     }
 
-    function abrirModalFilial() {
-      document.getElementById('modalFilial').classList.remove('hidden');
-      document.getElementById('buscaFilialInput').value = '';
-      document.getElementById('resultadoFilial').innerHTML = '<p>Digite e busque...</p>';
-    }
-
-    function fecharModalFilial() {
-      document.getElementById('modalFilial').classList.add('hidden');
-    }
-
-    function limparSelecaoFilial() {
-      lojaPrincipalSelecionada = null;
-      document.getElementById('lojaPrincipalInfo').classList.add('hidden');
-    }
-
-    async function buscarLojaParaFilial() {
-      const termo = document.getElementById('buscaFilialInput').value.trim().toLowerCase();
-      if (!termo) return alert('Digite parte do nome');
-
-      const divResultado = document.getElementById('resultadoFilial');
-      divResultado.innerHTML = '<p>Buscando...</p>';
-
-      try {
-        const snapshot = await db.collection(COLECAO_LOJAS).get();
-        divResultado.innerHTML = '';
-        let encontrou = false;
-
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          if (data.nome && data.nome.toLowerCase().includes(termo)) {
-            encontrou = true;
-            const item = document.createElement('div');
-            item.className = 'item';
-            item.innerHTML = `
-              <div class="item-info">
-                <h4>${data.nome}</h4>
-                <small>${data.filiais ? data.filiais.length : 0} filiais</small>
-              </div>
-            `;
-            item.onclick = () => {
-              lojaPrincipalSelecionada = { id: doc.id, data: data };
-              document.getElementById('nomeLojaPrincipal').textContent = data.nome;
-              document.getElementById('lojaPrincipalInfo').classList.remove('hidden');
-              fecharModalFilial();
-            };
-            divResultado.appendChild(item);
-          }
-        });
-
-        if (!encontrou) divResultado.innerHTML = '<p>Nenhuma loja encontrada.</p>';
-      } catch (error) {
-        divResultado.innerHTML = '<p style="color:red;">Erro na busca.</p>';
-      }
-    }
-
     function toggleSubfields(tipo) {
       const fields = document.getElementById(tipo + 'Fields');
       const checked = document.getElementById(tipo + 'Ativo').checked;
@@ -604,13 +512,6 @@
       document.getElementById('fonteItem').textContent = item._colecao === 'propostas' ? '(Proposta)' : '(Loja)';
       document.getElementById('lojaId').value = item.id;
       document.getElementById('colecaoOrigem').value = item._colecao || 'users';
-
-      const isProposta = item._colecao === 'propostas';
-      document.getElementById('campoStatus').classList.toggle('hidden', !isProposta);
-      document.getElementById('campoFilial').classList.toggle('hidden', !isProposta);
-
-      lojaPrincipalSelecionada = null;
-      document.getElementById('lojaPrincipalInfo').classList.add('hidden');
 
       document.getElementById('nome').value = item.nome || '';
       document.getElementById('descricao').value = item.descricao || '';
@@ -716,57 +617,32 @@
 
       try {
         if (!isProposta) {
-          await db.collection(COLECAO_LOJAS).doc(id).update(dadosGerais);
+          // Atualiza loja existente
+          await db.collection(COLECAO_LOJAS).doc(id).update({
+            ...dadosGerais,
+            filiais: [novaFilial] // Sobrescreve com os novos dados da filial (assumindo 1 filial por loja simples)
+          });
           alert('Loja atualizada com sucesso!');
           cancelarEdicao();
           return;
         }
 
+        // Para propostas: sempre cria uma nova loja independente
+        const novaLojaRef = db.collection(COLECAO_LOJAS).doc(id);
         const batch = db.batch();
 
-        if (lojaPrincipalSelecionada) {
-          if (!confirm(`Adicionar como filial da loja "${lojaPrincipalSelecionada.data.nome}"?`)) return;
+        batch.set(novaLojaRef, {
+          ...dadosGerais,
+          filiais: [novaFilial],
+          temFiliais: false,
+          clicks: 0,
+          criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+        });
 
-          const principalRef = db.collection(COLECAO_LOJAS).doc(lojaPrincipalSelecionada.id);
-          const principalSnap = await principalRef.get();
-          if (!principalSnap.exists) throw "Loja principal não encontrada";
+        batch.delete(db.collection(COLECAO_PROPOSTAS).doc(id));
 
-          const filiaisAtuais = principalSnap.data().filiais || [];
-          if (filiaisAtuais.some(f => f.whatsapp?.numero === numeroWhats)) {
-            if (!confirm("Este WhatsApp já existe. Continuar?")) return;
-          }
-
-          batch.update(principalRef, {
-            filiais: [...filiaisAtuais, novaFilial],
-            temFiliais: true
-          });
-
-          const backupRef = db.collection(COLECAO_FILIAIS_BACKUP).doc();
-          batch.set(backupRef, {
-            lojaPrincipalId: lojaPrincipalSelecionada.id,
-            lojaPrincipalNome: lojaPrincipalSelecionada.data.nome,
-            dadosFilial: { ...dadosGerais, ...novaFilial },
-            criadoEm: firebase.firestore.FieldValue.serverTimestamp()
-          });
-
-          batch.delete(db.collection(COLECAO_PROPOSTAS).doc(id));
-          await batch.commit();
-          alert('Filial adicionada com sucesso!');
-        } else {
-          const novaLojaRef = db.collection(COLECAO_LOJAS).doc(id);
-          batch.set(novaLojaRef, {
-            ...dadosGerais,
-            filiais: [novaFilial],
-            temFiliais: false,
-            clicks: 0,
-            criadoEm: firebase.firestore.FieldValue.serverTimestamp()
-          });
-
-          batch.delete(db.collection(COLECAO_PROPOSTAS).doc(id));
-          await batch.commit();
-          alert('Nova loja criada com sucesso!');
-        }
-
+        await batch.commit();
+        alert('Nova loja criada com sucesso a partir da proposta!');
         cancelarEdicao();
         carregarPropostas();
 
