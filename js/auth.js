@@ -18,34 +18,35 @@ if (logoutBtn) {
   });
 }
 
+// Função para carregar as listas (chamada só após DOM pronto e login)
+function iniciarAdmin() {
+  console.log("Iniciando painel admin...");
+  if (typeof carregarPropostas === 'function') {
+    carregarPropostas();
+  } else {
+    console.error("carregarPropostas não está definida");
+  }
+  if (typeof carregarDesativados === 'function') {
+    carregarDesativados();
+  } else {
+    console.error("carregarDesativados não está definida");
+  }
+}
+
 auth.onAuthStateChanged((user) => {
   if (user && ADMINS_PERMITIDOS.map(e => e.toLowerCase()).includes(user.email.toLowerCase())) {
     console.log("Login autorizado:", user.email);
 
     if (userEmailSpan) userEmailSpan.textContent = user.email;
 
-    // Esconde login e mostra conteúdo
     const loginScreen = document.getElementById('loginScreen');
     const adminContent = document.getElementById('adminContent');
+
     if (loginScreen) loginScreen.classList.add('hidden');
     if (adminContent) adminContent.classList.remove('hidden');
 
-    // FORÇA O CARREGAMENTO DAS LISTAS
-    setTimeout(() => {
-      if (typeof carregarPropostas === 'function') {
-        console.log("Carregando propostas...");
-        carregarPropostas();
-      } else {
-        console.error("Função carregarPropostas não encontrada");
-      }
-
-      if (typeof carregarDesativados === 'function') {
-        console.log("Carregando lojas desativadas...");
-        carregarDesativados();
-      } else {
-        console.error("Função carregarDesativados não encontrada");
-      }
-    }, 500); // pequeno delay para garantir que o DOM está pronto
+    // Agora chama o carregamento das listas
+    iniciarAdmin();
 
   } else if (user) {
     alert("Acesso negado: seu e-mail não tem permissão.");
@@ -57,4 +58,15 @@ auth.onAuthStateChanged((user) => {
     if (loginScreen) loginScreen.classList.remove('hidden');
     if (adminContent) adminContent.classList.add('hidden');
   }
+});
+
+// Garante que o DOM está carregado antes de qualquer coisa (segurança extra)
+document.addEventListener('DOMContentLoaded', () => {
+  console.log("DOM carregado");
+  // Se o usuário já estiver logado ao carregar a página, inicia o admin
+  auth.onAuthStateChanged((user) => {
+    if (user && ADMINS_PERMITIDOS.map(e => e.toLowerCase()).includes(user.email.toLowerCase())) {
+      iniciarAdmin();
+    }
+  });
 });
