@@ -1,3 +1,5 @@
+// js/firebase-config.js
+
 const firebaseConfig = {
   apiKey: "AIzaSyDo0QQjxmXZLw8qiWC3Kc52ZYk9UtWCYmc",
   authDomain: "appguiacomercial-e6109.firebaseapp.com",
@@ -9,12 +11,10 @@ const firebaseConfig = {
 
 const ADMINS_PERMITIDOS = ["hupcontato@gmail.com"];
 
+// Inicializa Firebase
 firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
 
-// Expor globalmente
-window.firebaseConfig = firebaseConfig;
+// Expõe variáveis globais
+window.auth = firebase.auth();
+window.db = firebase.firestore();
 window.ADMINS_PERMITIDOS = ADMINS_PERMITIDOS;
-window.auth = auth;
-window.db = db;

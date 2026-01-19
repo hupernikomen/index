@@ -1,3 +1,5 @@
+// js/lojas.js
+
 async function carregarDesativados() {
   const listaDiv = document.getElementById('desativadosLista');
   listaDiv.innerHTML = '<p style="text-align:center; color:#888;">Carregando...</p>';
@@ -29,7 +31,7 @@ async function carregarDesativados() {
       listaDiv.appendChild(item);
     });
   } catch (error) {
-    listaDiv.innerHTML = '<p style="color:#c00;">Erro ao carregar.</p>';
+    listaDiv.innerHTML = '<p style="color:red;">Erro ao carregar.</p>';
     console.error(error);
   }
 }
@@ -65,7 +67,7 @@ async function buscarLojas() {
 
     if (!encontrou) resultadoDiv.innerHTML = '<p style="text-align:center;">Nenhuma loja encontrada.</p>';
   } catch (error) {
-    resultadoDiv.innerHTML = '<p style="color:#c00;">Erro na busca.</p>';
+    resultadoDiv.innerHTML = '<p style="color:red;">Erro na busca.</p>';
     console.error(error);
   }
 }

@@ -1,28 +1,34 @@
+// js/auth.js
+
 const loginBtn = document.getElementById('loginBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 const userEmailSpan = document.getElementById('userEmail');
 
-loginBtn?.addEventListener('click', () => {
-  const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider);
-});
+if (loginBtn) {
+  loginBtn.addEventListener('click', () => {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider);
+  });
+}
 
-logoutBtn?.addEventListener('click', (e) => {
-  e.preventDefault();
-  auth.signOut();
-});
+if (logoutBtn) {
+  logoutBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    auth.signOut();
+  });
+}
 
 auth.onAuthStateChanged((user) => {
   if (user && ADMINS_PERMITIDOS.map(e => e.toLowerCase()).includes(user.email.toLowerCase())) {
-    userEmailSpan.textContent = user.email;
+    if (userEmailSpan) userEmailSpan.textContent = user.email;
     document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('adminContent').classList.remove('hidden');
-    
-    // Chama as funções de carregamento após login
+
+    // Carrega dados após login
     if (typeof carregarPropostas === 'function') carregarPropostas();
     if (typeof carregarDesativados === 'function') carregarDesativados();
   } else if (user) {
-    alert("Acesso negado.");
+    alert("Acesso negado: seu e-mail não tem permissão.");
     auth.signOut();
   } else {
     document.getElementById('loginScreen').classList.remove('hidden');

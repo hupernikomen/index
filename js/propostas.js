@@ -1,3 +1,5 @@
+// js/propostas.js
+
 async function carregarPropostas() {
   const listaDiv = document.getElementById('propostasLista');
   listaDiv.innerHTML = '<p style="text-align:center; color:#888;">Carregando...</p>';
@@ -31,10 +33,10 @@ async function carregarPropostas() {
       listaDiv.appendChild(item);
     });
   } catch (error) {
-    listaDiv.innerHTML = '<p style="color:#c00;">Erro ao carregar.</p>';
+    listaDiv.innerHTML = '<p style="color:red;">Erro ao carregar.</p>';
     console.error(error);
   }
 }
 
-// Expor função globalmente
+// Expõe função
 window.carregarPropostas = carregarPropostas;
