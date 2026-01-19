@@ -1,16 +1,24 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin BuscaZap</title>
-  <link rel="stylesheet" href="css/style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-</head>
 
+  <!-- CSS externo -->
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
 <body>
   <div class="container">
+
     <!-- Tela de Login -->
     <div id="loginScreen" class="login-screen">
       <h1>Admin BuscaZap</h1>
@@ -22,7 +30,7 @@
     <!-- Conteúdo Admin -->
     <div id="adminContent" class="hidden">
       <div class="user-info">
-        Logado como: <strong id="userEmail"></strong> |
+        Logado como: <strong id="userEmail"></strong> | 
         <a href="#" id="logoutBtn">Sair</a>
       </div>
 
@@ -31,24 +39,127 @@
         <p class="subtitle">Gerencie propostas e lojas</p>
       </header>
 
-      <!-- Propostas, Desativadas, Busca, Formulário... (igual ao anterior) -->
-      <!-- (vou manter o HTML igual, só removendo o <script> do final) -->
+      <!-- Propostas Pendentes -->
+      <div class="card">
+        <h2 class="card-title">Propostas Pendentes</h2>
+        <div id="propostasLista" class="item-list"></div>
+      </div>
 
-      <!-- ... todo o HTML das seções que já temos ... -->
+      <!-- Lojas Desativadas -->
+      <div class="card">
+        <h2 class="card-title">Lojas Desativadas</h2>
+        <div id="desativadosLista" class="item-list"></div>
+      </div>
+
+      <!-- Busca de Loja -->
+      <div class="card">
+        <h2 class="card-title">Buscar Loja</h2>
+        <input type="text" id="buscaNome" placeholder="Nome da loja..." />
+        <button class="btn" onclick="buscarLojas()">Buscar</button>
+        <div id="resultado" class="item-list"></div>
+      </div>
+
+      <!-- Formulário de Edição -->
+      <div id="formAtualizacao" class="card hidden">
+        <h2 class="card-title">Editando: <span id="nomeLojaAtual"></span> <small id="fonteItem"></small></h2>
+
+        <form id="formLoja">
+          <input type="hidden" id="lojaId" />
+          <input type="hidden" id="colecaoOrigem" value="users" />
+
+          <div class="input-group">
+            <label>Nome da loja *</label>
+            <input type="text" id="nome" required />
+          </div>
+
+          <div class="input-group">
+            <label>Descrição</label>
+            <textarea id="descricao"></textarea>
+          </div>
+
+          <div class="input-group">
+            <label>Tags (separadas por vírgula)</label>
+            <input type="text" id="tags" placeholder="pizza, delivery, 24h" />
+          </div>
+
+          <div class="card" style="background:#f8fff9;">
+            <h3>Anúncios</h3>
+            <div class="switch-group"><span class="switch-label">Destaque na busca</span><label class="switch"><input type="checkbox" id="anuncioBusca"><span class="slider"></span></label></div>
+            <div class="switch-group"><span class="switch-label">Visível no app</span><label class="switch"><input type="checkbox" id="anuncioPostagem"><span class="slider"></span></label></div>
+            <div class="switch-group"><span class="switch-label">Loja Premium</span><label class="switch"><input type="checkbox" id="anuncioPremium"><span class="slider"></span></label></div>
+          </div>
+
+          <div class="card" style="background:#f0f8ff;">
+            <h3>Dados da Loja</h3>
+
+            <div class="grid-2">
+              <div class="input-group">
+                <label>Bairro *</label>
+                <input type="text" id="bairro" required />
+              </div>
+              <div class="input-group">
+                <label>WhatsApp *</label>
+                <input type="text" id="whatsapp" placeholder="86999999999" required />
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label>Endereço (opcional)</label>
+              <input type="text" id="endereco" />
+            </div>
+
+            <div class="switch-group">
+              <span class="switch-label">Faz entrega?</span>
+              <label class="switch"><input type="checkbox" id="fazEntrega"><span class="slider"></span></label>
+            </div>
+
+            <h3>Horários</h3>
+
+            <div class="grid-2">
+              <div class="input-group"><label>Seg–Sex Abre</label><input type="text" id="semanaAbre" placeholder="08:00" /></div>
+              <div class="input-group"><label>Seg–Sex Fecha</label><input type="text" id="semanaFecha" placeholder="18:00" /></div>
+            </div>
+
+            <div class="switch-group">
+              <span class="switch-label">Aberto sábado?</span>
+              <label class="switch"><input type="checkbox" id="sabadoAtivo" onchange="toggleSubfields('sabado')"><span class="slider"></span></label>
+            </div>
+            <div id="sabadoFields" class="hidden grid-2">
+              <div class="input-group"><input type="text" id="sabadoAbre" placeholder="08:00" /></div>
+              <div class="input-group"><input type="text" id="sabadoFecha" placeholder="12:00" /></div>
+            </div>
+
+            <div class="switch-group">
+              <span class="switch-label">Aberto domingo?</span>
+              <label class="switch"><input type="checkbox" id="domingoAtivo" onchange="toggleSubfields('domingo')"><span class="slider"></span></label>
+            </div>
+            <div id="domingoFields" class="hidden grid-2">
+              <div class="input-group"><input type="text" id="domingoAbre" placeholder="09:00" /></div>
+              <div class="input-group"><input type="text" id="domingoFecha" placeholder="12:00" /></div>
+            </div>
+
+            <div class="switch-group">
+              <span class="switch-label">Intervalo almoço?</span>
+              <label class="switch"><input type="checkbox" id="intervaloAtivo" onchange="toggleSubfields('intervalo')"><span class="slider"></span></label>
+            </div>
+            <div id="intervaloFields" class="hidden grid-2">
+              <div class="input-group"><input type="text" id="intervaloInicio" placeholder="12:00" /></div>
+              <div class="input-group"><input type="text" id="intervaloRetorno" placeholder="13:30" /></div>
+            </div>
+          </div>
+
+          <button type="button" class="btn" onclick="atualizarLoja()">Salvar</button>
+          <button type="button" class="btn btn-secondary" onclick="cancelarEdicao()">Cancelar</button>
+        </form>
+      </div>
     </div>
   </div>
 
-  <!-- Scripts separados -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
+  <!-- Scripts externos -->
   <script src="js/firebase-config.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/propostas.js"></script>
   <script src="js/lojas.js"></script>
   <script src="js/main.js"></script>
-
 </body>
-
 </html>
