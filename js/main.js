@@ -1,11 +1,6 @@
 // js/main.js
 
-// Função para mostrar/esconder subcampos (mantida para compatibilidade futura, se precisar)
-function toggleSubfields(tipo) {
-  // Não usamos mais, mas deixo aqui caso algum código antigo chame
-}
-
-// Toggle geral: Não informa horário
+// Função para toggle geral de horários (não informa horário)
 function toggleHorariosGerais() {
   const naoInforma = document.getElementById('naoInformaHorario').checked;
   const container = document.getElementById('containerHorarios');
@@ -74,7 +69,6 @@ function carregarParaEdicao(item) {
   toggleHorariosGerais(); // Aplica o estado visual
 
   if (naoInforma) {
-    // Se não informa, não preenche nada mais
     document.getElementById('formAtualizacao').scrollIntoView({ behavior: 'smooth' });
     return;
   }
@@ -116,7 +110,7 @@ function carregarParaEdicao(item) {
   document.getElementById('formAtualizacao').scrollIntoView({ behavior: 'smooth' });
 }
 
-// Salva as alterações
+// Salva as alterações (versão atual sem a funcionalidade de filial — vamos adicionar na próxima etapa)
 async function atualizarLoja() {
   const id = document.getElementById('lojaId').value;
   const colecao = document.getElementById('colecaoOrigem').value;
@@ -130,7 +124,7 @@ async function atualizarLoja() {
   const bairro = document.getElementById('bairro').value.trim();
   const endereco = document.getElementById('endereco').value.trim();
 
-  if (isProposta && (!numeroWhats || !bairro)) {
+  if (!numeroWhats || !bairro) {
     return alert('WhatsApp e Bairro são obrigatórios.');
   }
 
@@ -145,7 +139,6 @@ async function atualizarLoja() {
   };
 
   if (!naoInformaHorario) {
-    // Intervalo global
     const intervaloAtivo = document.getElementById('intervaloGlobalAtivo').checked;
     horarios.intervaloGlobal = {
       ativo: intervaloAtivo,
@@ -153,7 +146,6 @@ async function atualizarLoja() {
       retorno: intervaloAtivo ? document.getElementById('intervaloGlobalRetorno').value.trim() || null : null
     };
 
-    // Segunda a Sexta
     const segSexAtivo = document.getElementById('segSexAtivo').checked;
     const diasSelecionados = Array.from(document.querySelectorAll('.dia-semana:checked')).map(cb => cb.value);
 
@@ -164,7 +156,6 @@ async function atualizarLoja() {
       fecha: segSexAtivo ? document.getElementById('segSexFecha').value.trim() || null : null
     };
 
-    // Sábado
     const sabadoAtivo = document.getElementById('sabadoAtivo').checked;
     horarios.sabado = {
       ativo: sabadoAtivo,
@@ -172,7 +163,6 @@ async function atualizarLoja() {
       fecha: sabadoAtivo ? document.getElementById('sabadoFecha').value.trim() || null : null
     };
 
-    // Domingo
     const domingoAtivo = document.getElementById('domingoAtivo').checked;
     horarios.domingo = {
       ativo: domingoAtivo,
@@ -202,14 +192,12 @@ async function atualizarLoja() {
 
   try {
     if (!isProposta) {
-      // Atualiza loja existente
       await db.collection('users').doc(id).update({
         ...dadosGerais,
         filiais: [novaFilial]
       });
       alert('Loja atualizada com sucesso!');
     } else {
-      // Cria nova loja a partir da proposta
       const batch = db.batch();
       const novaLojaRef = db.collection('users').doc(id);
 
@@ -241,7 +229,7 @@ function cancelarEdicao() {
   document.getElementById('resultado').innerHTML = '';
 }
 
-// Expõe funções globalmente
+// Expõe as funções globalmente
 window.toggleHorariosGerais = toggleHorariosGerais;
 window.toggleIntervaloGlobal = toggleIntervaloGlobal;
 window.toggleSegSex = toggleSegSex;

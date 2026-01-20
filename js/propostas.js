@@ -2,6 +2,14 @@
 
 async function carregarPropostas() {
   const listaDiv = document.getElementById('propostasLista');
+
+  // Verificação segura: se o elemento ainda não existe, tenta novamente
+  if (!listaDiv) {
+    console.warn("Elemento #propostasLista não encontrado. Tentando novamente em 500ms...");
+    setTimeout(carregarPropostas, 500);
+    return;
+  }
+
   listaDiv.innerHTML = '<p style="text-align:center; color:#888;">Carregando...</p>';
 
   try {
@@ -33,10 +41,10 @@ async function carregarPropostas() {
       listaDiv.appendChild(item);
     });
   } catch (error) {
-    listaDiv.innerHTML = '<p style="color:red;">Erro ao carregar.</p>';
-    console.error(error);
+    listaDiv.innerHTML = '<p style="color:red;">Erro ao carregar propostas.</p>';
+    console.error("Erro em carregarPropostas:", error);
   }
 }
 
-// Expõe função
+// Expõe a função globalmente
 window.carregarPropostas = carregarPropostas;

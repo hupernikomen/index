@@ -2,6 +2,14 @@
 
 async function carregarDesativados() {
   const listaDiv = document.getElementById('desativadosLista');
+
+  // Verificação segura: se o elemento ainda não existe, tenta novamente
+  if (!listaDiv) {
+    console.warn("Elemento #desativadosLista não encontrado. Tentando novamente em 500ms...");
+    setTimeout(carregarDesativados, 500);
+    return;
+  }
+
   listaDiv.innerHTML = '<p style="text-align:center; color:#888;">Carregando...</p>';
 
   try {
@@ -31,16 +39,25 @@ async function carregarDesativados() {
       listaDiv.appendChild(item);
     });
   } catch (error) {
-    listaDiv.innerHTML = '<p style="color:red;">Erro ao carregar.</p>';
-    console.error(error);
+    listaDiv.innerHTML = '<p style="color:red;">Erro ao carregar lojas desativadas.</p>';
+    console.error("Erro em carregarDesativados:", error);
   }
 }
 
 async function buscarLojas() {
-  const termo = document.getElementById('buscaNome').value.trim().toLowerCase();
-  if (!termo) return alert('Digite o nome');
+  const termo = document.getElementById('buscaNome')?.value.trim().toLowerCase();
+  if (!termo) {
+    alert('Digite o nome da loja');
+    return;
+  }
 
   const resultadoDiv = document.getElementById('resultado');
+
+  if (!resultadoDiv) {
+    console.warn("Elemento #resultado não encontrado.");
+    return;
+  }
+
   resultadoDiv.innerHTML = '<p style="text-align:center;">Buscando...</p>';
 
   try {
@@ -65,24 +82,31 @@ async function buscarLojas() {
       }
     });
 
-    if (!encontrou) resultadoDiv.innerHTML = '<p style="text-align:center;">Nenhuma loja encontrada.</p>';
+    if (!encontrou) {
+      resultadoDiv.innerHTML = '<p style="text-align:center;">Nenhuma loja encontrada.</p>';
+    }
   } catch (error) {
     resultadoDiv.innerHTML = '<p style="color:red;">Erro na busca.</p>';
-    console.error(error);
+    console.error("Erro em buscarLojas:", error);
   }
 }
 
 async function excluirLoja(id) {
-  if (!confirm("Excluir permanentemente esta loja?")) return;
+  if (!confirm("Excluir permanentemente esta loja e todas as suas filiais?")) {
+    return;
+  }
+
   try {
     await db.collection('users').doc(id).delete();
-    alert("Loja excluída!");
+    alert("Loja excluída com sucesso!");
     carregarDesativados();
   } catch (error) {
-    alert("Erro: " + error.message);
+    alert("Erro ao excluir: " + error.message);
+    console.error("Erro em excluirLoja:", error);
   }
 }
 
+// Expõe as funções globalmente
 window.carregarDesativados = carregarDesativados;
 window.buscarLojas = buscarLojas;
 window.excluirLoja = excluirLoja;

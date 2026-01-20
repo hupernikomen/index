@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,7 +8,7 @@
   <!-- CSS externo -->
   <link rel="stylesheet" href="css/style.css">
 
-  <!-- Google Fonts -->
+  <!-- Google Fonts: Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Firebase -->
@@ -17,7 +16,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
-
 <body>
   <div class="container">
 
@@ -25,243 +23,240 @@
     <div id="loginScreen" class="login-screen">
       <h1>Admin BuscaZap</h1>
       <p class="subtitle">Painel administrativo</p>
-      <button class="btn login-btn" id="loginBtn">Entrar com Google</button>
-      <p class="info-text">Acesso exclusivo para administradores.</p>
+      <button class="btn login-btn" id="loginIconBtn">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+      </button>
+      <p class="info-text">Toque no ícone para entrar</p>
     </div>
 
     <!-- Conteúdo Admin -->
     <div id="adminContent" class="hidden">
-
-      <!-- Header fixo mobile -->
-      <div class="mobile-header">
-        <h1>BuscaZap Admin</h1>
-        <p class="subtitle">Gerencie propostas e lojas</p>
-
-        <div class="user-avatar" id="userAvatar" title="Opções do usuário">
-          <svg viewBox="0 0 24 24" width="26" height="26">
-            <path fill="white" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-          </svg>
+      <header>
+        <div class="header-container">
+          <div class="header-title">
+            <h1>BuscaZap Admin</h1>
+            <p class="subtitle">Gerencie propostas e lojas</p>
+          </div>
+          <div class="header-status">
+            <div id="loggedInStatus" class="hidden">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="#000" stroke="#000" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4" fill="#000"></circle>
+              </svg>
+              <button id="logoutBtn" class="logout-btn" title="Sair">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#777" stroke-width="2">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                  <polyline points="16 17 21 12 16 7"></polyline>
+                  <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
+      </header>
 
-        <div class="user-dropdown" id="userDropdown">
-          <button id="logoutBtn" class="dropdown-item">Sair</button>
-        </div>
+      <!-- Propostas Pendentes -->
+      <div class="card">
+        <h2 class="card-title">Propostas Pendentes</h2>
+        <div id="propostasLista" class="item-list"></div>
       </div>
 
-      <!-- Conteúdo principal -->
-      <div class="main-content">
+      <!-- Lojas Desativadas -->
+      <div class="card">
+        <h2 class="card-title">Lojas Desativadas</h2>
+        <div id="desativadosLista" class="item-list"></div>
+      </div>
 
-        <!-- Propostas Pendentes -->
-        <div class="card">
-          <h2 class="card-title">Propostas Pendentes</h2>
-          <div id="propostasLista" class="item-list"></div>
-        </div>
+      <!-- Busca de Loja -->
+      <div class="card">
+        <h2 class="card-title">Buscar Loja</h2>
+        <input type="text" id="buscaNome" placeholder="Nome da loja..." />
+        <button class="btn" onclick="buscarLojas()">Buscar</button>
+        <div id="resultado" class="item-list"></div>
+      </div>
 
-        <!-- Lojas Desativadas -->
-        <div class="card">
-          <h2 class="card-title">Lojas Desativadas</h2>
-          <div id="desativadosLista" class="item-list"></div>
-        </div>
+      <!-- Formulário de Edição -->
+      <div id="formAtualizacao" class="card hidden">
+        <h2 class="card-title">Editando: <span id="nomeLojaAtual"></span> <small id="fonteItem"></small></h2>
 
-        <!-- Busca de Loja -->
-        <div class="card">
-          <h2 class="card-title">Buscar Loja</h2>
-          <input type="text" id="buscaNome" placeholder="Nome da loja..." class="search-input" />
-          <button class="btn" onclick="buscarLojas()">Buscar</button>
-          <div id="resultado" class="item-list"></div>
-        </div>
+        <form id="formLoja">
+          <input type="hidden" id="lojaId" />
+          <input type="hidden" id="colecaoOrigem" value="users" />
 
-        <!-- Formulário de Edição -->
-        <div id="formAtualizacao" class="card hidden">
-          <h2 class="card-title">Editando: <span id="nomeLojaAtual"></span> <small id="fonteItem"></small></h2>
+          <div class="input-group">
+            <label>Nome da loja *</label>
+            <input type="text" id="nome" required />
+          </div>
 
-          <form id="formLoja">
-            <input type="hidden" id="lojaId" />
-            <input type="hidden" id="colecaoOrigem" value="users" />
+          <div class="input-group">
+            <label>Descrição</label>
+            <textarea id="descricao"></textarea>
+          </div>
 
-            <!-- Dados Gerais -->
-            <div class="input-group">
-              <label>Nome da loja *</label>
-              <input type="text" id="nome" required />
+          <div class="input-group">
+            <label>Tags (separadas por vírgula)</label>
+            <input type="text" id="tags" placeholder="pizza, delivery, 24h" />
+          </div>
+
+          <div class="section">
+            <h3>Anúncios</h3>
+            <div class="switch-group">
+              <span class="switch-label">Destaque na busca</span>
+              <label class="switch"><input type="checkbox" id="anuncioBusca"><span class="slider"></span></label>
             </div>
-
-            <div class="input-group">
-              <label>Descrição</label>
-              <textarea id="descricao"></textarea>
+            <div class="switch-group">
+              <span class="switch-label">Visível no app</span>
+              <label class="switch"><input type="checkbox" id="anuncioPostagem"><span class="slider"></span></label>
             </div>
-
-            <div class="input-group">
-              <label>Tags (separadas por vírgula)</label>
-              <input type="text" id="tags" placeholder="pizza, delivery, 24h" />
+            <div class="switch-group">
+              <span class="switch-label">Loja Premium</span>
+              <label class="switch"><input type="checkbox" id="anuncioPremium"><span class="slider"></span></label>
             </div>
+          </div>
 
-            <!-- Seção Anúncios -->
-            <div class="section">
-              <h3>Anúncios</h3>
-              <div class="switch-group">
-                <span class="switch-label">Destaque na busca</span>
-                <label class="switch"><input type="checkbox" id="anuncioBusca"><span class="slider"></span></label>
-              </div>
-              <div class="switch-group">
-                <span class="switch-label">Visível no app</span>
-                <label class="switch"><input type="checkbox" id="anuncioPostagem"><span class="slider"></span></label>
-              </div>
-              <div class="switch-group">
-                <span class="switch-label">Loja Premium</span>
-                <label class="switch"><input type="checkbox" id="anuncioPremium"><span class="slider"></span></label>
-              </div>
-            </div>
+          <div class="section">
+            <h3>Dados da Loja</h3>
 
-            <!-- Seção Dados da Loja -->
-            <div class="section">
-              <h3>Dados da Loja</h3>
-
-              <div class="grid-2">
-                <div class="input-group">
-                  <label>Bairro *</label>
-                  <input type="text" id="bairro" required />
-                </div>
-                <div class="input-group">
-                  <label>WhatsApp *</label>
-                  <input type="text" id="whatsapp" placeholder="86999999999" required />
-                </div>
-              </div>
-
+            <div class="grid-2">
               <div class="input-group">
-                <label>Endereço (opcional)</label>
-                <input type="text" id="endereco" />
+                <label>Bairro *</label>
+                <input type="text" id="bairro" required />
               </div>
-
-              <div class="switch-group">
-                <span class="switch-label">Faz entrega?</span>
-                <label class="switch"><input type="checkbox" id="fazEntrega"><span class="slider"></span></label>
-              </div>
-
-              <!-- Nova seção de Horários com intervalo global -->
-              <div class="section">
-                <h3>Horários de Funcionamento</h3>
-
-                <!-- Switch geral -->
-                <div class="switch-group">
-                  <span class="switch-label">Não informa horário de funcionamento</span>
-                  <label class="switch">
-                    <input type="checkbox" id="naoInformaHorario" onchange="toggleHorariosGerais()">
-                    <span class="slider"></span>
-                  </label>
-                </div>
-
-                <div id="containerHorarios" class="horarios-detalhes">
-
-                  <!-- Intervalo Global -->
-                  <div class="horario-bloco">
-                    <div class="switch-group">
-                      <span class="switch-label">Possui intervalo para almoço (global)</span>
-                      <label class="switch">
-                        <input type="checkbox" id="intervaloGlobalAtivo" onchange="toggleIntervaloGlobal()">
-                        <span class="slider"></span>
-                      </label>
-                    </div>
-
-                    <div id="intervaloGlobalCampos" class="sub-campos hidden grid-2">
-                      <div class="input-group">
-                        <label>Início do intervalo</label>
-                        <input type="text" id="intervaloGlobalInicio" placeholder="12:00" />
-                      </div>
-                      <div class="input-group">
-                        <label>Retorno</label>
-                        <input type="text" id="intervaloGlobalRetorno" placeholder="13:30" />
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Segunda a Sexta -->
-                  <div class="horario-bloco">
-                    <div class="switch-group">
-                      <span class="switch-label">Aberto de Segunda a Sexta</span>
-                      <label class="switch">
-                        <input type="checkbox" id="segSexAtivo" onchange="toggleSegSex()">
-                        <span class="slider"></span>
-                      </label>
-                    </div>
-
-                    <div id="segSexCampos" class="sub-campos hidden">
-                      <div class="dias-semana-grid">
-                        <label class="checkbox-dia"><input type="checkbox" value="segunda" class="dia-semana" checked> Segunda</label>
-                        <label class="checkbox-dia"><input type="checkbox" value="terca" class="dia-semana" checked> Terça</label>
-                        <label class="checkbox-dia"><input type="checkbox" value="quarta" class="dia-semana" checked> Quarta</label>
-                        <label class="checkbox-dia"><input type="checkbox" value="quinta" class="dia-semana" checked> Quinta</label>
-                        <label class="checkbox-dia"><input type="checkbox" value="sexta" class="dia-semana" checked> Sexta</label>
-                      </div>
-
-                      <div class="grid-2">
-                        <div class="input-group">
-                          <label>Abre</label>
-                          <input type="text" id="segSexAbre" placeholder="08:00" />
-                        </div>
-                        <div class="input-group">
-                          <label>Fecha</label>
-                          <input type="text" id="segSexFecha" placeholder="18:00" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Sábado -->
-                  <div class="horario-bloco">
-                    <div class="switch-group">
-                      <span class="switch-label">Aberto no Sábado</span>
-                      <label class="switch">
-                        <input type="checkbox" id="sabadoAtivo" onchange="toggleDiaIndividual('sabado')">
-                        <span class="slider"></span>
-                      </label>
-                    </div>
-
-                    <div id="sabadoCampos" class="sub-campos hidden grid-2">
-                      <div class="input-group">
-                        <label>Abre</label>
-                        <input type="text" id="sabadoAbre" placeholder="08:00" />
-                      </div>
-                      <div class="input-group">
-                        <label>Fecha</label>
-                        <input type="text" id="sabadoFecha" placeholder="14:00" />
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Domingo -->
-                  <div class="horario-bloco">
-                    <div class="switch-group">
-                      <span class="switch-label">Aberto no Domingo</span>
-                      <label class="switch">
-                        <input type="checkbox" id="domingoAtivo" onchange="toggleDiaIndividual('domingo')">
-                        <span class="slider"></span>
-                      </label>
-                    </div>
-
-                    <div id="domingoCampos" class="sub-campos hidden grid-2">
-                      <div class="input-group">
-                        <label>Abre</label>
-                        <input type="text" id="domingoAbre" placeholder="09:00" />
-                      </div>
-                      <div class="input-group">
-                        <label>Fecha</label>
-                        <input type="text" id="domingoFecha" placeholder="13:00" />
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
+              <div class="input-group">
+                <label>WhatsApp *</label>
+                <input type="text" id="whatsapp" placeholder="86999999999" required />
               </div>
             </div>
 
-            <!-- Botões de ação -->
+            <div class="input-group">
+              <label>Endereço (opcional)</label>
+              <input type="text" id="endereco" />
+            </div>
+
+            <div class="switch-group">
+              <span class="switch-label">Faz entrega?</span>
+              <label class="switch"><input type="checkbox" id="fazEntrega"><span class="slider"></span></label>
+            </div>
+
+            <div class="section">
+              <h3>Horários de Funcionamento</h3>
+
+              <div class="switch-group">
+                <span class="switch-label">Não informa horário de funcionamento</span>
+                <label class="switch">
+                  <input type="checkbox" id="naoInformaHorario" onchange="toggleHorariosGerais()">
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <div id="containerHorarios" class="horarios-detalhes">
+
+                <div class="horario-bloco">
+                  <div class="switch-group">
+                    <span class="switch-label">Possui intervalo para almoço (global)</span>
+                    <label class="switch">
+                      <input type="checkbox" id="intervaloGlobalAtivo" onchange="toggleIntervaloGlobal()">
+                      <span class="slider"></span>
+                    </label>
+                  </div>
+
+                  <div id="intervaloGlobalCampos" class="sub-campos hidden grid-2">
+                    <div class="input-group">
+                      <label>Início do intervalo</label>
+                      <input type="text" id="intervaloGlobalInicio" placeholder="12:00" />
+                    </div>
+                    <div class="input-group">
+                      <label>Retorno</label>
+                      <input type="text" id="intervaloGlobalRetorno" placeholder="13:30" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="horario-bloco">
+                  <div class="switch-group">
+                    <span class="switch-label">Aberto de Segunda a Sexta</span>
+                    <label class="switch">
+                      <input type="checkbox" id="segSexAtivo" onchange="toggleSegSex()">
+                      <span class="slider"></span>
+                    </label>
+                  </div>
+
+                  <div id="segSexCampos" class="sub-campos hidden">
+                    <div class="dias-semana-grid">
+                      <label class="checkbox-dia"><input type="checkbox" value="segunda" class="dia-semana" checked> Segunda</label>
+                      <label class="checkbox-dia"><input type="checkbox" value="terca" class="dia-semana" checked> Terça</label>
+                      <label class="checkbox-dia"><input type="checkbox" value="quarta" class="dia-semana" checked> Quarta</label>
+                      <label class="checkbox-dia"><input type="checkbox" value="quinta" class="dia-semana" checked> Quinta</label>
+                      <label class="checkbox-dia"><input type="checkbox" value="sexta" class="dia-semana" checked> Sexta</label>
+                    </div>
+
+                    <div class="grid-2">
+                      <div class="input-group">
+                        <label>Abre</label>
+                        <input type="text" id="segSexAbre" placeholder="08:00" />
+                      </div>
+                      <div class="input-group">
+                        <label>Fecha</label>
+                        <input type="text" id="segSexFecha" placeholder="18:00" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="horario-bloco">
+                  <div class="switch-group">
+                    <span class="switch-label">Aberto no Sábado</span>
+                    <label class="switch">
+                      <input type="checkbox" id="sabadoAtivo" onchange="toggleDiaIndividual('sabado')">
+                      <span class="slider"></span>
+                    </label>
+                  </div>
+
+                  <div id="sabadoCampos" class="sub-campos hidden grid-2">
+                    <div class="input-group">
+                      <label>Abre</label>
+                      <input type="text" id="sabadoAbre" placeholder="08:00" />
+                    </div>
+                    <div class="input-group">
+                      <label>Fecha</label>
+                      <input type="text" id="sabadoFecha" placeholder="14:00" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="horario-bloco">
+                  <div class="switch-group">
+                    <span class="switch-label">Aberto no Domingo</span>
+                    <label class="switch">
+                      <input type="checkbox" id="domingoAtivo" onchange="toggleDiaIndividual('domingo')">
+                      <span class="slider"></span>
+                    </label>
+                  </div>
+
+                  <div id="domingoCampos" class="sub-campos hidden grid-2">
+                    <div class="input-group">
+                      <label>Abre</label>
+                      <input type="text" id="domingoAbre" placeholder="09:00" />
+                    </div>
+                    <div class="input-group">
+                      <label>Fecha</label>
+                      <input type="text" id="domingoFecha" placeholder="13:00" />
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
             <div class="form-actions">
               <button type="button" class="btn btn-primary" onclick="atualizarLoja()">Salvar alterações</button>
               <button type="button" class="btn btn-secondary" onclick="cancelarEdicao()">Cancelar</button>
             </div>
           </form>
         </div>
-
       </div>
     </div>
   </div>
@@ -273,5 +268,4 @@
   <script src="js/lojas.js"></script>
   <script src="js/main.js"></script>
 </body>
-
 </html>
