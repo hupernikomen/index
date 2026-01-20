@@ -171,6 +171,7 @@ async function atualizarLoja() {
     };
   }
 
+  
   const novaFilial = {
     whatsapp: { numero: numeroWhats, principal: true },
     bairro: bairro,
