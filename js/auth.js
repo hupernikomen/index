@@ -18,29 +18,18 @@ if (logoutBtn) {
   });
 }
 
-// Função segura para carregar as listas
+// Função para carregar as listas (chamada só após DOM pronto e login)
 function iniciarAdmin() {
-  const propostasLista = document.getElementById('propostasLista');
-  const desativadosLista = document.getElementById('desativadosLista');
-
-  if (!propostasLista || !desativadosLista) {
-    console.warn("Elementos ainda não estão no DOM. Tentando novamente em 500ms...");
-    setTimeout(iniciarAdmin, 500);
-    return;
-  }
-
-  console.log("Elementos encontrados. Carregando dados...");
-
+  console.log("Iniciando painel admin...");
   if (typeof carregarPropostas === 'function') {
     carregarPropostas();
   } else {
-    console.error("carregarPropostas não definida");
+    console.error("carregarPropostas não está definida");
   }
-
   if (typeof carregarDesativados === 'function') {
     carregarDesativados();
   } else {
-    console.error("carregarDesativados não definida");
+    console.error("carregarDesativados não está definida");
   }
 }
 
@@ -56,8 +45,8 @@ auth.onAuthStateChanged((user) => {
     if (loginScreen) loginScreen.classList.add('hidden');
     if (adminContent) adminContent.classList.remove('hidden');
 
-    // Aguarda um pouco mais e tenta carregar
-    setTimeout(iniciarAdmin, 800);
+    // Agora chama o carregamento das listas
+    iniciarAdmin();
 
   } else if (user) {
     alert("Acesso negado: seu e-mail não tem permissão.");
@@ -71,13 +60,13 @@ auth.onAuthStateChanged((user) => {
   }
 });
 
-// Caso o usuário já esteja logado ao carregar a página
+// Garante que o DOM está carregado antes de qualquer coisa (segurança extra)
 document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => {
-    auth.onAuthStateChanged((user) => {
-      if (user && ADMINS_PERMITIDOS.map(e => e.toLowerCase()).includes(user.email.toLowerCase())) {
-        iniciarAdmin();
-      }
-    });
-  }, 1000);
+  console.log("DOM carregado");
+  // Se o usuário já estiver logado ao carregar a página, inicia o admin
+  auth.onAuthStateChanged((user) => {
+    if (user && ADMINS_PERMITIDOS.map(e => e.toLowerCase()).includes(user.email.toLowerCase())) {
+      iniciarAdmin();
+    }
+  });
 });
