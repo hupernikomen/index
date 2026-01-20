@@ -1,23 +1,17 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin BuscaZap</title>
 
-  <!-- CSS externo -->
   <link rel="stylesheet" href="css/style.css">
-
-  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
-
 <body>
   <div class="container">
 
@@ -25,20 +19,39 @@
     <div id="loginScreen" class="login-screen">
       <h1>Admin BuscaZap</h1>
       <p class="subtitle">Painel administrativo</p>
-      <button class="btn login-btn" id="loginBtn">Entrar com Google</button>
-      <p class="info-text">Acesso exclusivo para administradores.</p>
+      <button class="btn login-btn" id="loginIconBtn">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+      </button>
+      <p class="info-text">Toque no ícone para entrar</p>
     </div>
 
     <!-- Conteúdo Admin -->
     <div id="adminContent" class="hidden">
-      <div class="user-info">
-        Logado como: <strong id="userEmail"></strong> |
-        <a href="#" id="logoutBtn">Sair</a>
-      </div>
-
       <header>
-        <h1>BuscaZap Admin</h1>
-        <p class="subtitle">Gerencie propostas e lojas</p>
+        <div class="header-container">
+          <div class="header-title">
+            <h1>BuscaZap Admin</h1>
+            <p class="subtitle">Gerencie propostas e lojas</p>
+          </div>
+          <div class="header-status">
+            <div id="loggedInStatus" class="hidden">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="#000" stroke="#000" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4" fill="#000"></circle>
+              </svg>
+              <button id="logoutBtn" class="logout-btn" title="Sair">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#777" stroke-width="2">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                  <polyline points="16 17 21 12 16 7"></polyline>
+                  <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
       </header>
 
       <!-- Propostas Pendentes -->
@@ -84,17 +97,14 @@
             <input type="text" id="tags" placeholder="pizza, delivery, 24h" />
           </div>
 
-          <div class="card" style="background:#f8fff9;">
+          <div class="card inner-card">
             <h3>Anúncios</h3>
-            <div class="switch-group"><span class="switch-label">Destaque na busca</span><label class="switch"><input
-                  type="checkbox" id="anuncioBusca"><span class="slider"></span></label></div>
-            <div class="switch-group"><span class="switch-label">Visível no app</span><label class="switch"><input
-                  type="checkbox" id="anuncioPostagem"><span class="slider"></span></label></div>
-            <div class="switch-group"><span class="switch-label">Loja Premium</span><label class="switch"><input
-                  type="checkbox" id="anuncioPremium"><span class="slider"></span></label></div>
+            <div class="switch-group"><span class="switch-label">Destaque na busca</span><label class="switch"><input type="checkbox" id="anuncioBusca"><span class="slider"></span></label></div>
+            <div class="switch-group"><span class="switch-label">Visível no app</span><label class="switch"><input type="checkbox" id="anuncioPostagem"><span class="slider"></span></label></div>
+            <div class="switch-group"><span class="switch-label">Loja Premium</span><label class="switch"><input type="checkbox" id="anuncioPremium"><span class="slider"></span></label></div>
           </div>
 
-          <div class="card" style="background:#f0f8ff;">
+          <div class="card inner-card">
             <h3>Dados da Loja</h3>
 
             <div class="grid-2">
@@ -121,16 +131,13 @@
             <h3>Horários</h3>
 
             <div class="grid-2">
-              <div class="input-group"><label>Seg–Sex Abre</label><input type="text" id="semanaAbre"
-                  placeholder="08:00" /></div>
-              <div class="input-group"><label>Seg–Sex Fecha</label><input type="text" id="semanaFecha"
-                  placeholder="18:00" /></div>
+              <div class="input-group"><label>Seg–Sex Abre</label><input type="text" id="semanaAbre" placeholder="08:00" /></div>
+              <div class="input-group"><label>Seg–Sex Fecha</label><input type="text" id="semanaFecha" placeholder="18:00" /></div>
             </div>
 
             <div class="switch-group">
               <span class="switch-label">Aberto sábado?</span>
-              <label class="switch"><input type="checkbox" id="sabadoAtivo" onchange="toggleSubfields('sabado')"><span
-                  class="slider"></span></label>
+              <label class="switch"><input type="checkbox" id="sabadoAtivo" onchange="toggleSubfields('sabado')"><span class="slider"></span></label>
             </div>
             <div id="sabadoFields" class="hidden grid-2">
               <div class="input-group"><input type="text" id="sabadoAbre" placeholder="08:00" /></div>
@@ -139,8 +146,7 @@
 
             <div class="switch-group">
               <span class="switch-label">Aberto domingo?</span>
-              <label class="switch"><input type="checkbox" id="domingoAtivo" onchange="toggleSubfields('domingo')"><span
-                  class="slider"></span></label>
+              <label class="switch"><input type="checkbox" id="domingoAtivo" onchange="toggleSubfields('domingo')"><span class="slider"></span></label>
             </div>
             <div id="domingoFields" class="hidden grid-2">
               <div class="input-group"><input type="text" id="domingoAbre" placeholder="09:00" /></div>
@@ -149,8 +155,7 @@
 
             <div class="switch-group">
               <span class="switch-label">Intervalo almoço?</span>
-              <label class="switch"><input type="checkbox" id="intervaloAtivo"
-                  onchange="toggleSubfields('intervalo')"><span class="slider"></span></label>
+              <label class="switch"><input type="checkbox" id="intervaloAtivo" onchange="toggleSubfields('intervalo')"><span class="slider"></span></label>
             </div>
             <div id="intervaloFields" class="hidden grid-2">
               <div class="input-group"><input type="text" id="intervaloInicio" placeholder="12:00" /></div>
@@ -167,12 +172,10 @@
     </div>
   </div>
 
-  <!-- Scripts externos -->
   <script src="js/firebase-config.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/propostas.js"></script>
   <script src="js/lojas.js"></script>
   <script src="js/main.js"></script>
 </body>
-
 </html>

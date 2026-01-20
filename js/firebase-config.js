@@ -11,10 +11,8 @@ const firebaseConfig = {
 
 const ADMINS_PERMITIDOS = ["hupcontato@gmail.com"];
 
-// Inicializa Firebase
 firebase.initializeApp(firebaseConfig);
 
-// Expõe variáveis globais
 window.auth = firebase.auth();
 window.db = firebase.firestore();
 window.ADMINS_PERMITIDOS = ADMINS_PERMITIDOS;
