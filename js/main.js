@@ -1,14 +1,47 @@
 // js/main.js
 
-// Função para mostrar/esconder subcampos de horários
+// Função para mostrar/esconder subcampos (mantida para compatibilidade futura, se precisar)
 function toggleSubfields(tipo) {
-  const fields = document.getElementById(tipo + 'Fields');
-  const checked = document.getElementById(tipo + 'Ativo').checked;
-  if (checked) {
-    fields.classList.remove('hidden');
+  // Não usamos mais, mas deixo aqui caso algum código antigo chame
+}
+
+// Toggle geral: Não informa horário
+function toggleHorariosGerais() {
+  const naoInforma = document.getElementById('naoInformaHorario').checked;
+  const container = document.getElementById('containerHorarios');
+
+  if (naoInforma) {
+    container.classList.add('disabled');
+    // Limpa todos os campos de horário
+    document.querySelectorAll('#containerHorarios input[type=text]').forEach(i => i.value = '');
+    document.querySelectorAll('#containerHorarios input[type=checkbox]').forEach(i => {
+      if (i.id !== 'naoInformaHorario') i.checked = false;
+    });
+    document.querySelectorAll('.sub-campos').forEach(el => el.classList.add('hidden'));
   } else {
-    fields.classList.add('hidden');
+    container.classList.remove('disabled');
   }
+}
+
+// Toggle intervalo global
+function toggleIntervaloGlobal() {
+  const ativo = document.getElementById('intervaloGlobalAtivo').checked;
+  const campos = document.getElementById('intervaloGlobalCampos');
+  campos.classList.toggle('hidden', !ativo);
+}
+
+// Toggle Segunda a Sexta
+function toggleSegSex() {
+  const ativo = document.getElementById('segSexAtivo').checked;
+  const campos = document.getElementById('segSexCampos');
+  campos.classList.toggle('hidden', !ativo);
+}
+
+// Toggle Sábado ou Domingo
+function toggleDiaIndividual(dia) {
+  const ativo = document.getElementById(dia + 'Ativo').checked;
+  const campos = document.getElementById(dia + 'Campos');
+  campos.classList.toggle('hidden', !ativo);
 }
 
 // Carrega os dados no formulário de edição
@@ -35,31 +68,55 @@ function carregarParaEdicao(item) {
   document.getElementById('whatsapp').value = filial.whatsapp?.numero || '';
   document.getElementById('fazEntrega').checked = filial.fazEntrega === true;
 
-  document.getElementById('semanaAbre').value = horarios.semana?.abre || '';
-  document.getElementById('semanaFecha').value = horarios.semana?.fecha || '';
+  // === Nova lógica de carregamento de horários ===
+  const naoInforma = !horarios.informar;
+  document.getElementById('naoInformaHorario').checked = naoInforma;
+  toggleHorariosGerais(); // Aplica o estado visual
 
-  const sabadoAtivo = !!horarios.sabado;
-  document.getElementById('sabadoAtivo').checked = sabadoAtivo;
-  document.getElementById('sabadoAbre').value = horarios.sabado?.abre || '';
-  document.getElementById('sabadoFecha').value = horarios.sabado?.fecha || '';
-  toggleSubfields('sabado');
+  if (naoInforma) {
+    // Se não informa, não preenche nada mais
+    document.getElementById('formAtualizacao').scrollIntoView({ behavior: 'smooth' });
+    return;
+  }
 
-  const domingoAtivo = !!horarios.domingo;
-  document.getElementById('domingoAtivo').checked = domingoAtivo;
-  document.getElementById('domingoAbre').value = horarios.domingo?.abre || '';
-  document.getElementById('domingoFecha').value = horarios.domingo?.fecha || '';
-  toggleSubfields('domingo');
+  // Intervalo global
+  const intervaloGlobal = horarios.intervaloGlobal || {};
+  document.getElementById('intervaloGlobalAtivo').checked = intervaloGlobal.ativo === true;
+  document.getElementById('intervaloGlobalInicio').value = intervaloGlobal.inicio || '';
+  document.getElementById('intervaloGlobalRetorno').value = intervaloGlobal.retorno || '';
+  toggleIntervaloGlobal();
 
-  const intervaloAtivo = horarios.intervalo?.global === true;
-  document.getElementById('intervaloAtivo').checked = intervaloAtivo;
-  document.getElementById('intervaloInicio').value = horarios.intervalo?.inicio || '';
-  document.getElementById('intervaloRetorno').value = horarios.intervalo?.retorno || '';
-  toggleSubfields('intervalo');
+  // Segunda a Sexta
+  const segSex = horarios.segSex || {};
+  document.getElementById('segSexAtivo').checked = segSex.ativo === true;
+  document.getElementById('segSexAbre').value = segSex.abre || '';
+  document.getElementById('segSexFecha').value = segSex.fecha || '';
+  toggleSegSex();
+
+  // Marca os dias individuais
+  const diasAtivos = Array.isArray(segSex.dias) ? segSex.dias : [];
+  document.querySelectorAll('.dia-semana').forEach(cb => {
+    cb.checked = diasAtivos.includes(cb.value);
+  });
+
+  // Sábado
+  const sabado = horarios.sabado || {};
+  document.getElementById('sabadoAtivo').checked = sabado.ativo === true;
+  document.getElementById('sabadoAbre').value = sabado.abre || '';
+  document.getElementById('sabadoFecha').value = sabado.fecha || '';
+  toggleDiaIndividual('sabado');
+
+  // Domingo
+  const domingo = horarios.domingo || {};
+  document.getElementById('domingoAtivo').checked = domingo.ativo === true;
+  document.getElementById('domingoAbre').value = domingo.abre || '';
+  document.getElementById('domingoFecha').value = domingo.fecha || '';
+  toggleDiaIndividual('domingo');
 
   document.getElementById('formAtualizacao').scrollIntoView({ behavior: 'smooth' });
 }
 
-// Salva as alterações (atualiza loja existente ou cria nova a partir de proposta)
+// Salva as alterações
 async function atualizarLoja() {
   const id = document.getElementById('lojaId').value;
   const colecao = document.getElementById('colecaoOrigem').value;
@@ -77,29 +134,50 @@ async function atualizarLoja() {
     return alert('WhatsApp e Bairro são obrigatórios.');
   }
 
-  const horarios = {
-    semana: {
-      abre: document.getElementById('semanaAbre').value.trim() || '08:00',
-      fecha: document.getElementById('semanaFecha').value.trim() || '18:00',
-    },
-    intervalo: {
-      global: document.getElementById('intervaloAtivo').checked,
-      inicio: document.getElementById('intervaloInicio').value.trim() || null,
-      retorno: document.getElementById('intervaloRetorno').value.trim() || null,
-    },
+  const naoInformaHorario = document.getElementById('naoInformaHorario').checked;
+
+  let horarios = {
+    informar: !naoInformaHorario,
+    intervaloGlobal: { ativo: false, inicio: null, retorno: null },
+    segSex: { ativo: false, dias: [], abre: null, fecha: null },
+    sabado: { ativo: false, abre: null, fecha: null },
+    domingo: { ativo: false, abre: null, fecha: null }
   };
 
-  if (document.getElementById('sabadoAtivo').checked) {
-    horarios.sabado = {
-      abre: document.getElementById('sabadoAbre').value.trim() || '08:00',
-      fecha: document.getElementById('sabadoFecha').value.trim() || '12:00',
+  if (!naoInformaHorario) {
+    // Intervalo global
+    const intervaloAtivo = document.getElementById('intervaloGlobalAtivo').checked;
+    horarios.intervaloGlobal = {
+      ativo: intervaloAtivo,
+      inicio: intervaloAtivo ? document.getElementById('intervaloGlobalInicio').value.trim() || null : null,
+      retorno: intervaloAtivo ? document.getElementById('intervaloGlobalRetorno').value.trim() || null : null
     };
-  }
 
-  if (document.getElementById('domingoAtivo').checked) {
+    // Segunda a Sexta
+    const segSexAtivo = document.getElementById('segSexAtivo').checked;
+    const diasSelecionados = Array.from(document.querySelectorAll('.dia-semana:checked')).map(cb => cb.value);
+
+    horarios.segSex = {
+      ativo: segSexAtivo && diasSelecionados.length > 0,
+      dias: diasSelecionados,
+      abre: segSexAtivo ? document.getElementById('segSexAbre').value.trim() || null : null,
+      fecha: segSexAtivo ? document.getElementById('segSexFecha').value.trim() || null : null
+    };
+
+    // Sábado
+    const sabadoAtivo = document.getElementById('sabadoAtivo').checked;
+    horarios.sabado = {
+      ativo: sabadoAtivo,
+      abre: sabadoAtivo ? document.getElementById('sabadoAbre').value.trim() || null : null,
+      fecha: sabadoAtivo ? document.getElementById('sabadoFecha').value.trim() || null : null
+    };
+
+    // Domingo
+    const domingoAtivo = document.getElementById('domingoAtivo').checked;
     horarios.domingo = {
-      abre: document.getElementById('domingoAbre').value.trim() || '09:00',
-      fecha: document.getElementById('domingoFecha').value.trim() || '12:00',
+      ativo: domingoAtivo,
+      abre: domingoAtivo ? document.getElementById('domingoAbre').value.trim() || null : null,
+      fecha: domingoAtivo ? document.getElementById('domingoFecha').value.trim() || null : null
     };
   }
 
@@ -147,7 +225,7 @@ async function atualizarLoja() {
 
       await batch.commit();
       alert('Nova loja criada com sucesso!');
-      carregarPropostas(); // Recarrega propostas após aprovação
+      carregarPropostas();
     }
 
     cancelarEdicao();
@@ -157,36 +235,17 @@ async function atualizarLoja() {
   }
 }
 
-// Cancela edição e esconde o formulário
+// Cancela edição
 function cancelarEdicao() {
   document.getElementById('formAtualizacao').classList.add('hidden');
   document.getElementById('resultado').innerHTML = '';
 }
 
-
-// Toggle do dropdown do avatar de usuário
-const userAvatar = document.getElementById('userAvatar');
-const userDropdown = document.getElementById('userDropdown');
-
-if (userAvatar && userDropdown) {
-  userAvatar.addEventListener('click', function (e) {
-    e.stopPropagation();
-    userDropdown.classList.toggle('show');
-  });
-
-  // Fecha ao clicar fora
-  document.addEventListener('click', function () {
-    userDropdown.classList.remove('show');
-  });
-
-  // Impede que clique no dropdown feche ele mesmo
-  userDropdown.addEventListener('click', function (e) {
-    e.stopPropagation();
-  });
-}
-
-// Expõe as funções globalmente para serem chamadas do HTML e outros arquivos
-window.toggleSubfields = toggleSubfields;
+// Expõe funções globalmente
+window.toggleHorariosGerais = toggleHorariosGerais;
+window.toggleIntervaloGlobal = toggleIntervaloGlobal;
+window.toggleSegSex = toggleSegSex;
+window.toggleDiaIndividual = toggleDiaIndividual;
 window.carregarParaEdicao = carregarParaEdicao;
 window.atualizarLoja = atualizarLoja;
 window.cancelarEdicao = cancelarEdicao;

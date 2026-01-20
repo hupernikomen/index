@@ -38,7 +38,7 @@ body {
 }
 
 .mobile-header h1 {
-  font-size: 1rem;
+  font-size: 1.6rem;
   font-weight: 700;
   margin-bottom: 4px;
 }
@@ -48,7 +48,7 @@ body {
   color: var(--text-lighter);
 }
 
-/* Avatar usuário - canto superior direito */
+/* Avatar usuário */
 .user-avatar {
   position: absolute;
   top: 16px;
@@ -126,7 +126,7 @@ body {
   color: var(--text);
 }
 
-/* Seções internas do formulário */
+/* Seções internas */
 .section {
   background: var(--section-bg);
   border-radius: 12px;
@@ -177,14 +177,14 @@ textarea {
   resize: vertical;
 }
 
-/* Grid para dois campos */
+/* Grid */
 .grid-2 {
   display: grid;
   grid-template-columns: 1fr;
   gap: 16px;
 }
 
-/* Switches - Estilo Liga/Desliga moderno */
+/* Switches - Liga/Desliga moderno */
 .switch-group {
   display: flex;
   justify-content: space-between;
@@ -254,7 +254,44 @@ input:checked + .slider:before {
   box-shadow: 0 0 0 3px rgba(0,0,0,0.1);
 }
 
-/* Botões do formulário */
+/* Estilos específicos para horários */
+.horarios-detalhes.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.horario-bloco {
+  margin-bottom: 28px;
+}
+
+.sub-campos {
+  margin-top: 16px;
+  padding: 16px;
+  background: var(--input-bg);
+  border-radius: 12px;
+}
+
+.dias-semana-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin: 16px 0;
+}
+
+.checkbox-dia {
+  display: flex;
+  align-items: center;
+  font-size: 0.95rem;
+  color: var(--text-light);
+}
+
+.checkbox-dia input {
+  margin-right: 10px;
+  width: 18px;
+  height: 18px;
+}
+
+/* Botões */
 .form-actions {
   display: flex;
   flex-direction: column;
@@ -290,7 +327,7 @@ input:checked + .slider:before {
   background: #cccccc;
 }
 
-/* Input de busca */
+/* Busca e outros */
 .search-input {
   width: 100%;
   padding: 14px 16px;
@@ -306,7 +343,6 @@ input:checked + .slider:before {
   background: #e8e8e8;
 }
 
-/* Botão de busca e login */
 .btn:not(.btn-primary):not(.btn-secondary) {
   width: 100%;
   background: var(--accent);
@@ -318,7 +354,7 @@ input:checked + .slider:before {
   background: var(--accent-hover);
 }
 
-/* Itens da lista */
+/* Listas */
 .item-list {
   display: flex;
   flex-direction: column;
@@ -343,7 +379,7 @@ input:checked + .slider:before {
   font-size: 0.9rem;
 }
 
-/* Tela de login */
+/* Login */
 .login-screen {
   text-align: center;
   padding: 120px 20px 60px;
@@ -369,7 +405,7 @@ input:checked + .slider:before {
   display: none;
 }
 
-/* Responsivo - Desktop */
+/* Responsivo Desktop */
 @media (min-width: 768px) {
   .main-content {
     padding: 0 24px 100px;
@@ -393,5 +429,9 @@ input:checked + .slider:before {
 
   .btn:not(.btn-primary):not(.btn-secondary) {
     width: auto;
+  }
+
+  .dias-semana-grid {
+    grid-template-columns: repeat(5, 1fr);
   }
 }

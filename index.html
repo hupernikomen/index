@@ -23,6 +23,8 @@
 
     <!-- Tela de Login -->
     <div id="loginScreen" class="login-screen">
+      <h1>Admin BuscaZap</h1>
+      <p class="subtitle">Painel administrativo</p>
       <button class="btn login-btn" id="loginBtn">Entrar com Google</button>
       <p class="info-text">Acesso exclusivo para administradores.</p>
     </div>
@@ -69,7 +71,7 @@
           <div id="resultado" class="item-list"></div>
         </div>
 
-        <!-- Formulário de Edição - Modernizado -->
+        <!-- Formulário de Edição -->
         <div id="formAtualizacao" class="card hidden">
           <h2 class="card-title">Editando: <span id="nomeLojaAtual"></span> <small id="fonteItem"></small></h2>
 
@@ -135,49 +137,124 @@
                 <label class="switch"><input type="checkbox" id="fazEntrega"><span class="slider"></span></label>
               </div>
 
-              <!-- Horários -->
-              <h3 style="margin-top: 32px;">Horários</h3>
+              <!-- Nova seção de Horários com intervalo global -->
+              <div class="section">
+                <h3>Horários de Funcionamento</h3>
 
-              <div class="grid-2">
-                <div class="input-group">
-                  <label>Seg–Sex Abre</label>
-                  <input type="text" id="semanaAbre" placeholder="08:00" />
+                <!-- Switch geral -->
+                <div class="switch-group">
+                  <span class="switch-label">Não informa horário de funcionamento</span>
+                  <label class="switch">
+                    <input type="checkbox" id="naoInformaHorario" onchange="toggleHorariosGerais()">
+                    <span class="slider"></span>
+                  </label>
                 </div>
-                <div class="input-group">
-                  <label>Seg–Sex Fecha</label>
-                  <input type="text" id="semanaFecha" placeholder="18:00" />
+
+                <div id="containerHorarios" class="horarios-detalhes">
+
+                  <!-- Intervalo Global -->
+                  <div class="horario-bloco">
+                    <div class="switch-group">
+                      <span class="switch-label">Possui intervalo para almoço (global)</span>
+                      <label class="switch">
+                        <input type="checkbox" id="intervaloGlobalAtivo" onchange="toggleIntervaloGlobal()">
+                        <span class="slider"></span>
+                      </label>
+                    </div>
+
+                    <div id="intervaloGlobalCampos" class="sub-campos hidden grid-2">
+                      <div class="input-group">
+                        <label>Início do intervalo</label>
+                        <input type="text" id="intervaloGlobalInicio" placeholder="12:00" />
+                      </div>
+                      <div class="input-group">
+                        <label>Retorno</label>
+                        <input type="text" id="intervaloGlobalRetorno" placeholder="13:30" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Segunda a Sexta -->
+                  <div class="horario-bloco">
+                    <div class="switch-group">
+                      <span class="switch-label">Aberto de Segunda a Sexta</span>
+                      <label class="switch">
+                        <input type="checkbox" id="segSexAtivo" onchange="toggleSegSex()">
+                        <span class="slider"></span>
+                      </label>
+                    </div>
+
+                    <div id="segSexCampos" class="sub-campos hidden">
+                      <div class="dias-semana-grid">
+                        <label class="checkbox-dia"><input type="checkbox" value="segunda" class="dia-semana" checked> Segunda</label>
+                        <label class="checkbox-dia"><input type="checkbox" value="terca" class="dia-semana" checked> Terça</label>
+                        <label class="checkbox-dia"><input type="checkbox" value="quarta" class="dia-semana" checked> Quarta</label>
+                        <label class="checkbox-dia"><input type="checkbox" value="quinta" class="dia-semana" checked> Quinta</label>
+                        <label class="checkbox-dia"><input type="checkbox" value="sexta" class="dia-semana" checked> Sexta</label>
+                      </div>
+
+                      <div class="grid-2">
+                        <div class="input-group">
+                          <label>Abre</label>
+                          <input type="text" id="segSexAbre" placeholder="08:00" />
+                        </div>
+                        <div class="input-group">
+                          <label>Fecha</label>
+                          <input type="text" id="segSexFecha" placeholder="18:00" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Sábado -->
+                  <div class="horario-bloco">
+                    <div class="switch-group">
+                      <span class="switch-label">Aberto no Sábado</span>
+                      <label class="switch">
+                        <input type="checkbox" id="sabadoAtivo" onchange="toggleDiaIndividual('sabado')">
+                        <span class="slider"></span>
+                      </label>
+                    </div>
+
+                    <div id="sabadoCampos" class="sub-campos hidden grid-2">
+                      <div class="input-group">
+                        <label>Abre</label>
+                        <input type="text" id="sabadoAbre" placeholder="08:00" />
+                      </div>
+                      <div class="input-group">
+                        <label>Fecha</label>
+                        <input type="text" id="sabadoFecha" placeholder="14:00" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Domingo -->
+                  <div class="horario-bloco">
+                    <div class="switch-group">
+                      <span class="switch-label">Aberto no Domingo</span>
+                      <label class="switch">
+                        <input type="checkbox" id="domingoAtivo" onchange="toggleDiaIndividual('domingo')">
+                        <span class="slider"></span>
+                      </label>
+                    </div>
+
+                    <div id="domingoCampos" class="sub-campos hidden grid-2">
+                      <div class="input-group">
+                        <label>Abre</label>
+                        <input type="text" id="domingoAbre" placeholder="09:00" />
+                      </div>
+                      <div class="input-group">
+                        <label>Fecha</label>
+                        <input type="text" id="domingoFecha" placeholder="13:00" />
+                      </div>
+                    </div>
+                  </div>
+
                 </div>
-              </div>
-
-              <div class="switch-group">
-                <span class="switch-label">Aberto sábado?</span>
-                <label class="switch"><input type="checkbox" id="sabadoAtivo" onchange="toggleSubfields('sabado')"><span class="slider"></span></label>
-              </div>
-              <div id="sabadoFields" class="hidden grid-2">
-                <div class="input-group"><input type="text" id="sabadoAbre" placeholder="08:00" /></div>
-                <div class="input-group"><input type="text" id="sabadoFecha" placeholder="12:00" /></div>
-              </div>
-
-              <div class="switch-group">
-                <span class="switch-label">Aberto domingo?</span>
-                <label class="switch"><input type="checkbox" id="domingoAtivo" onchange="toggleSubfields('domingo')"><span class="slider"></span></label>
-              </div>
-              <div id="domingoFields" class="hidden grid-2">
-                <div class="input-group"><input type="text" id="domingoAbre" placeholder="09:00" /></div>
-                <div class="input-group"><input type="text" id="domingoFecha" placeholder="12:00" /></div>
-              </div>
-
-              <div class="switch-group">
-                <span class="switch-label">Intervalo almoço?</span>
-                <label class="switch"><input type="checkbox" id="intervaloAtivo" onchange="toggleSubfields('intervalo')"><span class="slider"></span></label>
-              </div>
-              <div id="intervaloFields" class="hidden grid-2">
-                <div class="input-group"><input type="text" id="intervaloInicio" placeholder="12:00" /></div>
-                <div class="input-group"><input type="text" id="intervaloRetorno" placeholder="13:30" /></div>
               </div>
             </div>
 
-            <!-- Ações -->
+            <!-- Botões de ação -->
             <div class="form-actions">
               <button type="button" class="btn btn-primary" onclick="atualizarLoja()">Salvar alterações</button>
               <button type="button" class="btn btn-secondary" onclick="cancelarEdicao()">Cancelar</button>
@@ -185,9 +262,9 @@
           </form>
         </div>
 
-      </div> <!-- fim main-content -->
-    </div> <!-- fim adminContent -->
-  </div> <!-- fim container -->
+      </div>
+    </div>
+  </div>
 
   <!-- Scripts -->
   <script src="js/firebase-config.js"></script>
