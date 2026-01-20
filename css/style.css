@@ -33,7 +33,6 @@ body {
   margin: 0 auto;
 }
 
-/* ===== TYPOGRAPHY ===== */
 h1 {
   font-size: 1.75rem;
   font-weight: 700;
@@ -55,7 +54,7 @@ h2.card-title {
   margin-top: 4px;
 }
 
-/* ===== HEADER ===== */
+/* HEADER */
 .header-container {
   display: flex;
   justify-content: space-between;
@@ -86,7 +85,7 @@ h2.card-title {
   background: var(--surface);
 }
 
-/* ===== CARDS ===== */
+/* CARDS */
 .card {
   background: var(--bg);
   border: 1px solid var(--border);
@@ -95,7 +94,7 @@ h2.card-title {
   margin-bottom: 24px;
 }
 
-/* ===== INPUTS & FORM ===== */
+/* INPUTS & FORM */
 .input-group {
   margin-bottom: 20px;
 }
@@ -109,7 +108,6 @@ label {
 }
 
 input[type="text"],
-input[type="checkbox"],
 textarea {
   width: 100%;
   padding: 12px 14px;
@@ -124,7 +122,6 @@ input:focus,
 textarea:focus {
   outline: none;
   border-color: var(--accent);
-  background: var(--bg);
 }
 
 textarea {
@@ -132,7 +129,7 @@ textarea {
   resize: vertical;
 }
 
-/* ===== BUTTONS ===== */
+/* BUTTONS */
 .btn {
   padding: 13px 20px;
   border: none;
@@ -174,7 +171,7 @@ textarea {
   flex-direction: column;
 }
 
-/* ===== SWITCHES ===== */
+/* SWITCHES */
 .switch-group {
   display: flex;
   justify-content: space-between;
@@ -235,7 +232,7 @@ input:checked + .slider:before {
   transform: translateX(22px);
 }
 
-/* ===== GRID & LAYOUT ===== */
+/* GRID & LAYOUT */
 .grid-2 {
   display: grid;
   grid-template-columns: 1fr;
@@ -257,7 +254,7 @@ input:checked + .slider:before {
   color: var(--text-secondary);
 }
 
-/* ===== ITEM LIST ===== */
+/* ITEM LIST */
 .item-list {
   display: flex;
   flex-direction: column;
@@ -291,7 +288,7 @@ input:checked + .slider:before {
   color: var(--text-tertiary);
 }
 
-/* ===== LOGIN SCREEN ===== */
+/* LOGIN SCREEN */
 .login-screen {
   text-align: center;
   padding: 80px 20px 40px;
@@ -304,44 +301,95 @@ input:checked + .slider:before {
 }
 
 .hidden { display: none; }
-
-/* ===== DISABLED STATE ===== */
 .disabled {
   opacity: 0.5;
   pointer-events: none;
 }
 
-/* ===== RESPONSIVE ===== */
+/* HORÁRIOS - ESTILO NOVO */
+.horario-opcao {
+  margin-bottom: 12px;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  padding: 14px 0;
+}
+
+.radio-check {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  position: relative;
+  flex-shrink: 0;
+  transition: var(--transition);
+}
+
+.radio-option input:checked + .radio-check {
+  border-color: var(--accent);
+}
+
+.radio-option input:checked + .radio-check::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: var(--accent);
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.radio-option input {
+  opacity: 0;
+  position: absolute;
+}
+
+.radio-label {
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.horario-bloco {
+  padding: 20px 0;
+  border-top: 1px solid var(--border);
+}
+
+.horario-bloco:first-of-type {
+  border-top: none;
+}
+
+.horario-dia-titulo {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 14px;
+  color: var(--text);
+}
+
+.sub-campos {
+  margin-top: 16px;
+}
+
+input[maxlength="5"] {
+  font-feature-settings: "tnum";
+  font-variant-numeric: tabular-nums;
+}
+
+/* RESPONSIVO */
 @media (min-width: 640px) {
-  body {
-    padding: 24px;
-  }
-  
-  .container {
-    max-width: 720px;
-    margin: 0 auto;
-  }
-  
-  .card {
-    padding: 28px;
-  }
-  
-  .grid-2 {
-    grid-template-columns: 1fr 1fr;
-  }
-  
-  .form-actions {
-    flex-direction: row;
-    justify-content: flex-end;
-  }
-  
-  .btn {
-    min-width: 140px;
-  }
+  body { padding: 24px; }
+  .container { max-width: 720px; margin: 0 auto; }
+  .card { padding: 28px; }
+  .grid-2 { grid-template-columns: 1fr 1fr; }
+  .form-actions { flex-direction: row; justify-content: flex-end; }
+  .btn { min-width: 140px; }
 }
 
 @media (min-width: 1024px) {
-  .container {
-    max-width: 900px;
-  }
+  .container { max-width: 900px; }
 }
