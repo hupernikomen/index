@@ -1,14 +1,15 @@
 // js/main.js
 
-// Função principal para alternar o modo de horário (não informa vs. define horários)
-function toggleModoHorario(modo) {
-  const container = document.getElementById('containerHorariosDetalhados');
+// Toggle principal: Não informa horário
+function toggleHorariosGerais() {
+  const naoInforma = document.getElementById('naoInformaHorario').checked;
+  const container = document.getElementById('containerHorarios');
 
-  if (modo === 'naoInforma') {
+  if (naoInforma) {
     container.classList.add('disabled');
     // Limpa todos os campos de horário
-    document.querySelectorAll('#containerHorariosDetalhados input[type=text]').forEach(i => i.value = '');
-    document.querySelectorAll('#containerHorariosDetalhados input[type=checkbox]').forEach(i => i.checked = false);
+    document.querySelectorAll('#containerHorarios input[type=text]').forEach(i => i.value = '');
+    document.querySelectorAll('#containerHorarios input[type=checkbox]:not(#naoInformaHorario)').forEach(i => i.checked = false);
     document.querySelectorAll('.sub-campos').forEach(el => el.classList.add('hidden'));
   } else {
     container.classList.remove('disabled');
@@ -18,18 +19,22 @@ function toggleModoHorario(modo) {
 // Toggle intervalo global (almoço)
 function toggleIntervaloGlobal() {
   const ativo = document.getElementById('intervaloGlobalAtivo').checked;
-  const campos = document.getElementById('intervaloGlobalCampos');
-  campos.classList.toggle('hidden', !ativo);
+  document.getElementById('intervaloGlobalCampos').classList.toggle('hidden', !ativo);
 }
 
-// Toggle campos de Sábado ou Domingo
+// Toggle Segunda a Sexta
+function toggleSegSex() {
+  const ativo = document.getElementById('segSexAtivo').checked;
+  document.getElementById('segSexCampos').classList.toggle('hidden', !ativo);
+}
+
+// Toggle Sábado ou Domingo
 function toggleDiaIndividual(dia) {
   const ativo = document.getElementById(dia + 'Ativo').checked;
-  const campos = document.getElementById(dia + 'Campos');
-  campos.classList.toggle('hidden', !ativo);
+  document.getElementById(dia + 'Campos').classList.toggle('hidden', !ativo);
 }
 
-// Carrega os dados da loja/proposta no formulário de edição
+// Carrega dados no formulário de edição
 function carregarParaEdicao(item) {
   document.getElementById('formAtualizacao').classList.remove('hidden');
   document.getElementById('nomeLojaAtual').textContent = item.nome || 'Sem nome';
@@ -37,17 +42,14 @@ function carregarParaEdicao(item) {
   document.getElementById('lojaId').value = item.id;
   document.getElementById('colecaoOrigem').value = item._colecao || 'users';
 
-  // Dados gerais
   document.getElementById('nome').value = item.nome || '';
   document.getElementById('descricao').value = item.descricao || '';
   document.getElementById('tags').value = Array.isArray(item.tags) ? item.tags.join(', ') : '';
 
-  // Anúncios
   document.getElementById('anuncioBusca').checked = item.anuncio?.busca === true;
   document.getElementById('anuncioPostagem').checked = item.anuncio?.postagem !== false;
   document.getElementById('anuncioPremium').checked = item.anuncio?.premium === true;
 
-  // Dados da filial (primeira filial)
   const filial = item.filiais?.[0] || {};
   const horarios = filial.horarios || {};
 
@@ -56,16 +58,12 @@ function carregarParaEdicao(item) {
   document.getElementById('whatsapp').value = filial.whatsapp?.numero || '';
   document.getElementById('fazEntrega').checked = filial.fazEntrega === true;
 
-  // === Lógica de horários ===
+  // === Horários ===
   const naoInforma = !horarios.informar || horarios.informar === undefined;
+  document.getElementById('naoInformaHorario').checked = naoInforma;
+  toggleHorariosGerais();
 
-  if (naoInforma) {
-    document.getElementById('naoInformaHorarioRadio').checked = true;
-    toggleModoHorario('naoInforma');
-  } else {
-    document.getElementById('defineHorarioRadio').checked = true;
-    toggleModoHorario('define');
-
+  if (!naoInforma) {
     // Intervalo global
     const intervaloGlobal = horarios.intervaloGlobal || {};
     document.getElementById('intervaloGlobalAtivo').checked = intervaloGlobal.ativo === true;
@@ -75,10 +73,12 @@ function carregarParaEdicao(item) {
 
     // Segunda a Sexta
     const segSex = horarios.segSex || {};
+    document.getElementById('segSexAtivo').checked = segSex.ativo === true;
     document.getElementById('segSexAbre').value = segSex.abre || '';
     document.getElementById('segSexFecha').value = segSex.fecha || '';
+    toggleSegSex();
 
-    const diasAtivos = Array.isArray(segSex.dias) ? segSex.dias : ['segunda', 'terca', 'quarta', 'quinta', 'sexta'];
+    const diasAtivos = Array.isArray(segSex.dias) ? segSex.dias : ['segunda','terca','quarta','quinta','sexta'];
     document.querySelectorAll('.dia-semana').forEach(cb => {
       cb.checked = diasAtivos.includes(cb.value);
     });
@@ -98,11 +98,10 @@ function carregarParaEdicao(item) {
     toggleDiaIndividual('domingo');
   }
 
-  // Rola até o formulário
   document.getElementById('formAtualizacao').scrollIntoView({ behavior: 'smooth' });
 }
 
-// Salva as alterações da loja ou aprova proposta
+// Salva as alterações
 async function atualizarLoja() {
   const id = document.getElementById('lojaId').value;
   const colecao = document.getElementById('colecaoOrigem').value;
@@ -120,7 +119,7 @@ async function atualizarLoja() {
     return alert('WhatsApp e Bairro são obrigatórios.');
   }
 
-  const naoInformaHorario = document.getElementById('naoInformaHorarioRadio').checked;
+  const naoInformaHorario = document.getElementById('naoInformaHorario').checked;
 
   let horarios = {
     informar: !naoInformaHorario,
@@ -183,14 +182,12 @@ async function atualizarLoja() {
 
   try {
     if (!isProposta) {
-      // Atualiza loja existente
       await db.collection('users').doc(id).update({
         ...dadosGerais,
         filiais: [novaFilial]
       });
       alert('Loja atualizada com sucesso!');
     } else {
-      // Aprova proposta: cria nova loja e remove da coleção propostas
       const batch = db.batch();
       const novaLojaRef = db.collection('users').doc(id);
 
@@ -206,36 +203,28 @@ async function atualizarLoja() {
 
       await batch.commit();
       alert('Nova loja criada com sucesso a partir da proposta!');
-      carregarPropostas(); // Atualiza lista de propostas
+      carregarPropostas();
     }
 
     cancelarEdicao();
-    carregarDesativados(); // Atualiza listas se necessário
+    carregarDesativados();
   } catch (error) {
     console.error('Erro ao salvar:', error);
     alert('Erro: ' + error.message);
   }
 }
 
-// Cancela a edição e limpa o formulário
+// Cancela edição
 function cancelarEdicao() {
   document.getElementById('formAtualizacao').classList.add('hidden');
   document.getElementById('resultado').innerHTML = '';
-  // Opcional: limpar campos do form
   document.getElementById('formLoja').reset();
 }
 
-// Estado padrão ao carregar a página (define "horários específicos" como selecionado)
-document.addEventListener('DOMContentLoaded', () => {
-  const defineRadio = document.getElementById('defineHorarioRadio');
-  if (defineRadio) {
-    defineRadio.checked = true;
-  }
-});
-
-// Expõe as funções globalmente para uso nos atributos onclick do HTML
-window.toggleModoHorario = toggleModoHorario;
+// Expõe funções globalmente
+window.toggleHorariosGerais = toggleHorariosGerais;
 window.toggleIntervaloGlobal = toggleIntervaloGlobal;
+window.toggleSegSex = toggleSegSex;
 window.toggleDiaIndividual = toggleDiaIndividual;
 window.carregarParaEdicao = carregarParaEdicao;
 window.atualizarLoja = atualizarLoja;

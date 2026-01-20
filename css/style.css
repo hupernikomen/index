@@ -239,21 +239,6 @@ input:checked + .slider:before {
   gap: 16px;
 }
 
-.dias-semana-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.checkbox-dia {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.95rem;
-  color: var(--text-secondary);
-}
-
 /* ITEM LIST */
 .item-list {
   display: flex;
@@ -306,53 +291,9 @@ input:checked + .slider:before {
   pointer-events: none;
 }
 
-/* HORÁRIOS - ESTILO NOVO */
-.horario-opcao {
-  margin-bottom: 12px;
-}
-
-.radio-option {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  cursor: pointer;
-  padding: 14px 0;
-}
-
-.radio-check {
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--border);
-  border-radius: 50%;
-  position: relative;
-  flex-shrink: 0;
-  transition: var(--transition);
-}
-
-.radio-option input:checked + .radio-check {
-  border-color: var(--accent);
-}
-
-.radio-option input:checked + .radio-check::after {
-  content: "";
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  background: var(--accent);
-  border-radius: 50%;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.radio-option input {
-  opacity: 0;
-  position: absolute;
-}
-
-.radio-label {
-  font-weight: 500;
-  color: var(--text-secondary);
+/* HORÁRIOS - VERSÃO MINIMALISTA COM SWITCHES */
+.horarios-container {
+  margin-top: 24px;
 }
 
 .horario-bloco {
@@ -360,24 +301,44 @@ input:checked + .slider:before {
   border-top: 1px solid var(--border);
 }
 
-.horario-bloco:first-of-type {
+.horario-bloco:first-child {
   border-top: none;
-}
-
-.horario-dia-titulo {
-  font-size: 1.05rem;
-  font-weight: 600;
-  margin-bottom: 14px;
-  color: var(--text);
+  padding-top: 0;
 }
 
 .sub-campos {
-  margin-top: 16px;
+  margin-top: 20px;
+  padding: 20px;
+  background: var(--surface);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.dias-semana-grid {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.checkbox-dia {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+}
+
+.checkbox-dia input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
 }
 
 input[maxlength="5"] {
   font-feature-settings: "tnum";
   font-variant-numeric: tabular-nums;
+  text-align: center;
 }
 
 /* RESPONSIVO */
