@@ -163,6 +163,28 @@ function cancelarEdicao() {
   document.getElementById('resultado').innerHTML = '';
 }
 
+
+// Toggle do dropdown do avatar de usuário
+const userAvatar = document.getElementById('userAvatar');
+const userDropdown = document.getElementById('userDropdown');
+
+if (userAvatar && userDropdown) {
+  userAvatar.addEventListener('click', function (e) {
+    e.stopPropagation();
+    userDropdown.classList.toggle('show');
+  });
+
+  // Fecha ao clicar fora
+  document.addEventListener('click', function () {
+    userDropdown.classList.remove('show');
+  });
+
+  // Impede que clique no dropdown feche ele mesmo
+  userDropdown.addEventListener('click', function (e) {
+    e.stopPropagation();
+  });
+}
+
 // Expõe as funções globalmente para serem chamadas do HTML e outros arquivos
 window.toggleSubfields = toggleSubfields;
 window.carregarParaEdicao = carregarParaEdicao;
