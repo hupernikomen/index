@@ -117,54 +117,43 @@
             </div>
           </div>
 
-          <!-- NOVA SEÇÃO: GERENCIAR COMO FILIAL -->
+          <!-- SEÇÃO DE FILIAL -->
           <div class="section" id="secaoFilial">
-            <h3>Gerenciar como filial</h3>
+            <h3>Gerenciar filial</h3>
 
-            <div id="filialIniciar" class="filial-opcao">
+            <div id="filialIniciar">
               <button type="button" class="btn btn-secondary" onclick="iniciarModoFilial()">
                 Transformar esta loja em filial de outra
               </button>
               <p class="info-text" style="margin-top: 12px; font-size: 0.9rem;">
-                Ao fazer isso, esta loja será ocultada no app e seus dados locais serão vinculados a uma loja principal.
+                Atenção: esta loja será excluída do sistema e seus dados locais (endereço, WhatsApp, horários) serão vinculados à loja principal. Essa ação é reversível ao remover a filial da loja principal.
               </p>
             </div>
 
             <div id="filialAtiva" class="hidden">
-              <div class="switch-group">
-                <span class="switch-label">Esta loja é uma filial</span>
-                <label class="switch">
-                  <input type="checkbox" id="lojaFilialSwitch" onchange="toggleModoFilial(this.checked)">
-                  <span class="slider"></span>
-                </label>
+              <div class="input-group">
+                <label>Buscar loja principal (mãe)</label>
+                <input type="text" id="buscaLojaMae" placeholder="Digite o nome da loja principal..." />
+                <button type="button" class="btn btn-secondary" onclick="buscarLojaMae()" style="margin-top: 8px;">
+                  Buscar loja principal
+                </button>
               </div>
 
-              <div id="filialConteudo" class="hidden" style="margin-top: 20px;">
-                <div class="input-group">
-                  <label>Buscar loja principal (mãe)</label>
-                  <input type="text" id="buscaLojaMae" placeholder="Digite o nome da loja principal..." />
-                  <button type="button" class="btn btn-secondary" onclick="buscarLojaMae()" style="margin-top: 8px;">
-                    Buscar loja principal
-                  </button>
-                </div>
+              <div id="resultadoLojaMae" class="item-list" style="margin-top: 16px;"></div>
 
-                <div id="resultadoLojaMae" class="item-list" style="margin-top: 16px;"></div>
-
-                <div id="infoLojaMaeSelecionada" class="hidden" style="margin-top: 20px; padding: 16px; background: var(--surface); border-radius: 10px; border: 1px solid var(--border);">
-                  <strong>Loja principal selecionada:</strong>
-                  <span id="nomeLojaMae"></span>
-                  <button type="button" class="btn btn-secondary btn-small" onclick="limparSelecaoMae()" style="margin-left: 12px;">
-                    Alterar
-                  </button>
-                </div>
-
-                <p class="info-text" style="margin-top: 16px; font-size: 0.9rem;">
-                  Ao salvar, esta loja será ocultada no app e vinculada à loja principal.
-                </p>
+              <div id="infoLojaMaeSelecionada" class="hidden" style="margin-top: 20px; padding: 16px; background: var(--surface); border-radius: 10px; border: 1px solid var(--border);">
+                <strong>Loja principal selecionada:</strong>
+                <span id="nomeLojaMae"></span>
+                <button type="button" class="btn btn-secondary btn-small" onclick="limparSelecaoMae()" style="margin-left: 12px;">
+                  Alterar
+                </button>
               </div>
+
+              <p class="info-text" style="margin-top: 16px; font-size: 0.9rem;">
+                Ao salvar, esta loja será excluída e seus dados locais serão adicionados à loja principal.
+              </p>
             </div>
           </div>
-          <!-- FIM DA NOVA SEÇÃO -->
 
           <div class="section">
             <h3>Dados da Loja</h3>
@@ -191,7 +180,7 @@
             </div>
           </div>
 
-          <!-- Horários de Funcionamento (versão com switches organizada) -->
+          <!-- Horários de Funcionamento -->
           <div class="section">
             <h3>Horários de Funcionamento</h3>
 
