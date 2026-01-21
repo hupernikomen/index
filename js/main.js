@@ -81,13 +81,11 @@ function limparSelecaoMae() {
   document.getElementById('buscaLojaMae').value = '';
 }
 
-// Exclui uma filial específica da loja mãe (REATIVAÇÃO GARANTIDA)
+// Exclui uma filial específica da loja mãe
 async function excluirFilial(filialObj, filialId) {
   if (!confirm("Deseja remover esta filial da loja principal?")) {
     return;
   }
-
-  const reativar = confirm("Após remover, deseja reativar a loja como independente no app?\n\nOK = Reativar (visível no app)\nCancelar = Manter inativa");
 
   try {
     const lojaAtualId = document.getElementById('lojaId').value;
@@ -103,23 +101,17 @@ async function excluirFilial(filialObj, filialId) {
         const filhaData = filhaDoc.data();
         const filiaisOriginais = filhaData.filiaisBackup || [filialObj];
 
-        const updates = {
+        await db.collection('users').doc(filialId).update({
           lojaFilial: firebase.firestore.FieldValue.delete(),
           maeId: firebase.firestore.FieldValue.delete(),
           filiaisBackup: firebase.firestore.FieldValue.delete(),
           filiais: filiaisOriginais
-        };
-
-        // SEMPRE reativa se o usuário escolher OK, ou se for apenas remover (mas aqui respeita a escolha)
-        if (reativar) {
-          updates['anuncio.postagem'] = true;
-        }
-
-        await db.collection('users').doc(filialId).update(updates);
+          // NÃO FORÇA postagem = true aqui — respeita o que o usuário marcar depois
+        });
       }
     }
 
-    alert('Filial removida com sucesso!' + (reativar ? ' A loja foi reativada no app.' : ''));
+    alert('Filial removida com sucesso! Os dados locais foram restaurados na loja.');
 
     // Recarrega a edição da loja mãe
     const updatedDoc = await db.collection('users').doc(lojaAtualId).get();
@@ -285,7 +277,7 @@ async function carregarParaEdicao(item) {
   document.getElementById('formAtualizacao').scrollIntoView({ behavior: 'smooth' });
 }
 
-// Salva as alterações (REATIVAÇÃO DE VISIBILIDADE GARANTIDA)
+// Salva as alterações (RESPEITA O SWITCH "Visível no app" SEMPRE)
 async function atualizarLoja() {
   const id = document.getElementById('lojaId').value;
   const colecao = document.getElementById('colecaoOrigem').value;
@@ -354,13 +346,16 @@ async function atualizarLoja() {
     filialId: id
   };
 
+  // RESPEITA O ESTADO DO SWITCH "Visível no app"
+  const visivelNoApp = document.getElementById('anuncioPostagem').checked;
+
   const dadosGerais = {
     nome: document.getElementById('nome').value.trim() || 'Sem nome',
     descricao: document.getElementById('descricao').value.trim(),
     tags: tagsArray,
     anuncio: {
       busca: document.getElementById('anuncioBusca').checked,
-      postagem: document.getElementById('anuncioPostagem').checked,
+      postagem: visivelNoApp,
       premium: document.getElementById('anuncioPremium').checked
     }
   };
@@ -388,9 +383,10 @@ async function atualizarLoja() {
 
       const lojaRef = db.collection('users').doc(id);
       batch.update(lojaRef, {
+        ...dadosGerais,
         lojaFilial: true,
         maeId: lojaMaeSelecionada.id,
-        anuncio: { ...dadosGerais.anuncio, postagem: false },
+        anuncio: { ...dadosGerais.anuncio, postagem: false }, // Força invisível só ao virar filial
         filiaisBackup: [novaFilial]
       });
 
@@ -399,7 +395,7 @@ async function atualizarLoja() {
       }
 
       await batch.commit();
-      alert('Loja transformada em filial com sucesso!');
+      alert('Loja transformada em filial com sucesso! (invisível no app)');
     } else {
       const lojaRef = db.collection('users').doc(id);
 
@@ -409,8 +405,7 @@ async function atualizarLoja() {
           filiais: [novaFilial],
           temFiliais: false,
           clicks: 0,
-          criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
-          anuncio: { ...dadosGerais.anuncio, postagem: true }
+          criadoEm: firebase.firestore.FieldValue.serverTimestamp()
         });
 
         await db.collection('propostas').doc(id).delete();
@@ -437,17 +432,16 @@ async function atualizarLoja() {
           }
         }
 
-        // SEMPRE reativa visibilidade quando deixa de ser filial ou ao salvar loja normal
         await lojaRef.update({
           ...dadosGerais,
           filiais: doc.data().filiaisBackup || [novaFilial],
           lojaFilial: firebase.firestore.FieldValue.delete(),
           maeId: firebase.firestore.FieldValue.delete(),
-          filiaisBackup: firebase.firestore.FieldValue.delete(),
-          anuncio: { ...dadosGerais.anuncio, postagem: true } // GARANTIDO AQUI
+          filiaisBackup: firebase.firestore.FieldValue.delete()
+          // NÃO SOBRESCREVE postagem — usa o que o usuário marcou no switch
         });
 
-        alert('Loja atualizada com sucesso e reativada no app!');
+        alert('Loja atualizada com sucesso! Visibilidade: ' + (visivelNoApp ? 'ativa' : 'inativa') + ' no app.');
       }
     }
 
