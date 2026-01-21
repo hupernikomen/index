@@ -81,7 +81,7 @@ function limparSelecaoMae() {
   document.getElementById('buscaLojaMae').value = '';
 }
 
-// Exclui uma filial específica da loja mãe (CORRIGIDO: reativa corretamente "Visível no app")
+// Exclui uma filial específica da loja mãe (com restauração correta dos dados da filha)
 async function excluirFilial(filialObj, filialId) {
   if (!confirm("Deseja remover esta filial da loja principal?")) {
     return;
@@ -98,23 +98,30 @@ async function excluirFilial(filialObj, filialId) {
     });
 
     if (filialId) {
-      const updates = {
-        lojaFilial: firebase.firestore.FieldValue.delete(),
-        maeId: firebase.firestore.FieldValue.delete()
-      };
+      // Busca os dados atuais da loja filha para restaurar o array filiais original
+      const filhaDoc = await db.collection('users').doc(filialId).get();
+      if (filhaDoc.exists) {
+        const filhaData = filhaDoc.data();
+        const filiaisOriginais = filhaData.filiaisBackup || [filialObj]; // Usa backup ou o objeto removido
 
-      // CORREÇÃO AQUI: reativa "Visível no app" se o usuário escolher OK
-      if (reativar) {
-        updates['anuncio.postagem'] = true;
+        const updates = {
+          lojaFilial: firebase.firestore.FieldValue.delete(),
+          maeId: firebase.firestore.FieldValue.delete(),
+          filiaisBackup: firebase.firestore.FieldValue.delete(), // Limpa o backup
+          filiais: filiaisOriginais // Restaura os dados locais originais
+        };
+
+        if (reativar) {
+          updates['anuncio.postagem'] = true;
+        }
+
+        await db.collection('users').doc(filialId).update(updates);
       }
-      // Se não reativar, não altera (continua false)
-
-      await db.collection('users').doc(filialId).update(updates);
     }
 
     alert('Filial removida com sucesso!' + (reativar ? ' A loja foi reativada no app.' : ' A loja permanece inativa.'));
 
-    // Recarrega a edição da loja mãe para atualizar a lista visualmente
+    // Recarrega a edição da loja mãe
     const updatedDoc = await db.collection('users').doc(lojaAtualId).get();
     if (updatedDoc.exists) {
       carregarParaEdicao({ id: lojaAtualId, ...updatedDoc.data(), _colecao: 'users' });
@@ -278,7 +285,7 @@ async function carregarParaEdicao(item) {
   document.getElementById('formAtualizacao').scrollIntoView({ behavior: 'smooth' });
 }
 
-// Salva as alterações
+// Salva as alterações (PRESERVA OS DADOS LOCAIS AO VIRAR FILIAL)
 async function atualizarLoja() {
   const id = document.getElementById('lojaId').value;
   const colecao = document.getElementById('colecaoOrigem').value;
@@ -375,18 +382,19 @@ async function atualizarLoja() {
 
       const batch = db.batch();
 
+      // Adiciona na mãe
       batch.update(db.collection('users').doc(lojaMaeSelecionada.id), {
         filiais: firebase.firestore.FieldValue.arrayUnion(novaFilial)
       });
 
+      // Atualiza a loja filha: marca como filial, faz backup dos dados locais e oculta no app
       const lojaRef = db.collection('users').doc(id);
-      batch.set(lojaRef, {
-        ...dadosGerais,
+      batch.update(lojaRef, {
         lojaFilial: true,
         maeId: lojaMaeSelecionada.id,
         anuncio: { ...dadosGerais.anuncio, postagem: false },
-        filiais: []
-      }, { merge: true });
+        filiaisBackup: [novaFilial] // SALVA CÓPIA DOS DADOS LOCAIS
+      });
 
       if (isProposta) {
         batch.delete(db.collection('propostas').doc(id));
@@ -417,10 +425,11 @@ async function atualizarLoja() {
           return;
         }
 
+        // Se estava como filial, remove da mãe
         if (doc.data().lojaFilial && doc.data().maeId) {
           const maeDoc = await db.collection('users').doc(doc.data().maeId).get();
           if (maeDoc.exists) {
-            const filialObjAntigo = doc.data().filiais?.[0] || novaFilial;
+            const filialObjAntigo = doc.data().filiaisBackup?.[0] || novaFilial;
             filialObjAntigo.filialId = id;
 
             await db.collection('users').doc(doc.data().maeId).update({
@@ -431,9 +440,10 @@ async function atualizarLoja() {
 
         await lojaRef.update({
           ...dadosGerais,
-          filiais: [novaFilial],
+          filiais: doc.data().filiaisBackup || [novaFilial], // RESTAURA DADOS LOCAIS
           lojaFilial: firebase.firestore.FieldValue.delete(),
           maeId: firebase.firestore.FieldValue.delete(),
+          filiaisBackup: firebase.firestore.FieldValue.delete(),
           anuncio: { ...dadosGerais.anuncio, postagem: true }
         });
 
