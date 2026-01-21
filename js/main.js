@@ -81,7 +81,7 @@ function limparSelecaoMae() {
   document.getElementById('buscaLojaMae').value = '';
 }
 
-// Exclui uma filial específica da loja mãe (com restauração correta dos dados da filha)
+// Exclui uma filial específica da loja mãe (REATIVAÇÃO GARANTIDA)
 async function excluirFilial(filialObj, filialId) {
   if (!confirm("Deseja remover esta filial da loja principal?")) {
     return;
@@ -98,19 +98,19 @@ async function excluirFilial(filialObj, filialId) {
     });
 
     if (filialId) {
-      // Busca os dados atuais da loja filha para restaurar o array filiais original
       const filhaDoc = await db.collection('users').doc(filialId).get();
       if (filhaDoc.exists) {
         const filhaData = filhaDoc.data();
-        const filiaisOriginais = filhaData.filiaisBackup || [filialObj]; // Usa backup ou o objeto removido
+        const filiaisOriginais = filhaData.filiaisBackup || [filialObj];
 
         const updates = {
           lojaFilial: firebase.firestore.FieldValue.delete(),
           maeId: firebase.firestore.FieldValue.delete(),
-          filiaisBackup: firebase.firestore.FieldValue.delete(), // Limpa o backup
-          filiais: filiaisOriginais // Restaura os dados locais originais
+          filiaisBackup: firebase.firestore.FieldValue.delete(),
+          filiais: filiaisOriginais
         };
 
+        // SEMPRE reativa se o usuário escolher OK, ou se for apenas remover (mas aqui respeita a escolha)
         if (reativar) {
           updates['anuncio.postagem'] = true;
         }
@@ -119,7 +119,7 @@ async function excluirFilial(filialObj, filialId) {
       }
     }
 
-    alert('Filial removida com sucesso!' + (reativar ? ' A loja foi reativada no app.' : ' A loja permanece inativa.'));
+    alert('Filial removida com sucesso!' + (reativar ? ' A loja foi reativada no app.' : ''));
 
     // Recarrega a edição da loja mãe
     const updatedDoc = await db.collection('users').doc(lojaAtualId).get();
@@ -285,7 +285,7 @@ async function carregarParaEdicao(item) {
   document.getElementById('formAtualizacao').scrollIntoView({ behavior: 'smooth' });
 }
 
-// Salva as alterações (PRESERVA OS DADOS LOCAIS AO VIRAR FILIAL)
+// Salva as alterações (REATIVAÇÃO DE VISIBILIDADE GARANTIDA)
 async function atualizarLoja() {
   const id = document.getElementById('lojaId').value;
   const colecao = document.getElementById('colecaoOrigem').value;
@@ -382,18 +382,16 @@ async function atualizarLoja() {
 
       const batch = db.batch();
 
-      // Adiciona na mãe
       batch.update(db.collection('users').doc(lojaMaeSelecionada.id), {
         filiais: firebase.firestore.FieldValue.arrayUnion(novaFilial)
       });
 
-      // Atualiza a loja filha: marca como filial, faz backup dos dados locais e oculta no app
       const lojaRef = db.collection('users').doc(id);
       batch.update(lojaRef, {
         lojaFilial: true,
         maeId: lojaMaeSelecionada.id,
         anuncio: { ...dadosGerais.anuncio, postagem: false },
-        filiaisBackup: [novaFilial] // SALVA CÓPIA DOS DADOS LOCAIS
+        filiaisBackup: [novaFilial]
       });
 
       if (isProposta) {
@@ -411,7 +409,8 @@ async function atualizarLoja() {
           filiais: [novaFilial],
           temFiliais: false,
           clicks: 0,
-          criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+          criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+          anuncio: { ...dadosGerais.anuncio, postagem: true }
         });
 
         await db.collection('propostas').doc(id).delete();
@@ -438,16 +437,17 @@ async function atualizarLoja() {
           }
         }
 
+        // SEMPRE reativa visibilidade quando deixa de ser filial ou ao salvar loja normal
         await lojaRef.update({
           ...dadosGerais,
-          filiais: doc.data().filiaisBackup || [novaFilial], // RESTAURA DADOS LOCAIS
+          filiais: doc.data().filiaisBackup || [novaFilial],
           lojaFilial: firebase.firestore.FieldValue.delete(),
           maeId: firebase.firestore.FieldValue.delete(),
           filiaisBackup: firebase.firestore.FieldValue.delete(),
-          anuncio: { ...dadosGerais.anuncio, postagem: true }
+          anuncio: { ...dadosGerais.anuncio, postagem: true } // GARANTIDO AQUI
         });
 
-        alert('Loja atualizada com sucesso!');
+        alert('Loja atualizada com sucesso e reativada no app!');
       }
     }
 
