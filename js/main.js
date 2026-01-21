@@ -98,7 +98,6 @@ async function excluirFilial(filialObj, filialId) {
     });
 
     if (filialId) {
-      // Atualiza a loja filha
       const updates = {
         lojaFilial: firebase.firestore.FieldValue.delete(),
         maeId: firebase.firestore.FieldValue.delete()
@@ -112,7 +111,8 @@ async function excluirFilial(filialObj, filialId) {
     }
 
     alert('Filial removida com sucesso!');
-    carregarParaEdicao({ id: lojaAtualId, ... (await db.collection('users').doc(lojaAtualId).get()).data() });
+    const updatedDoc = await db.collection('users').doc(lojaAtualId).get();
+    carregarParaEdicao({ id: lojaAtualId, ...updatedDoc.data() });
   } catch (error) {
     console.error("Erro ao excluir filial:", error);
     alert('Erro: ' + error.message);
@@ -202,17 +202,16 @@ async function carregarParaEdicao(item) {
   document.getElementById('fazEntrega').checked = filial.fazEntrega === true;
 
   // Lista de filiais (se for loja mãe)
-  const filiaisLista = document.getElementById('filiaisLista') || document.createElement('div');
+  const filiaisLista = document.createElement('div');
   filiaisLista.id = 'filiaisLista';
   filiaisLista.className = 'item-list';
   filiaisLista.style.marginTop = '24px';
 
-  // Remove lista anterior se existir
   const existente = document.getElementById('filiaisLista');
   if (existente && existente.parentNode) existente.parentNode.removeChild(existente);
 
   if (item.filiais && item.filiais.length > 0 && !ehFilial) {
-    filiaisLista.innerHTML = '<h3 style="font-size:1.1rem; margin-bottom:16px;">Filiais desta loja</h3>';
+    filiaisLista.innerHTML = '<h3 style="font-size:1.1rem; margin-bottom:16px; font-weight:600;">Filiais desta loja</h3>';
     item.filiais.forEach(filialItem => {
       const filialId = filialItem.filialId || null;
       const bairro = filialItem.bairro || 'Sem bairro';
@@ -225,7 +224,7 @@ async function carregarParaEdicao(item) {
           <h4>${bairro}</h4>
           <small>Whats: ${whatsapp}</small>
         </div>
-        <button class="btn btn-secondary btn-small" onclick="excluirFilial(${JSON.stringify(filialItem)}, '${filialId}')">
+        <button class="btn btn-secondary btn-small" onclick="excluirFilial(${JSON.stringify(filialItem)}, '${filialId || ''}')">
           Excluir filial
         </button>
       `;
@@ -235,7 +234,7 @@ async function carregarParaEdicao(item) {
     document.querySelector('#formLoja .form-actions').before(filiaisLista);
   }
 
-  // Horários (mesma lógica anterior)
+  // Horários
   const naoInforma = !horarios.informar || horarios.informar === undefined;
   document.getElementById('naoInformaHorario').checked = naoInforma;
   toggleHorariosGerais();
@@ -274,7 +273,7 @@ async function carregarParaEdicao(item) {
   document.getElementById('formAtualizacao').scrollIntoView({ behavior: 'smooth' });
 }
 
-// Salva as alterações (com lógica de filial)
+// Salva as alterações (CORRIGIDO: verifica se o switch existe antes de ler)
 async function atualizarLoja() {
   const id = document.getElementById('lojaId').value;
   const colecao = document.getElementById('colecaoOrigem').value;
@@ -354,7 +353,9 @@ async function atualizarLoja() {
     }
   };
 
-  const ehFilialAgora = document.getElementById('lojaFilialSwitch') ? document.getElementById('lojaFilialSwitch').checked : false;
+  // CORREÇÃO AQUI: verifica se o switch existe antes de acessar .checked
+  const switchElement = document.getElementById('lojaFilialSwitch');
+  const ehFilialAgora = switchElement ? switchElement.checked : false;
 
   try {
     if (ehFilialAgora) {
@@ -379,8 +380,8 @@ async function atualizarLoja() {
       const doc = await db.collection('users').doc(id).get();
       const dataAtual = doc.data();
 
-      if (dataAtual.lojaFilial && dataAtual.maeId) {
-        const filialObjAntigo = dataAtual.filiais?.[0] || novaFilial;
+      if (dataAtual && dataAtual.lojaFilial && dataAtual.maeId) {
+        const filialObjAntigo = (dataAtual.filiais && dataAtual.filiais[0]) ? dataAtual.filiais[0] : novaFilial;
         filialObjAntigo.filialId = id;
 
         await db.collection('users').doc(dataAtual.maeId).update({
