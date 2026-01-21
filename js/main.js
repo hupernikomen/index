@@ -81,7 +81,7 @@ function limparSelecaoMae() {
   document.getElementById('buscaLojaMae').value = '';
 }
 
-// Exclui uma filial específica da loja mãe
+// Exclui uma filial específica da loja mãe (CORRIGIDO PARA ATUALIZAR A TELA)
 async function excluirFilial(filialObj, filialId) {
   if (!confirm("Deseja remover esta filial da loja principal?")) {
     return;
@@ -92,6 +92,7 @@ async function excluirFilial(filialObj, filialId) {
   try {
     const lojaAtualId = document.getElementById('lojaId').value;
 
+    // Remove do array de filiais da mãe
     await db.collection('users').doc(lojaAtualId).update({
       filiais: firebase.firestore.FieldValue.arrayRemove(filialObj)
     });
@@ -110,8 +111,12 @@ async function excluirFilial(filialObj, filialId) {
     }
 
     alert('Filial removida com sucesso!');
+
+    // RECARREGA A EDIÇÃO DA LOJA MÃE PARA ATUALIZAR A LISTA DE FILIAIS
     const updatedDoc = await db.collection('users').doc(lojaAtualId).get();
-    carregarParaEdicao({ id: lojaAtualId, ...updatedDoc.data() });
+    if (updatedDoc.exists) {
+      carregarParaEdicao({ id: lojaAtualId, ...updatedDoc.data(), _colecao: 'users' });
+    }
   } catch (error) {
     console.error("Erro ao excluir filial:", error);
     alert('Erro: ' + error.message);
@@ -222,7 +227,7 @@ async function carregarParaEdicao(item) {
           <h4>${bairro}</h4>
           <small>Whats: ${whatsapp}</small>
         </div>
-        <button class="btn btn-secondary btn-small" onclick="excluirFilial(${JSON.stringify(filialItem)}, '${filialId || ''}')">
+        <button class="btn btn-secondary btn-small" onclick='excluirFilial(${JSON.stringify(filialItem).replace(/'/g, "\\'")}, "${filialId || ''}")'>
           Excluir filial
         </button>
       `;
@@ -271,7 +276,7 @@ async function carregarParaEdicao(item) {
   document.getElementById('formAtualizacao').scrollIntoView({ behavior: 'smooth' });
 }
 
-// Salva as alterações (VERSÃO FINAL CORRIGIDA)
+// Salva as alterações
 async function atualizarLoja() {
   const id = document.getElementById('lojaId').value;
   const colecao = document.getElementById('colecaoOrigem').value;
