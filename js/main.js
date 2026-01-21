@@ -68,7 +68,7 @@ function limparSelecaoMae() {
   document.getElementById('buscaLojaMae').value = '';
 }
 
-// Exclui filial da mãe e recria como independente (CORRIGIDO E FUNCIONANDO)
+// Exclui filial da mãe e recria como independente (COM NOME ORIGINAL PRESERVADO E VISIBILIDADE CORRETA)
 async function excluirFilial(filialObj, filialId) {
   if (!confirm("Deseja remover esta filial da loja principal?")) {
     return;
@@ -84,35 +84,36 @@ async function excluirFilial(filialObj, filialId) {
       filiais: firebase.firestore.FieldValue.arrayRemove(filialObj)
     });
 
-    // Busca dados da mãe para herdar nome, tags, etc.
-    const maeDoc = await db.collection('users').doc(lojaMaeId).get();
-    if (!maeDoc.exists) {
-      alert('Erro: Loja principal não encontrada.');
-      return;
-    }
-    const maeData = maeDoc.data();
+    // Recria a loja filha com nome original preservado
+    const nomeOriginal = filialObj.nomeOriginal || 'Loja sem nome';
 
-    // Recria a loja filha como independente
     const novaLojaData = {
-      nome: maeData.nome || 'Loja sem nome',
-      descricao: maeData.descricao || '',
-      tags: maeData.tags || [],
+      nome: nomeOriginal,
+      descricao: '',
+      tags: [],
       anuncio: {
-        busca: maeData.anuncio?.busca || false,
-        postagem: reativar,
-        premium: maeData.anuncio?.premium || false
+        busca: false,
+        postagem: reativar, // Respeita a escolha do usuário
+        premium: false
       },
-      filiais: [filialObj],
+      filiais: [{
+        bairro: filialObj.bairro,
+        endereco: filialObj.endereco || null,
+        whatsapp: filialObj.whatsapp,
+        fazEntrega: filialObj.fazEntrega,
+        horarios: filialObj.horarios
+      }],
       temFiliais: false,
       clicks: 0,
       criadoEm: firebase.firestore.FieldValue.serverTimestamp()
     };
 
+    // Recria com o ID original da filha
     await db.collection('users').doc(filialId).set(novaLojaData);
 
-    alert('Filial removida com sucesso e recriada como loja independente!' + (reativar ? ' (visível no app)' : ' (inativa)'));
+    alert(`Filial removida com sucesso e recriada como loja independente!\nNome restaurado: "${nomeOriginal}"\nVisibilidade: ${reativar ? 'ativa' : 'inativa'} no app.`);
 
-    // Recarrega a edição da loja mãe para atualizar a lista
+    // Recarrega a edição da loja mãe
     const updatedDoc = await db.collection('users').doc(lojaMaeId).get();
     if (updatedDoc.exists) {
       carregarParaEdicao({ id: lojaMaeId, ...updatedDoc.data(), _colecao: 'users' });
@@ -172,7 +173,6 @@ async function carregarParaEdicao(item) {
   document.getElementById('anuncioPostagem').checked = item.anuncio?.postagem !== false;
   document.getElementById('anuncioPremium').checked = item.anuncio?.premium === true;
 
-  // Esconde a seção de filial (só aparece em lojas independentes)
   document.getElementById('secaoFilial').style.display = 'block';
   document.getElementById('filialIniciar').classList.remove('hidden');
   document.getElementById('filialAtiva').classList.add('hidden');
@@ -185,7 +185,7 @@ async function carregarParaEdicao(item) {
   document.getElementById('whatsapp').value = filial.whatsapp?.numero || '';
   document.getElementById('fazEntrega').checked = filial.fazEntrega === true;
 
-  // Lista de filiais (se for loja mãe)
+  // Lista de filiais
   const existente = document.getElementById('filiaisLista');
   if (existente && existente.parentNode) existente.parentNode.removeChild(existente);
 
@@ -257,7 +257,7 @@ async function carregarParaEdicao(item) {
   document.getElementById('formAtualizacao').scrollIntoView({ behavior: 'smooth' });
 }
 
-// Salva as alterações
+// Salva as alterações (PRESERVA NOME ORIGINAL AO VIRAR FILIAL)
 async function atualizarLoja() {
   const id = document.getElementById('lojaId').value;
   const colecao = document.getElementById('colecaoOrigem').value;
@@ -317,17 +317,20 @@ async function atualizarLoja() {
     };
   }
 
+  const nomeOriginal = document.getElementById('nome').value.trim() || 'Loja sem nome';
+
   const novaFilial = {
     bairro: bairro,
     endereco: endereco || null,
     whatsapp: { numero: numeroWhats, principal: true },
     fazEntrega: document.getElementById('fazEntrega').checked,
     horarios: horarios,
-    filialId: id
+    filialId: id,
+    nomeOriginal: nomeOriginal // PRESERVA O NOME ORIGINAL
   };
 
   const dadosGerais = {
-    nome: document.getElementById('nome').value.trim() || 'Sem nome',
+    nome: nomeOriginal,
     descricao: document.getElementById('descricao').value.trim(),
     tags: tagsArray,
     anuncio: {
@@ -358,14 +361,20 @@ async function atualizarLoja() {
         await db.collection('propostas').doc(id).delete();
       }
 
-      alert('Loja transformada em filial com sucesso! (documento excluído)');
+      alert('Loja transformada em filial com sucesso! (nome original preservado)');
     } else {
       const lojaRef = db.collection('users').doc(id);
 
       if (isProposta) {
         await lojaRef.set({
           ...dadosGerais,
-          filiais: [novaFilial],
+          filiais: [{
+            bairro: bairro,
+            endereco: endereco || null,
+            whatsapp: { numero: numeroWhats, principal: true },
+            fazEntrega: document.getElementById('fazEntrega').checked,
+            horarios: horarios
+          }],
           temFiliais: false,
           clicks: 0,
           criadoEm: firebase.firestore.FieldValue.serverTimestamp()
@@ -377,7 +386,13 @@ async function atualizarLoja() {
       } else {
         await lojaRef.update({
           ...dadosGerais,
-          filiais: [novaFilial]
+          filiais: [{
+            bairro: bairro,
+            endereco: endereco || null,
+            whatsapp: { numero: numeroWhats, principal: true },
+            fazEntrega: document.getElementById('fazEntrega').checked,
+            horarios: horarios
+          }]
         });
 
         alert('Loja atualizada com sucesso!');
