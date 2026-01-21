@@ -92,7 +92,6 @@ async function excluirFilial(filialObj, filialId) {
   try {
     const lojaAtualId = document.getElementById('lojaId').value;
 
-    // Remove do array de filiais da mãe
     await db.collection('users').doc(lojaAtualId).update({
       filiais: firebase.firestore.FieldValue.arrayRemove(filialObj)
     });
@@ -192,7 +191,6 @@ async function carregarParaEdicao(item) {
     document.getElementById('filialAtiva').classList.add('hidden');
   }
 
-  // Carrega dados da primeira filial (ou cria nova)
   const filial = item.filiais?.[0] || {};
   const horarios = filial.horarios || {};
 
@@ -202,13 +200,13 @@ async function carregarParaEdicao(item) {
   document.getElementById('fazEntrega').checked = filial.fazEntrega === true;
 
   // Lista de filiais (se for loja mãe)
+  const existente = document.getElementById('filiaisLista');
+  if (existente && existente.parentNode) existente.parentNode.removeChild(existente);
+
   const filiaisLista = document.createElement('div');
   filiaisLista.id = 'filiaisLista';
   filiaisLista.className = 'item-list';
   filiaisLista.style.marginTop = '24px';
-
-  const existente = document.getElementById('filiaisLista');
-  if (existente && existente.parentNode) existente.parentNode.removeChild(existente);
 
   if (item.filiais && item.filiais.length > 0 && !ehFilial) {
     filiaisLista.innerHTML = '<h3 style="font-size:1.1rem; margin-bottom:16px; font-weight:600;">Filiais desta loja</h3>';
@@ -273,7 +271,7 @@ async function carregarParaEdicao(item) {
   document.getElementById('formAtualizacao').scrollIntoView({ behavior: 'smooth' });
 }
 
-// Salva as alterações (CORRIGIDO: verifica se o switch existe antes de ler)
+// Salva as alterações (VERSÃO FINAL CORRIGIDA)
 async function atualizarLoja() {
   const id = document.getElementById('lojaId').value;
   const colecao = document.getElementById('colecaoOrigem').value;
@@ -353,66 +351,94 @@ async function atualizarLoja() {
     }
   };
 
-  // CORREÇÃO AQUI: verifica se o switch existe antes de acessar .checked
   const switchElement = document.getElementById('lojaFilialSwitch');
   const ehFilialAgora = switchElement ? switchElement.checked : false;
 
   try {
     if (ehFilialAgora) {
-      if (!lojaMaeSelecionada) {
-        return alert('Selecione uma loja principal (mãe).');
+      if (!lojaMaeSelecionada || !lojaMaeSelecionada.id) {
+        return alert('Selecione uma loja principal (mãe) válida.');
       }
 
-      await db.collection('users').doc(lojaMaeSelecionada.id).update({
+      const maeDoc = await db.collection('users').doc(lojaMaeSelecionada.id).get();
+      if (!maeDoc.exists) {
+        limparSelecaoMae();
+        return alert('A loja principal selecionada não existe mais. Por favor, selecione outra.');
+      }
+
+      const batch = db.batch();
+
+      batch.update(db.collection('users').doc(lojaMaeSelecionada.id), {
         filiais: firebase.firestore.FieldValue.arrayUnion(novaFilial)
       });
 
-      await db.collection('users').doc(id).update({
+      const lojaRef = db.collection('users').doc(id);
+      batch.set(lojaRef, {
         ...dadosGerais,
         lojaFilial: true,
         maeId: lojaMaeSelecionada.id,
         anuncio: { ...dadosGerais.anuncio, postagem: false },
         filiais: []
-      });
+      }, { merge: true });
 
+      if (isProposta) {
+        batch.delete(db.collection('propostas').doc(id));
+      }
+
+      await batch.commit();
       alert('Loja transformada em filial com sucesso!');
     } else {
-      const doc = await db.collection('users').doc(id).get();
-      const dataAtual = doc.data();
+      const lojaRef = db.collection('users').doc(id);
 
-      if (dataAtual && dataAtual.lojaFilial && dataAtual.maeId) {
-        const filialObjAntigo = (dataAtual.filiais && dataAtual.filiais[0]) ? dataAtual.filiais[0] : novaFilial;
-        filialObjAntigo.filialId = id;
-
-        await db.collection('users').doc(dataAtual.maeId).update({
-          filiais: firebase.firestore.FieldValue.arrayRemove(filialObjAntigo)
+      if (isProposta) {
+        await lojaRef.set({
+          ...dadosGerais,
+          filiais: [novaFilial],
+          temFiliais: false,
+          clicks: 0,
+          criadoEm: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        await db.collection('users').doc(id).update({
+        await db.collection('propostas').doc(id).delete();
+        alert('Nova loja criada com sucesso a partir da proposta!');
+        carregarPropostas();
+      } else {
+        const doc = await lojaRef.get();
+        if (!doc.exists) {
+          alert('Esta loja não existe mais no banco de dados.');
+          cancelarEdicao();
+          return;
+        }
+
+        if (doc.data().lojaFilial && doc.data().maeId) {
+          const maeDoc = await db.collection('users').doc(doc.data().maeId).get();
+          if (maeDoc.exists) {
+            const filialObjAntigo = doc.data().filiais?.[0] || novaFilial;
+            filialObjAntigo.filialId = id;
+
+            await db.collection('users').doc(doc.data().maeId).update({
+              filiais: firebase.firestore.FieldValue.arrayRemove(filialObjAntigo)
+            });
+          }
+        }
+
+        await lojaRef.update({
+          ...dadosGerais,
+          filiais: [novaFilial],
           lojaFilial: firebase.firestore.FieldValue.delete(),
           maeId: firebase.firestore.FieldValue.delete(),
           anuncio: { ...dadosGerais.anuncio, postagem: true }
         });
+
+        alert('Loja atualizada com sucesso!');
       }
-
-      await db.collection('users').doc(id).update({
-        ...dadosGerais,
-        filiais: [novaFilial]
-      });
-
-      alert('Loja atualizada com sucesso!');
-    }
-
-    if (isProposta) {
-      await db.collection('propostas').doc(id).delete();
-      carregarPropostas();
     }
 
     cancelarEdicao();
     carregarDesativados();
   } catch (error) {
     console.error('Erro ao salvar:', error);
-    alert('Erro: ' + error.message);
+    alert('Erro ao salvar: ' + error.message);
   }
 }
 
