@@ -341,6 +341,11 @@ input[maxlength="5"] {
   text-align: center;
 }
 
+/* ESTILOS PARA A NOVA SEÇÃO DE FILIAL */
+.filial-opcao {
+  padding: 16px 0;
+}
+
 /* RESPONSIVO */
 @media (min-width: 640px) {
   body { padding: 24px; }

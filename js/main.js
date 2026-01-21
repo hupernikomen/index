@@ -1,5 +1,124 @@
 // js/main.js
 
+// Variáveis globais para gerenciar a seleção da loja mãe
+let lojaMaeSelecionada = null; // { id, nome }
+
+// Inicia o modo filial (mostra o switch quando clica no botão)
+function iniciarModoFilial() {
+  document.getElementById('filialIniciar').classList.add('hidden');
+  document.getElementById('filialAtiva').classList.remove('hidden');
+  document.getElementById('lojaFilialSwitch').checked = false;
+  toggleModoFilial(false);
+}
+
+// Toggle do switch "Esta loja é uma filial"
+function toggleModoFilial(checked) {
+  const conteudo = document.getElementById('filialConteudo');
+  if (checked) {
+    conteudo.classList.remove('hidden');
+  } else {
+    conteudo.classList.add('hidden');
+    limparSelecaoMae();
+  }
+}
+
+// Busca lojas principais (mãe) pelo nome
+async function buscarLojaMae() {
+  const termo = document.getElementById('buscaLojaMae').value.trim().toLowerCase();
+  if (!termo) {
+    alert('Digite o nome da loja principal');
+    return;
+  }
+
+  const resultadoDiv = document.getElementById('resultadoLojaMae');
+  resultadoDiv.innerHTML = '<p style="text-align:center;">Buscando...</p>';
+
+  try {
+    const snapshot = await db.collection('users').get();
+    resultadoDiv.innerHTML = '';
+    let encontrou = false;
+
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      if (data.nome && data.nome.toLowerCase().includes(termo)) {
+        encontrou = true;
+        const item = document.createElement('div');
+        item.className = 'item';
+        item.innerHTML = `
+          <div class="item-info">
+            <h4>${data.nome}</h4>
+            <small>${data.filiais ? data.filiais.length + ' filial(is)' : 'Sem filiais'}</small>
+          </div>
+        `;
+        item.onclick = () => selecionarLojaMae({ id: doc.id, nome: data.nome });
+        resultadoDiv.appendChild(item);
+      }
+    });
+
+    if (!encontrou) {
+      resultadoDiv.innerHTML = '<p style="text-align:center;">Nenhuma loja encontrada.</p>';
+    }
+  } catch (error) {
+    resultadoDiv.innerHTML = '<p style="color:red;">Erro na busca.</p>';
+    console.error("Erro em buscarLojaMae:", error);
+  }
+}
+
+// Seleciona a loja mãe
+function selecionarLojaMae(item) {
+  lojaMaeSelecionada = item;
+  document.getElementById('nomeLojaMae').textContent = item.nome;
+  document.getElementById('infoLojaMaeSelecionada').classList.remove('hidden');
+  document.getElementById('resultadoLojaMae').innerHTML = '';
+  document.getElementById('buscaLojaMae').value = '';
+}
+
+// Limpa a seleção da loja mãe
+function limparSelecaoMae() {
+  lojaMaeSelecionada = null;
+  document.getElementById('infoLojaMaeSelecionada').classList.add('hidden');
+  document.getElementById('resultadoLojaMae').innerHTML = '';
+  document.getElementById('buscaLojaMae').value = '';
+}
+
+// Exclui uma filial específica da loja mãe
+async function excluirFilial(filialObj, filialId) {
+  if (!confirm("Deseja remover esta filial da loja principal?")) {
+    return;
+  }
+
+  const reativar = confirm("Após remover, deseja reativar a loja como independente no app?\n\nOK = Reativar\nCancelar = Manter inativa");
+
+  try {
+    const lojaAtualId = document.getElementById('lojaId').value;
+
+    // Remove do array de filiais da mãe
+    await db.collection('users').doc(lojaAtualId).update({
+      filiais: firebase.firestore.FieldValue.arrayRemove(filialObj)
+    });
+
+    if (filialId) {
+      // Atualiza a loja filha
+      const updates = {
+        lojaFilial: firebase.firestore.FieldValue.delete(),
+        maeId: firebase.firestore.FieldValue.delete()
+      };
+
+      if (reativar) {
+        updates['anuncio.postagem'] = true;
+      }
+
+      await db.collection('users').doc(filialId).update(updates);
+    }
+
+    alert('Filial removida com sucesso!');
+    carregarParaEdicao({ id: lojaAtualId, ... (await db.collection('users').doc(lojaAtualId).get()).data() });
+  } catch (error) {
+    console.error("Erro ao excluir filial:", error);
+    alert('Erro: ' + error.message);
+  }
+}
+
 // Toggle principal: Não informa horário
 function toggleHorariosGerais() {
   const naoInforma = document.getElementById('naoInformaHorario').checked;
@@ -7,7 +126,6 @@ function toggleHorariosGerais() {
 
   if (naoInforma) {
     container.classList.add('disabled');
-    // Limpa todos os campos de horário
     document.querySelectorAll('#containerHorarios input[type=text]').forEach(i => i.value = '');
     document.querySelectorAll('#containerHorarios input[type=checkbox]:not(#naoInformaHorario)').forEach(i => i.checked = false);
     document.querySelectorAll('.sub-campos').forEach(el => el.classList.add('hidden'));
@@ -35,7 +153,7 @@ function toggleDiaIndividual(dia) {
 }
 
 // Carrega dados no formulário de edição
-function carregarParaEdicao(item) {
+async function carregarParaEdicao(item) {
   document.getElementById('formAtualizacao').classList.remove('hidden');
   document.getElementById('nomeLojaAtual').textContent = item.nome || 'Sem nome';
   document.getElementById('fonteItem').textContent = item._colecao === 'propostas' ? '(Proposta)' : '(Loja)';
@@ -50,6 +168,31 @@ function carregarParaEdicao(item) {
   document.getElementById('anuncioPostagem').checked = item.anuncio?.postagem !== false;
   document.getElementById('anuncioPremium').checked = item.anuncio?.premium === true;
 
+  // Limpa seção de filial
+  lojaMaeSelecionada = null;
+  limparSelecaoMae();
+
+  const ehFilial = item.lojaFilial === true;
+
+  if (ehFilial && item.maeId) {
+    document.getElementById('filialIniciar').classList.add('hidden');
+    document.getElementById('filialAtiva').classList.remove('hidden');
+    document.getElementById('lojaFilialSwitch').checked = true;
+    toggleModoFilial(true);
+
+    const maeDoc = await db.collection('users').doc(item.maeId).get();
+    if (maeDoc.exists) {
+      const maeData = maeDoc.data();
+      document.getElementById('nomeLojaMae').textContent = maeData.nome || 'Loja principal';
+      document.getElementById('infoLojaMaeSelecionada').classList.remove('hidden');
+      lojaMaeSelecionada = { id: item.maeId, nome: maeData.nome };
+    }
+  } else {
+    document.getElementById('filialIniciar').classList.remove('hidden');
+    document.getElementById('filialAtiva').classList.add('hidden');
+  }
+
+  // Carrega dados da primeira filial (ou cria nova)
   const filial = item.filiais?.[0] || {};
   const horarios = filial.horarios || {};
 
@@ -58,20 +201,52 @@ function carregarParaEdicao(item) {
   document.getElementById('whatsapp').value = filial.whatsapp?.numero || '';
   document.getElementById('fazEntrega').checked = filial.fazEntrega === true;
 
-  // === Horários ===
+  // Lista de filiais (se for loja mãe)
+  const filiaisLista = document.getElementById('filiaisLista') || document.createElement('div');
+  filiaisLista.id = 'filiaisLista';
+  filiaisLista.className = 'item-list';
+  filiaisLista.style.marginTop = '24px';
+
+  // Remove lista anterior se existir
+  const existente = document.getElementById('filiaisLista');
+  if (existente && existente.parentNode) existente.parentNode.removeChild(existente);
+
+  if (item.filiais && item.filiais.length > 0 && !ehFilial) {
+    filiaisLista.innerHTML = '<h3 style="font-size:1.1rem; margin-bottom:16px;">Filiais desta loja</h3>';
+    item.filiais.forEach(filialItem => {
+      const filialId = filialItem.filialId || null;
+      const bairro = filialItem.bairro || 'Sem bairro';
+      const whatsapp = filialItem.whatsapp?.numero || 'Sem WhatsApp';
+
+      const itemEl = document.createElement('div');
+      itemEl.className = 'item';
+      itemEl.innerHTML = `
+        <div class="item-info">
+          <h4>${bairro}</h4>
+          <small>Whats: ${whatsapp}</small>
+        </div>
+        <button class="btn btn-secondary btn-small" onclick="excluirFilial(${JSON.stringify(filialItem)}, '${filialId}')">
+          Excluir filial
+        </button>
+      `;
+      filiaisLista.appendChild(itemEl);
+    });
+
+    document.querySelector('#formLoja .form-actions').before(filiaisLista);
+  }
+
+  // Horários (mesma lógica anterior)
   const naoInforma = !horarios.informar || horarios.informar === undefined;
   document.getElementById('naoInformaHorario').checked = naoInforma;
   toggleHorariosGerais();
 
   if (!naoInforma) {
-    // Intervalo global
     const intervaloGlobal = horarios.intervaloGlobal || {};
     document.getElementById('intervaloGlobalAtivo').checked = intervaloGlobal.ativo === true;
     document.getElementById('intervaloGlobalInicio').value = intervaloGlobal.inicio || '';
     document.getElementById('intervaloGlobalRetorno').value = intervaloGlobal.retorno || '';
     toggleIntervaloGlobal();
 
-    // Segunda a Sexta
     const segSex = horarios.segSex || {};
     document.getElementById('segSexAtivo').checked = segSex.ativo === true;
     document.getElementById('segSexAbre').value = segSex.abre || '';
@@ -83,14 +258,12 @@ function carregarParaEdicao(item) {
       cb.checked = diasAtivos.includes(cb.value);
     });
 
-    // Sábado
     const sabado = horarios.sabado || {};
     document.getElementById('sabadoAtivo').checked = sabado.ativo === true;
     document.getElementById('sabadoAbre').value = sabado.abre || '';
     document.getElementById('sabadoFecha').value = sabado.fecha || '';
     toggleDiaIndividual('sabado');
 
-    // Domingo
     const domingo = horarios.domingo || {};
     document.getElementById('domingoAtivo').checked = domingo.ativo === true;
     document.getElementById('domingoAbre').value = domingo.abre || '';
@@ -101,7 +274,7 @@ function carregarParaEdicao(item) {
   document.getElementById('formAtualizacao').scrollIntoView({ behavior: 'smooth' });
 }
 
-// Salva as alterações
+// Salva as alterações (com lógica de filial)
 async function atualizarLoja() {
   const id = document.getElementById('lojaId').value;
   const colecao = document.getElementById('colecaoOrigem').value;
@@ -162,11 +335,12 @@ async function atualizarLoja() {
   }
 
   const novaFilial = {
-    whatsapp: { numero: numeroWhats, principal: true },
     bairro: bairro,
     endereco: endereco || null,
+    whatsapp: { numero: numeroWhats, principal: true },
     fazEntrega: document.getElementById('fazEntrega').checked,
-    horarios: horarios
+    horarios: horarios,
+    filialId: id
   };
 
   const dadosGerais = {
@@ -180,29 +354,56 @@ async function atualizarLoja() {
     }
   };
 
+  const ehFilialAgora = document.getElementById('lojaFilialSwitch') ? document.getElementById('lojaFilialSwitch').checked : false;
+
   try {
-    if (!isProposta) {
+    if (ehFilialAgora) {
+      if (!lojaMaeSelecionada) {
+        return alert('Selecione uma loja principal (mãe).');
+      }
+
+      await db.collection('users').doc(lojaMaeSelecionada.id).update({
+        filiais: firebase.firestore.FieldValue.arrayUnion(novaFilial)
+      });
+
+      await db.collection('users').doc(id).update({
+        ...dadosGerais,
+        lojaFilial: true,
+        maeId: lojaMaeSelecionada.id,
+        anuncio: { ...dadosGerais.anuncio, postagem: false },
+        filiais: []
+      });
+
+      alert('Loja transformada em filial com sucesso!');
+    } else {
+      const doc = await db.collection('users').doc(id).get();
+      const dataAtual = doc.data();
+
+      if (dataAtual.lojaFilial && dataAtual.maeId) {
+        const filialObjAntigo = dataAtual.filiais?.[0] || novaFilial;
+        filialObjAntigo.filialId = id;
+
+        await db.collection('users').doc(dataAtual.maeId).update({
+          filiais: firebase.firestore.FieldValue.arrayRemove(filialObjAntigo)
+        });
+
+        await db.collection('users').doc(id).update({
+          lojaFilial: firebase.firestore.FieldValue.delete(),
+          maeId: firebase.firestore.FieldValue.delete(),
+          anuncio: { ...dadosGerais.anuncio, postagem: true }
+        });
+      }
+
       await db.collection('users').doc(id).update({
         ...dadosGerais,
         filiais: [novaFilial]
       });
+
       alert('Loja atualizada com sucesso!');
-    } else {
-      const batch = db.batch();
-      const novaLojaRef = db.collection('users').doc(id);
+    }
 
-      batch.set(novaLojaRef, {
-        ...dadosGerais,
-        filiais: [novaFilial],
-        temFiliais: false,
-        clicks: 0,
-        criadoEm: firebase.firestore.FieldValue.serverTimestamp()
-      });
-
-      batch.delete(db.collection('propostas').doc(id));
-
-      await batch.commit();
-      alert('Nova loja criada com sucesso a partir da proposta!');
+    if (isProposta) {
+      await db.collection('propostas').doc(id).delete();
       carregarPropostas();
     }
 
@@ -219,9 +420,16 @@ function cancelarEdicao() {
   document.getElementById('formAtualizacao').classList.add('hidden');
   document.getElementById('resultado').innerHTML = '';
   document.getElementById('formLoja').reset();
+  lojaMaeSelecionada = null;
 }
 
 // Expõe funções globalmente
+window.iniciarModoFilial = iniciarModoFilial;
+window.toggleModoFilial = toggleModoFilial;
+window.buscarLojaMae = buscarLojaMae;
+window.selecionarLojaMae = selecionarLojaMae;
+window.limparSelecaoMae = limparSelecaoMae;
+window.excluirFilial = excluirFilial;
 window.toggleHorariosGerais = toggleHorariosGerais;
 window.toggleIntervaloGlobal = toggleIntervaloGlobal;
 window.toggleSegSex = toggleSegSex;
