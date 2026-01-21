@@ -81,13 +81,13 @@ function limparSelecaoMae() {
   document.getElementById('buscaLojaMae').value = '';
 }
 
-// Exclui uma filial específica da loja mãe (CORRIGIDO PARA ATUALIZAR A TELA)
+// Exclui uma filial específica da loja mãe (CORRIGIDO: reativa corretamente "Visível no app")
 async function excluirFilial(filialObj, filialId) {
   if (!confirm("Deseja remover esta filial da loja principal?")) {
     return;
   }
 
-  const reativar = confirm("Após remover, deseja reativar a loja como independente no app?\n\nOK = Reativar\nCancelar = Manter inativa");
+  const reativar = confirm("Após remover, deseja reativar a loja como independente no app?\n\nOK = Reativar (visível no app)\nCancelar = Manter inativa");
 
   try {
     const lojaAtualId = document.getElementById('lojaId').value;
@@ -103,16 +103,18 @@ async function excluirFilial(filialObj, filialId) {
         maeId: firebase.firestore.FieldValue.delete()
       };
 
+      // CORREÇÃO AQUI: reativa "Visível no app" se o usuário escolher OK
       if (reativar) {
         updates['anuncio.postagem'] = true;
       }
+      // Se não reativar, não altera (continua false)
 
       await db.collection('users').doc(filialId).update(updates);
     }
 
-    alert('Filial removida com sucesso!');
+    alert('Filial removida com sucesso!' + (reativar ? ' A loja foi reativada no app.' : ' A loja permanece inativa.'));
 
-    // RECARREGA A EDIÇÃO DA LOJA MÃE PARA ATUALIZAR A LISTA DE FILIAIS
+    // Recarrega a edição da loja mãe para atualizar a lista visualmente
     const updatedDoc = await db.collection('users').doc(lojaAtualId).get();
     if (updatedDoc.exists) {
       carregarParaEdicao({ id: lojaAtualId, ...updatedDoc.data(), _colecao: 'users' });
