@@ -1,16 +1,15 @@
 // js/main.js
 
-// Variável global para a loja mãe selecionada
 let lojaMaeSelecionada = null;
 
-// Inicia o modo de transformar em filial
+// Inicia o modo filial
 function iniciarModoFilial() {
   document.getElementById('filialIniciar').classList.add('hidden');
   document.getElementById('filialAtiva').classList.remove('hidden');
   limparSelecaoMae();
 }
 
-// Busca loja mãe pelo nome
+// Busca loja mãe
 async function buscarLojaMae() {
   const termo = document.getElementById('buscaLojaMae').value.trim().toLowerCase();
   if (!termo) {
@@ -52,7 +51,7 @@ async function buscarLojaMae() {
   }
 }
 
-// Seleciona a loja mãe
+// Seleciona loja mãe
 function selecionarLojaMae(item) {
   lojaMaeSelecionada = item;
   document.getElementById('nomeLojaMae').textContent = item.nome;
@@ -61,7 +60,7 @@ function selecionarLojaMae(item) {
   document.getElementById('buscaLojaMae').value = '';
 }
 
-// Limpa a seleção da loja mãe
+// Limpa seleção da mãe
 function limparSelecaoMae() {
   lojaMaeSelecionada = null;
   document.getElementById('infoLojaMaeSelecionada').classList.add('hidden');
@@ -69,7 +68,7 @@ function limparSelecaoMae() {
   document.getElementById('buscaLojaMae').value = '';
 }
 
-// Exclui uma filial da loja mãe e recria como loja independente
+// Exclui filial da mãe e recria como independente (CORRIGIDO E FUNCIONANDO)
 async function excluirFilial(filialObj, filialId) {
   if (!confirm("Deseja remover esta filial da loja principal?")) {
     return;
@@ -80,13 +79,17 @@ async function excluirFilial(filialObj, filialId) {
   try {
     const lojaMaeId = document.getElementById('lojaId').value;
 
-    // Remove o objeto da filial do array da mãe
+    // Remove do array de filiais da mãe
     await db.collection('users').doc(lojaMaeId).update({
       filiais: firebase.firestore.FieldValue.arrayRemove(filialObj)
     });
 
-    // Busca os dados gerais da mãe
+    // Busca dados da mãe para herdar nome, tags, etc.
     const maeDoc = await db.collection('users').doc(lojaMaeId).get();
+    if (!maeDoc.exists) {
+      alert('Erro: Loja principal não encontrada.');
+      return;
+    }
     const maeData = maeDoc.data();
 
     // Recria a loja filha como independente
@@ -96,7 +99,7 @@ async function excluirFilial(filialObj, filialId) {
       tags: maeData.tags || [],
       anuncio: {
         busca: maeData.anuncio?.busca || false,
-        postagem: reativar, // Respeita a escolha do usuário
+        postagem: reativar,
         premium: maeData.anuncio?.premium || false
       },
       filiais: [filialObj],
@@ -105,14 +108,15 @@ async function excluirFilial(filialObj, filialId) {
       criadoEm: firebase.firestore.FieldValue.serverTimestamp()
     };
 
-    // Cria o novo documento para a loja filha
     await db.collection('users').doc(filialId).set(novaLojaData);
 
-    alert('Filial removida da loja principal e recriada como loja independente com sucesso!');
+    alert('Filial removida com sucesso e recriada como loja independente!' + (reativar ? ' (visível no app)' : ' (inativa)'));
 
-    // Recarrega a edição da loja mãe para atualizar a lista de filiais
+    // Recarrega a edição da loja mãe para atualizar a lista
     const updatedDoc = await db.collection('users').doc(lojaMaeId).get();
-    carregarParaEdicao({ id: lojaMaeId, ...updatedDoc.data(), _colecao: 'users' });
+    if (updatedDoc.exists) {
+      carregarParaEdicao({ id: lojaMaeId, ...updatedDoc.data(), _colecao: 'users' });
+    }
   } catch (error) {
     console.error("Erro ao excluir filial:", error);
     alert('Erro: ' + error.message);
@@ -204,7 +208,7 @@ async function carregarParaEdicao(item) {
           <h4>${bairro}</h4>
           <small>Whats: ${whatsapp}</small>
         </div>
-        <button class="btn btn-secondary btn-small" onclick="excluirFilial(${JSON.stringify(filialItem).replace(/'/g, "\\'")}, '${filialId || ''}')">
+        <button class="btn btn-secondary btn-small" onclick='excluirFilial(${JSON.stringify(filialItem).replace(/'/g, "\\'")}, "${filialId || ''}")'>
           Excluir filial
         </button>
       `;
@@ -335,7 +339,6 @@ async function atualizarLoja() {
 
   try {
     if (lojaMaeSelecionada) {
-      // TRANSFORMA EM FILIAL
       if (!confirm("Confirmar: esta loja será excluída e seus dados locais serão vinculados à loja principal?")) {
         return;
       }
@@ -345,12 +348,10 @@ async function atualizarLoja() {
         return alert('Loja principal não encontrada.');
       }
 
-      // Adiciona os dados locais na mãe
       await db.collection('users').doc(lojaMaeSelecionada.id).update({
         filiais: firebase.firestore.FieldValue.arrayUnion(novaFilial)
       });
 
-      // Exclui o documento da loja filha
       await db.collection('users').doc(id).delete();
 
       if (isProposta) {
@@ -359,7 +360,6 @@ async function atualizarLoja() {
 
       alert('Loja transformada em filial com sucesso! (documento excluído)');
     } else {
-      // SALVA COMO LOJA NORMAL
       const lojaRef = db.collection('users').doc(id);
 
       if (isProposta) {
